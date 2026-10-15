@@ -1,6 +1,6 @@
 # ARCHITECTURE — 탄생 마켓플레이스
 
-> M2 시점 기준. 실제 구현이 진행될수록 갱신한다.
+> M3(진행 중) 시점 기준. 실제 구현이 진행될수록 갱신한다.
 
 ## 1. 경계 원칙
 
@@ -31,7 +31,7 @@ UI (Buyer / Seller / Admin, 반응형 + PWA)
 - 서버 액션(`src/server/**/actions.ts`) 내부에서도 `getSession()`으로 재검증한다(화면 라우팅 보호와 별개로
   API/서버 단 권한 검사를 중복 적용 — 문서 2장 RBAC 원칙).
 
-## 4. 현재 구현 상태 (M2)
+## 4. 현재 구현 상태 (M3 진행 중)
 
 - 로그인/회원가입/로그아웃, RBAC 라우트 보호 — 동작함(Playwright E2E로 검증).
 - 카테고리/상품 목록·상세 — 실제 Prisma 쿼리로 렌더링.
@@ -47,8 +47,15 @@ UI (Buyer / Seller / Admin, 반응형 + PWA)
   위장 파일(HTML/SVG 등)을 거부하고, 사진은 `sharp`로 재인코딩하며 이 과정에서 EXIF 등
   메타데이터가 자동 제거된다. 저장 위치는 `public/uploads/products/{productId}/`(로컬
   전용, git에 커밋되지 않음 — M2 ARCHITECTURE §6 참고). 대표사진 지정/삭제 지원.
+- **배송상태 전이 + 후기**: 판매자가 Suborder 상태를 준비중→배송중→배송완료로 전진시킬 수 있고,
+  배송완료된 주문 항목에 한해 구매자가 후기(별점+코멘트)를 작성, 상품 상세페이지에 노출 —
+  전부 동작함(E2E로 검증).
+- **PWA 기본 설치 지원**: `public/manifest.webmanifest` + 아이콘(192/512) + 최소 서비스 워커
+  (`public/sw.js` — 페이지 이동 요청이 네트워크 실패했을 때만 `offline.html`로 폴백, 그 외
+  API/정적자산/개인화 데이터는 전혀 캐시하지 않음).
 - 배송비/쿠폰/재고 예약 타이머/가격 단계(tiers) — **미구현**.
 - 미디어 CDN/별도 객체 스토리지(MinIO 등) — **미구현**, 현재는 Next.js `/public` 정적 서빙.
+- 반품/분쟁 티켓, 광고, 배너/공지 CMS — **미구현** (M3 다음 단계).
 
 ## 5. 저장소 구조
 
@@ -57,7 +64,8 @@ tansaeng-marketplace/
   src/app/                 라우트 (buyer, seller, admin, auth)
   src/components/          공통 UI(layout, catalog)
   src/features/            도메인별 기능 모듈 (추후)
-  src/server/              auth, catalog, seller, admin, cart, orders, groupbuy, media — 서버 전용 쿼리/액션
+  src/server/              auth, catalog, seller, admin, cart, orders, groupbuy, media, reviews — 서버 전용 쿼리/액션
+  src/components/pwa/      서비스 워커 등록 컴포넌트
   src/lib/                 공통 유틸(auth 토큰, currency, slug)
   src/proxy.ts             RBAC 라우트 보호
   prisma/                  schema.prisma(SQLite), seed.ts

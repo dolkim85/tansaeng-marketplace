@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,6 +16,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "탄생 | TANSAENG",
   description: "산지 직거래·공동구매 플랫폼 탄생 (로컬 개발 중)",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/icon-192.png",
+  },
+};
+
+export const viewport = {
+  themeColor: "#176B4A",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -24,6 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <ServiceWorkerRegister />
         {children}
       </body>
     </html>

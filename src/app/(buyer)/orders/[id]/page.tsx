@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/server/session";
 import { getOrderDetail } from "@/server/orders/queries";
 import { cancelOrderAction, confirmMockPaymentAction } from "@/server/orders/actions";
@@ -31,6 +32,9 @@ export default async function OrderDetailPage({
   const canConfirmPayment =
     order.status === "CREATED" && order.payment?.status === "PENDING";
   const canCancel = order.status !== "CANCELLED";
+  const hasCompletedSuborder = order.suborders.some(
+    (sub) => sub.status === "COMPLETED"
+  );
 
   return (
     <section className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
@@ -107,6 +111,14 @@ export default async function OrderDetailPage({
               주문 취소
             </button>
           </form>
+        )}
+        {hasCompletedSuborder && (
+          <Link
+            href="/reviews"
+            className="rounded-md border border-brand-green/30 px-4 py-2 text-sm font-semibold text-brand-deepgreen hover:bg-brand-green/10"
+          >
+            후기 작성하기
+          </Link>
         )}
       </div>
     </section>

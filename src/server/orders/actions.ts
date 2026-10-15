@@ -134,6 +134,37 @@ export async function confirmMockPaymentAction(orderId: string): Promise<void> {
   revalidatePath("/orders");
 }
 
+const NEXT_SUBORDER_STATUS: Record<string, string | undefined> = {
+  PENDING: "PREPARING",
+  PREPARING: "SHIPPED",
+  SHIPPED: "COMPLETED",
+};
+
+export async function advanceSuborderStatusAction(
+  suborderId: string
+): Promise<void> {
+  const session = await getSession();
+  if (!session) redirect("/auth/login");
+
+  const suborder = await prisma.suborder.findUnique({
+    where: { id: suborderId },
+    include: { seller: true, order: true },
+  });
+  if (!suborder || suborder.seller.userId !== session.sub) return;
+
+  const next = NEXT_SUBORDER_STATUS[suborder.status];
+  if (!next || suborder.order.status !== "PAID") return;
+
+  await prisma.suborder.update({
+    where: { id: suborderId },
+    data: { status: next as "PREPARING" | "SHIPPED" | "COMPLETED" },
+  });
+
+  revalidatePath("/seller/orders");
+  revalidatePath(`/orders/${suborder.orderId}`);
+  revalidatePath("/orders");
+}
+
 export async function cancelOrderAction(orderId: string): Promise<void> {
   const session = await getSession();
   if (!session) redirect("/auth/login");

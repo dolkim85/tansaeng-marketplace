@@ -1,0 +1,25 @@
+{
+  "name": "탄생 — 산지 직거래 공동구매",
+  "short_name": "탄생",
+  "description": "산지 직거래·공동구매 플랫폼 탄생 (TANSAENG)",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F2F5ED",
+  "theme_color": "#176B4A",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

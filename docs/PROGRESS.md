@@ -261,3 +261,45 @@ PWA 설치) 또는 사용자가 원하는 특정 기능(상품 사진 업로드 
 **환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** M3(관리자 운영 고도화) 또는 사용자 지정 우선순위로 계속 진행.
+
+---
+
+## M3 — 배송상태/리뷰/PWA (2026-10-16, 진행 중)
+
+**완료 기능:**
+- `Review` 모델 추가(`OrderItem` 1건당 1개, `@@unique(orderItemId)`)
+- `advanceSuborderStatusAction`: 판매자가 `/seller/orders`에서 배송상태를 한 단계씩
+  전진(접수대기→준비중→배송중→배송완료), 결제완료(`Order.status=PAID`) 전에는 버튼 비노출
+- `createReviewAction` + `/reviews` 페이지: 배송완료된 주문 항목만 작성 가능, 별점+코멘트,
+  상품 상세페이지에 평균 평점과 함께 노출, 판매자 답변 필드는 스키마만 준비(UI는 다음 단계)
+- `/orders/[id]`에 배송완료 시 "후기 작성하기" 링크 추가
+- PWA 기본기: `manifest.webmanifest`, 192/512 아이콘(추상 도형, 텍스트 없음), 최소 서비스
+  워커(`public/sw.js` — navigate 요청 실패 시에만 `offline.html` 폴백, 그 외 전혀 캐시 안 함),
+  루트 레이아웃에 매니페스트/아이콘/테마컬러 메타데이터 연결
+
+**미완료 기능과 이유:**
+- 판매자의 리뷰 답변 UI — 스키마(`sellerReply`)만 준비, 화면 미구현
+- 송장번호 실제 입력/택배사 연동 — 배송상태 라벨 전이만 구현, 송장 데이터 필드 없음
+- 광고, 배너/공지 CMS, 분쟁 티켓, 카테고리별 판매 허가, 대리등록 — 아직 M3 범위에서 미착수
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(43라우트), `eslint`(0 error), `vitest run`(15건) 전부 통과
+- Playwright E2E 신규 10건: 결제 전 후기 링크 비노출 → 배송상태 3단계 전이 → 배송완료 후
+  후기 작성 링크 노출 → 후기 작성 → 내 후기 목록/상품 상세 양쪽에 반영 → 평균 평점 계산 확인
+- `curl`로 `manifest.webmanifest`/`sw.js`/아이콘 200 응답 및 홈페이지 HTML에 매니페스트
+  링크 태그 포함 확인
+- M1(10건)·M2 장바구니(8건)·공동구매(10/11, 기존과 동일한 테스트 노이즈 1건) 전체 재실행 —
+  회귀 없음
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(Review 모델), `src/server/reviews/*`,
+`src/server/orders/actions.ts`(advanceSuborderStatusAction 추가), `src/app/seller/orders/page.tsx`,
+`src/app/(buyer)/reviews/{page,ReviewForm}.tsx`, `src/app/(buyer)/orders/[id]/page.tsx`,
+`src/app/(buyer)/products/[slug]/page.tsx`(리뷰 섹션), `public/manifest.webmanifest`, `public/sw.js`,
+`public/offline.html`, `public/icons/*.png`, `src/components/pwa/ServiceWorkerRegister.tsx`,
+`src/app/layout.tsx`, `docs/{ARCHITECTURE,PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 광고(Ads), 배너/공지 CMS, 분쟁 티켓 등 M3 나머지 항목 계속 진행.

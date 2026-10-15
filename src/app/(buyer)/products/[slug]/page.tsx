@@ -4,6 +4,7 @@ import Image from "next/image";
 import { getProductBySlug, isWishlisted } from "@/server/catalog/queries";
 import { toggleWishlistAction } from "@/server/catalog/actions";
 import { addToCartAction } from "@/server/cart/actions";
+import { listProductReviews } from "@/server/reviews/queries";
 import { getSession } from "@/server/session";
 import { formatKRW } from "@/lib/currency";
 
@@ -28,6 +29,7 @@ export default async function ProductDetailPage({
   const extraImages = product.media.filter(
     (m) => m.kind === "image" && m.id !== primaryImage?.id
   );
+  const { reviews, avgRating } = await listProductReviews(product.id);
 
   return (
     <section className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
@@ -122,8 +124,44 @@ export default async function ProductDetailPage({
         </p>
       )}
 
+      <h2 className="mt-8 flex items-center gap-2 text-base font-semibold text-brand-deepgreen">
+        후기 {reviews.length > 0 && `(평균 ${avgRating.toFixed(1)}점 · ${reviews.length}건)`}
+      </h2>
+      {reviews.length === 0 ? (
+        <p className="mt-2 text-sm text-brand-deepgreen/60">
+          아직 작성된 후기가 없습니다.
+        </p>
+      ) : (
+        <ul className="mt-2 space-y-2">
+          {reviews.map((r) => (
+            <li
+              key={r.id}
+              className="rounded-lg border border-brand-green/15 bg-white p-3 text-sm"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-brand-deepgreen">
+                  {r.user.name}
+                </span>
+                <span className="text-xs text-brand-orange">
+                  {"★".repeat(r.rating)}
+                  {"☆".repeat(5 - r.rating)}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-brand-deepgreen/70">
+                {r.comment}
+              </p>
+              {r.sellerReply && (
+                <p className="mt-1 rounded bg-brand-green/5 p-2 text-xs text-brand-deepgreen/60">
+                  판매자 답변: {r.sellerReply}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
       <div className="mt-8 rounded-lg border border-dashed border-brand-green/30 bg-white/60 p-4 text-xs text-brand-deepgreen/60">
-        M2 단계: 장바구니/주문/모의결제까지 연결됨. 리뷰/반품은 다음 단계에서 구현 예정.
+        M3 단계: 배송완료 후 후기 작성까지 연결됨. 반품/분쟁 처리는 다음 단계에서 구현 예정.
       </div>
     </section>
   );

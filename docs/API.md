@@ -31,6 +31,8 @@
 | `src/server/media/actions.ts` | `uploadProductMediaAction` | 사진/영상 업로드(매직바이트 검증, 사진은 sharp로 재인코딩해 EXIF 제거) | 로그인 + 본인 상품만 |
 | | `deleteProductMediaAction` | 미디어 삭제(DB+파일 모두 제거) | 로그인 + 본인 상품만 |
 | | `setPrimaryMediaAction` | 대표사진 지정(sortOrder 교체) | 로그인 + 본인 상품만 |
+| `src/server/orders/actions.ts` | `advanceSuborderStatusAction` | 배송상태 전진(PENDING→PREPARING→SHIPPED→COMPLETED) | 로그인 + 본인 Suborder만 |
+| `src/server/reviews/actions.ts` | `createReviewAction` | 배송완료 주문 항목에 후기 작성(1건당 1개) | 로그인 + 본인 주문만 |
 
 ## 읽기 전용 쿼리 (서버 컴포넌트에서 직접 호출)
 

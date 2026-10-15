@@ -93,6 +93,7 @@ model User {
   cart            Cart?
   orders          Order[]
   groupBuyAlerts  GroupBuyAlert[]
+  reviews         Review[]
 
   @@index([role])
 }
@@ -156,6 +157,7 @@ model Product {
   cartItems  CartItem[]
   orderItems OrderItem[]
   groupBuy   GroupBuy?
+  reviews    Review[]
 
   @@index([categoryId])
   @@index([sellerId])
@@ -264,6 +266,7 @@ model OrderItem {
   quantity         Int
   groupBuyId       String?
   groupBuy         GroupBuy? @relation(fields: [groupBuyId], references: [id])
+  review           Review?
 
   @@index([suborderId])
   @@index([groupBuyId])
@@ -315,4 +318,21 @@ model GroupBuyAlert {
 
   @@unique([userId, groupBuyId])
   @@index([groupBuyId])
+}
+
+/// 실제 구매 완료(Suborder.status=COMPLETED)한 주문 항목 1건당 리뷰 1개만 작성 가능(@@unique).
+model Review {
+  id          String    @id @default(cuid())
+  orderItemId String    @unique
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating      Int
+  comment     String
+  sellerReply String?
+  createdAt   DateTime  @default(now())
+
+  @@index([productId])
 }
