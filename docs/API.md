@@ -28,6 +28,9 @@
 | | `createGroupBuyAction` | 판매자가 자신의 상품으로 공동구매 등록 | SELLER + 본인 상품만 |
 | | `finalizeGroupBuyAction` | 마감 후 성사/미성사 확정, 미성사 시 자동 환불 | ADMIN 이상 |
 | | `cancelGroupBuyAction` | 공동구매 강제 취소 + 자동 환불 | ADMIN 이상 |
+| `src/server/media/actions.ts` | `uploadProductMediaAction` | 사진/영상 업로드(매직바이트 검증, 사진은 sharp로 재인코딩해 EXIF 제거) | 로그인 + 본인 상품만 |
+| | `deleteProductMediaAction` | 미디어 삭제(DB+파일 모두 제거) | 로그인 + 본인 상품만 |
+| | `setPrimaryMediaAction` | 대표사진 지정(sortOrder 교체) | 로그인 + 본인 상품만 |
 
 ## 읽기 전용 쿼리 (서버 컴포넌트에서 직접 호출)
 

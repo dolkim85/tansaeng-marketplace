@@ -40,7 +40,10 @@ export async function searchProducts(query: string) {
       status: "ON_SALE",
       title: { contains: query },
     },
-    include: { seller: true },
+    include: {
+      seller: true,
+      media: { orderBy: { sortOrder: "asc" }, take: 1 },
+    },
     orderBy: { createdAt: "desc" },
     take: 50,
   });
@@ -54,7 +57,10 @@ export async function getSellerStoreBySlug(slug: string) {
 
   const products = await prisma.product.findMany({
     where: { sellerId: seller.id, status: "ON_SALE" },
-    include: { seller: true },
+    include: {
+      seller: true,
+      media: { orderBy: { sortOrder: "asc" }, take: 1 },
+    },
     orderBy: { createdAt: "desc" },
   });
 

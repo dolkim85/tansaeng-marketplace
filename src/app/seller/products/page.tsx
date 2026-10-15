@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getSession } from "@/server/session";
 import { getSellerWithLatestApplication, listSellerProducts } from "@/server/seller/queries";
 import { formatKRW } from "@/lib/currency";
@@ -60,20 +61,35 @@ export default async function SellerProductsPage() {
       ) : (
         <ul className="mt-6 space-y-2">
           {products.map((p) => (
-            <li
-              key={p.id}
-              className="flex items-center justify-between rounded-lg border border-brand-green/15 bg-white p-3 text-sm"
-            >
-              <div>
-                <p className="font-medium text-brand-deepgreen">{p.title}</p>
-                <p className="text-xs text-brand-deepgreen/50">
-                  {p.category.name} · {formatKRW(p.priceKrw)} · 재고{" "}
-                  {p.stockQty}
-                </p>
-              </div>
-              <span className="rounded-full bg-brand-green/10 px-2 py-0.5 text-xs text-brand-green">
-                {STATUS_LABEL[p.status]}
-              </span>
+            <li key={p.id}>
+              <Link
+                href={`/seller/products/${p.id}/edit`}
+                className="flex items-center gap-3 rounded-lg border border-brand-green/15 bg-white p-3 text-sm hover:bg-brand-green/5"
+              >
+                {p.media[0] ? (
+                  <Image
+                    src={p.media[0].url}
+                    alt=""
+                    width={48}
+                    height={48}
+                    className="h-12 w-12 shrink-0 rounded object-cover"
+                  />
+                ) : (
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-brand-green/10 text-[9px] text-brand-deepgreen/40">
+                    사진없음
+                  </div>
+                )}
+                <div className="flex-1">
+                  <p className="font-medium text-brand-deepgreen">{p.title}</p>
+                  <p className="text-xs text-brand-deepgreen/50">
+                    {p.category.name} · {formatKRW(p.priceKrw)} · 재고{" "}
+                    {p.stockQty}
+                  </p>
+                </div>
+                <span className="rounded-full bg-brand-green/10 px-2 py-0.5 text-xs text-brand-green">
+                  {STATUS_LABEL[p.status]}
+                </span>
+              </Link>
             </li>
           ))}
         </ul>

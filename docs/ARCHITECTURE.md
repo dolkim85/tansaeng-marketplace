@@ -1,6 +1,6 @@
 # ARCHITECTURE — 탄생 마켓플레이스
 
-> M1 시점 기준. 실제 구현이 진행될수록 갱신한다.
+> M2 시점 기준. 실제 구현이 진행될수록 갱신한다.
 
 ## 1. 경계 원칙
 
@@ -16,8 +16,8 @@ UI (Buyer / Seller / Admin, 반응형 + PWA)
      -> src/proxy.ts  (RBAC: /admin, /seller, 구매자 개인화 페이지 접근 제어)
      -> src/server/session.ts (쿠키 기반 세션 조회/발급)
      -> src/server/{auth,catalog,seller,admin,cart,orders,groupbuy}  (서버 전용 쿼리/액션)
-        -> Prisma Client -> SQLite(M1) / PostgreSQL(M2 전환 예정)
-     -> 파일 스토리지: 아직 미구현 (상품 미디어 업로드는 M1에 없음)
+        -> Prisma Client -> SQLite(M2 시점 유지) / PostgreSQL(M3 진입 전 전환 예정)
+     -> src/server/media (sharp 재인코딩+매직바이트 검증) -> public/uploads/products/ (로컬 정적 서빙)
      -> Mock PG / Mock 알림 어댑터: 아직 미구현
 ```
 
@@ -43,8 +43,12 @@ UI (Buyer / Seller / Admin, 반응형 + PWA)
 - **공동구매**(출하예정 티저 → 오픈 → 참여(Mock결제대기) → 결제확인 → 관리자 마감처리로
   성사/미성사 확정 → 미성사 시 자동 환불) — 전부 동작함(E2E로 검증). 스케줄러 없이
   `openAt`/`closeAt` 시각 비교로 단계를 계산(`src/lib/groupBuyPhase.ts`).
-- 상품 사진/영상 업로드 — **미구현** (상세페이지는 "사진 없음" 플레이스홀더만 표시).
+- **상품 사진/영상 업로드** — 동작함(E2E로 검증). 매직바이트로 실제 파일 포맷을 확인해
+  위장 파일(HTML/SVG 등)을 거부하고, 사진은 `sharp`로 재인코딩하며 이 과정에서 EXIF 등
+  메타데이터가 자동 제거된다. 저장 위치는 `public/uploads/products/{productId}/`(로컬
+  전용, git에 커밋되지 않음 — M2 ARCHITECTURE §6 참고). 대표사진 지정/삭제 지원.
 - 배송비/쿠폰/재고 예약 타이머/가격 단계(tiers) — **미구현**.
+- 미디어 CDN/별도 객체 스토리지(MinIO 등) — **미구현**, 현재는 Next.js `/public` 정적 서빙.
 
 ## 5. 저장소 구조
 
@@ -53,7 +57,7 @@ tansaeng-marketplace/
   src/app/                 라우트 (buyer, seller, admin, auth)
   src/components/          공통 UI(layout, catalog)
   src/features/            도메인별 기능 모듈 (추후)
-  src/server/              auth, catalog, seller, admin — 서버 전용 쿼리/액션
+  src/server/              auth, catalog, seller, admin, cart, orders, groupbuy, media — 서버 전용 쿼리/액션
   src/lib/                 공통 유틸(auth 토큰, currency, slug)
   src/proxy.ts             RBAC 라우트 보호
   prisma/                  schema.prisma(SQLite), seed.ts
@@ -66,10 +70,10 @@ tansaeng-marketplace/
 
 ## 6. 외부 서비스 경계
 
-| 외부 요소 | M1 상태 | 향후 계획 |
+| 외부 요소 | M2 상태 | 향후 계획 |
 |---|---|---|
-| DB | **SQLite 파일(`prisma/dev.db`)** | M2 진입 전 PostgreSQL(127.0.0.1:55432)로 전환 |
-| 객체 스토리지 | 없음(업로드 기능 자체가 없음) | M1 후반 또는 M2에서 로컬 Mock → MinIO 검토 |
+| DB | **SQLite 파일(`prisma/dev.db`)** | M3 진입 전 PostgreSQL(127.0.0.1:55432)로 전환 |
+| 객체 스토리지 | **로컬 `/public/uploads/products/` 정적 서빙**(sharp 재인코딩, 매직바이트 검증) | 트래픽/운영 규모가 커지면 MinIO(Docker) 또는 클라우드 스토리지로 전환 검토 |
 | 결제(PG) | 없음 | Mock PG 인터페이스, 실키 사용 금지 |
 | 알림(SMS/카카오/푸시) | 없음 | Mock 발송 로그만, 실발송 금지 |
 | 기존 스마트팜 MQTT/ESP32/Node-RED | 연결 안 함 | 연결 계획 없음(설계상 완전 분리) |

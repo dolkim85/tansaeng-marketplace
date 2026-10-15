@@ -207,3 +207,57 @@
 **다음 단계:** M2의 핵심 요건(거래 카탈로그/찜/장바구니/주문/공동구매)이 전부 구현되어 M2를
 마무리로 간주. 다음은 M3(관리자 운영 고도화: 상품 검수·신고, 광고, 배너/공지, 분쟁 티켓,
 PWA 설치) 또는 사용자가 원하는 특정 기능(상품 사진 업로드 등)을 우선 진행.
+
+---
+
+## 상품 미디어 업로드 (2026-10-15, 완료)
+
+마스터 문서 8장(상품 사진·영상·상세페이지 시스템)의 핵심 요건을 구현. M1~M2까지 "사진 없음"
+플레이스홀더로만 남아있던 공백을 메움.
+
+**완료 기능:**
+- `src/server/media/validate.ts`: 파일 앞부분 바이트(매직 넘버)로 JPEG/PNG/WebP/MP4/WebM을
+  판별. 확장자·Content-Type은 신뢰하지 않으므로 HTML/SVG 등 위장 파일이 자동 차단됨
+- `uploadProductMediaAction`: 사진은 `sharp`로 리사이즈(최대 1600px)+JPEG 재인코딩
+  (이 과정에서 EXIF 등 메타데이터 자동 제거), 영상은 그대로 저장. 상품당 사진 10장/영상 1개
+  상한, 용량 상한(사진 8MB/영상 80MB) 적용
+- `deleteProductMediaAction`, `setPrimaryMediaAction`(대표사진 지정) 구현
+- `/seller/products/[id]/edit`: 플레이스홀더였던 페이지를 실제 미디어 관리 화면으로 교체
+  (업로드/삭제/대표 지정, 공개 상세페이지 미리보기 링크)
+- `/seller/products` 목록, `/products/[slug]` 상세, `ProductCard`(카테고리/검색/스토어
+  목록 전반에서 재사용) 전부 실제 업로드 이미지를 표시하도록 연결, 미디어 없으면 기존처럼
+  "사진 없음" 플레이스홀더 유지
+
+**미완료 기능과 이유:**
+- 영상 길이(60초) 검증 — ffprobe 등 추가 바이너리가 필요해 범위 밖으로 판단, 용량 제한으로만
+  1차 방어(PRODUCT_DECISIONS.md 참고)
+- 드래그 앤 드롭 순서 변경 — 현재는 "대표로 설정"(0번으로 승격)만 지원, 전체 순서 자유 변경은
+  미구현
+- 블록 기반 상세페이지 에디터 — 미구현(현재는 단순 textarea 설명 1개 필드)
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(43라우트), `eslint`(0 error), `vitest run`(15건, 신규
+  `mediaValidate.test.ts` 4건 포함) 전부 통과
+- Playwright E2E 신규 10건: 위조 파일(HTML을 .jpg로 위장) 업로드 거부, 정상 JPEG 업로드 후
+  디스크 파일 생성 확인, 판매자 편집 화면/공개 상품 상세/카테고리 목록 전체에 썸네일 노출,
+  2번째 사진 업로드 후 "대표로 설정" 동작, 삭제 시 파일+DB 레코드 모두 제거 확인
+- M1(10건)·M2 장바구니(8건)·공동구매(10/11, 기존과 동일한 테스트 노이즈 1건) 전체 재실행 —
+  회귀 없음
+
+**발견한 이슈:** `import "server-only"`가 걸린 순수 유틸(`validate.ts`)은 Vitest(일반 Node
+환경)에서 직접 임포트할 수 없어 테스트가 실패함 → 실제로 서버 비밀/DB 접근이 없는 순수 함수이므로
+`server-only` 가드를 제거해 해결(앱 동작에는 영향 없음, 테스트 가능성만 개선).
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `src/server/media/{validate,actions}.ts`,
+`src/app/seller/products/[id]/edit/{page,UploadForm}.tsx`,
+`src/app/seller/products/page.tsx`(썸네일 추가), `src/components/catalog/ProductCard.tsx`
+(이미지 렌더링), `src/app/(buyer)/products/[slug]/page.tsx`(갤러리),
+`src/server/{catalog,seller}/queries.ts`(media include 추가), `tests/unit/mediaValidate.test.ts`,
+`public/uploads/products/.gitkeep`, `.gitignore`(업로드 파일 제외), `package.json`(`sharp` 추가),
+`docs/{ARCHITECTURE,PRODUCT_DECISIONS,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** M3(관리자 운영 고도화) 또는 사용자 지정 우선순위로 계속 진행.

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { getProductBySlug, isWishlisted } from "@/server/catalog/queries";
 import { toggleWishlistAction } from "@/server/catalog/actions";
 import { addToCartAction } from "@/server/cart/actions";
@@ -22,17 +23,55 @@ export default async function ProductDetailPage({
   const boundToggle = toggleWishlistAction.bind(null, product.id, product.slug);
   const boundAddToCart = addToCartAction.bind(null, product.id, product.slug);
   const canBuy = product.status === "ON_SALE" && product.stockQty > 0;
+  const primaryImage = product.media.find((m) => m.kind === "image");
+  const video = product.media.find((m) => m.kind === "video");
+  const extraImages = product.media.filter(
+    (m) => m.kind === "image" && m.id !== primaryImage?.id
+  );
 
   return (
     <section className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
       <p className="font-mono text-xs text-brand-green">/products/{slug}</p>
 
-      <div
-        aria-hidden
-        className="mt-4 flex aspect-video w-full items-center justify-center rounded-lg bg-brand-green/10 text-sm text-brand-deepgreen/40"
-      >
-        사진/영상 없음 (미디어 업로드는 다음 단계에서 구현)
-      </div>
+      {primaryImage ? (
+        <Image
+          src={primaryImage.url}
+          alt={product.title}
+          width={800}
+          height={450}
+          className="mt-4 aspect-video w-full rounded-lg object-cover"
+          priority
+        />
+      ) : (
+        <div
+          aria-hidden
+          className="mt-4 flex aspect-video w-full items-center justify-center rounded-lg bg-brand-green/10 text-sm text-brand-deepgreen/40"
+        >
+          사진 없음
+        </div>
+      )}
+
+      {(extraImages.length > 0 || video) && (
+        <div className="mt-2 flex gap-2 overflow-x-auto">
+          {extraImages.map((m) => (
+            <Image
+              key={m.id}
+              src={m.url}
+              alt=""
+              width={96}
+              height={96}
+              className="h-20 w-20 shrink-0 rounded-md object-cover"
+            />
+          ))}
+          {video && (
+            <video
+              src={video.url}
+              controls
+              className="h-20 w-32 shrink-0 rounded-md"
+            />
+          )}
+        </div>
+      )}
 
       <h1 className="mt-4 text-2xl font-semibold text-brand-deepgreen">
         {product.title}

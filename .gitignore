@@ -46,3 +46,7 @@ prisma/dev.db
 prisma/dev.db-journal
 prisma/*.db
 prisma/*.db-journal
+
+# 사용자가 업로드한 상품 사진/영상 (로컬 생성물, 커밋하지 않음)
+/public/uploads/products/*
+!/public/uploads/products/.gitkeep
