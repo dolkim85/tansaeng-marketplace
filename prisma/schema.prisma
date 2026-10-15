@@ -67,6 +67,18 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum AdPlacement {
+  SEARCH
+  CATEGORY_TOP
+  HOME_BANNER
+}
+
+enum AdStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+}
+
 /// DB에 저장되는 "기준" 상태. 실제 화면에 보이는 티저/오픈/마감 단계는
 /// src/lib/groupBuyPhase.ts가 openAt/closeAt과 현재 시각을 비교해 계산한다(별도 스케줄러 없음).
 /// SUCCEEDED/FAILED/CANCELLED는 관리자의 "마감 처리" 액션으로만 전이된다.
@@ -111,6 +123,7 @@ model Seller {
   products     Product[]
   follows      SellerFollow[]
   suborders    Suborder[]
+  ads          Ad[]
 }
 
 model SellerApplication {
@@ -158,6 +171,7 @@ model Product {
   orderItems OrderItem[]
   groupBuy   GroupBuy?
   reviews    Review[]
+  ads        Ad[]
 
   @@index([categoryId])
   @@index([sellerId])
@@ -335,4 +349,26 @@ model Review {
   createdAt   DateTime  @default(now())
 
   @@index([productId])
+}
+
+/// 모의 광고. 실제 과금/결제 연동 없이 노출수(impressions)/클릭수(clicks)만 집계한다.
+/// "활성" 여부는 status=APPROVED && startAt<=now<=endAt로 화면에서 그때그때 계산한다(스케줄러 없음).
+model Ad {
+  id          String      @id @default(cuid())
+  sellerId    String
+  seller      Seller      @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  placement   AdPlacement
+  startAt     DateTime
+  endAt       DateTime
+  status      AdStatus    @default(REQUESTED)
+  impressions Int         @default(0)
+  clicks      Int         @default(0)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime    @default(now())
+
+  @@index([status])
+  @@index([placement])
 }

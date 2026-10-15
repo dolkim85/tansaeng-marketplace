@@ -206,6 +206,24 @@ async function main() {
     },
   });
 
+  const existingBannerAd = await prisma.ad.findFirst({
+    where: { productId: potato.id, placement: "HOME_BANNER" },
+  });
+  if (!existingBannerAd) {
+    await prisma.ad.create({
+      data: {
+        sellerId: sellerApproved.id,
+        productId: potato.id,
+        placement: "HOME_BANNER",
+        status: "APPROVED",
+        startAt: new Date(now - 1 * day),
+        endAt: new Date(now + 13 * day),
+        reviewedBy: admin.id,
+        reviewedAt: new Date(),
+      },
+    });
+  }
+
   console.log("=== 시드 완료 ===");
   console.log("데모 계정 비밀번호(전체 공통):", DEMO_PASSWORD);
   console.log("- buyer_demo@tansaeng.local (구매자)");

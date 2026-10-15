@@ -33,6 +33,14 @@
 | | `setPrimaryMediaAction` | 대표사진 지정(sortOrder 교체) | 로그인 + 본인 상품만 |
 | `src/server/orders/actions.ts` | `advanceSuborderStatusAction` | 배송상태 전진(PENDING→PREPARING→SHIPPED→COMPLETED) | 로그인 + 본인 Suborder만 |
 | `src/server/reviews/actions.ts` | `createReviewAction` | 배송완료 주문 항목에 후기 작성(1건당 1개) | 로그인 + 본인 주문만 |
+| `src/server/ads/actions.ts` | `requestAdAction` | 광고 신청(본인 상품만) | SELLER |
+| | `approveAdAction` / `rejectAdAction` | 광고 심사 | ADMIN 이상 |
+
+## Route Handler
+
+| 경로 | 설명 |
+|---|---|
+| `GET /api/ads/[id]/click` | 광고 클릭수 집계 후 실제 상품 페이지로 307 리다이렉트(공개, 인증 불필요) |
 
 ## 읽기 전용 쿼리 (서버 컴포넌트에서 직접 호출)
 

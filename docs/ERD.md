@@ -32,6 +32,7 @@ Product
       └─ 1:N GroupBuyAlert
       └─ 1:N OrderItem(groupBuyId로 역참조) — 실제 결제 주문만 목표 수량에 집계
  └─ 1:N Review (OrderItem 1건당 1개, @@unique(orderItemId))
+ └─ 1:N Ad (placement: SEARCH|CATEGORY_TOP|HOME_BANNER, status, impressions/clicks)
 ```
 
 ## 설계 메모
@@ -47,6 +48,9 @@ Product
   항목 중 **Payment가 CONFIRMED인 것만** 센다(알림 신청 `GroupBuyAlert`는 집계에서 완전히 제외).
   관리자가 "마감 처리"를 누르면 그 시점에 성사/미성사를 확정하고, 미성사·취소 시 관련 주문을 전부
   취소+환불 처리한다.
+- `Ad`(M3): 실제 과금 없이 `impressions`/`clicks` 정수 카운터만 증가시키는 모의 광고. "활성" 여부는
+  `status=APPROVED && startAt<=now<=endAt`로 화면에서 계산(`src/lib/adActive.ts`, 공동구매와 동일 패턴).
+  클릭은 `/api/ads/[id]/click` 라우트 핸들러를 거쳐 집계 후 실제 상품 페이지로 307 리다이렉트된다.
 - `Review`(M3): `Suborder.status`가 `COMPLETED`인 주문 항목에 한해 1건만 작성 가능(`@@unique(orderItemId)`).
   `Suborder.status`는 판매자가 직접 PENDING→PREPARING→SHIPPED→COMPLETED 순서로만 전진시킬 수 있다
   (역행/건너뛰기 불가, `src/server/orders/actions.ts`의 `NEXT_SUBORDER_STATUS` 참고).

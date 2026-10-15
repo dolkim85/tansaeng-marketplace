@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { listOpenGroupBuys, listUpcomingGroupBuys } from "@/server/groupbuy/queries";
+import { getActiveHomeBannerAd } from "@/server/ads/queries";
+import { formatKRW } from "@/lib/currency";
 
 function dDay(openAt: Date): string {
   const days = Math.ceil((openAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
@@ -7,9 +9,10 @@ function dDay(openAt: Date): string {
 }
 
 export default async function BuyerHomePage() {
-  const [upcoming, openGroupBuys] = await Promise.all([
+  const [upcoming, openGroupBuys, bannerAd] = await Promise.all([
     listUpcomingGroupBuys(),
     listOpenGroupBuys(),
+    getActiveHomeBannerAd(),
   ]);
 
   return (
@@ -25,6 +28,24 @@ export default async function BuyerHomePage() {
           산지에서 바로, 탄생과 함께
         </h1>
       </section>
+
+      {bannerAd && (
+        <Link
+          href={`/api/ads/${bannerAd.id}/click`}
+          className="relative mt-4 block overflow-hidden rounded-xl border border-brand-orange/40 bg-brand-orange/10 p-4"
+        >
+          <span className="absolute left-3 top-3 rounded bg-brand-orange px-1.5 py-0.5 text-[10px] font-semibold text-white">
+            광고
+          </span>
+          <p className="mt-4 text-sm font-semibold text-brand-deepgreen">
+            {bannerAd.product.title}
+          </p>
+          <p className="text-xs text-brand-deepgreen/60">
+            {bannerAd.product.seller.storeName} ·{" "}
+            {formatKRW(bannerAd.product.priceKrw)}
+          </p>
+        </Link>
+      )}
 
       <section aria-label="출하예정" className="mt-8">
         <h2 className="text-base font-semibold text-brand-deepgreen">

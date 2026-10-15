@@ -55,7 +55,10 @@ UI (Buyer / Seller / Admin, 반응형 + PWA)
   API/정적자산/개인화 데이터는 전혀 캐시하지 않음).
 - 배송비/쿠폰/재고 예약 타이머/가격 단계(tiers) — **미구현**.
 - 미디어 CDN/별도 객체 스토리지(MinIO 등) — **미구현**, 현재는 Next.js `/public` 정적 서빙.
-- 반품/분쟁 티켓, 광고, 배너/공지 CMS — **미구현** (M3 다음 단계).
+- **광고**: 판매자가 상품을 검색 스폰서/카테고리 상단/홈 배너로 신청 → 관리자 승인 →
+  해당 위치에 "광고" 라벨과 함께 노출, 노출/클릭 모의 집계. 클릭은 `/api/ads/[id]/click`을
+  거쳐 실제 상품으로 리다이렉트 — 전부 동작함(E2E로 검증). 실과금 없음.
+- 반품/분쟁 티켓, 배너/공지 CMS, 대리등록 — **미구현** (M3 다음 단계).
 
 ## 5. 저장소 구조
 
@@ -64,7 +67,8 @@ tansaeng-marketplace/
   src/app/                 라우트 (buyer, seller, admin, auth)
   src/components/          공통 UI(layout, catalog)
   src/features/            도메인별 기능 모듈 (추후)
-  src/server/              auth, catalog, seller, admin, cart, orders, groupbuy, media, reviews — 서버 전용 쿼리/액션
+  src/server/              auth, catalog, seller, admin, cart, orders, groupbuy, media, reviews, ads — 서버 전용 쿼리/액션
+  src/app/api/             route handler (광고 클릭 집계 등 리다이렉트가 필요한 공개 엔드포인트)
   src/components/pwa/      서비스 워커 등록 컴포넌트
   src/lib/                 공통 유틸(auth 토큰, currency, slug)
   src/proxy.ts             RBAC 라우트 보호

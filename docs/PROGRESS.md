@@ -303,3 +303,45 @@ PWA 설치) 또는 사용자가 원하는 특정 기능(상품 사진 업로드 
 **환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 광고(Ads), 배너/공지 CMS, 분쟁 티켓 등 M3 나머지 항목 계속 진행.
+
+---
+
+## M3 — 광고(Ads) (2026-10-16, 완료)
+
+**완료 기능:**
+- `Ad` 모델(placement: SEARCH/CATEGORY_TOP/HOME_BANNER, status, impressions/clicks 카운터)
+- `src/lib/adActive.ts`: 공동구매와 동일한 패턴으로 "승인+기간 내"만 활성 판정(스케줄러 없음)
+- `requestAdAction`(판매자, 본인 ON_SALE 상품만), `approveAdAction`/`rejectAdAction`(관리자)
+- 홈 배너(`/`), 카테고리 상단(`/category/[slug]`), 검색 결과(`/search`) 세 위치 전부 "광고" 라벨과
+  함께 실제 노출, 노출 시 서버에서 impressions 1 증가
+- `GET /api/ads/[id]/click`: 클릭수 집계 후 실제 상품 페이지로 307 리다이렉트
+- `/seller/ads`, `/seller/ads/new`, `/admin/ads` 플레이스홀더를 전부 실제 기능으로 교체
+
+**미완료 기능과 이유:**
+- 검색어-광고 매칭, 다중 슬롯 로테이션/경매 — M3 범위에서 의도적으로 단순화(결정 근거는
+  PRODUCT_DECISIONS.md)
+- 광고 모의 과금(실제 금액 차감/정산 반영) — 노출/클릭 집계만 하고 금액은 계산하지 않음
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(44라우트, `/api/ads/[id]/click` 라우트 핸들러 포함),
+  `eslint`(0 error), `vitest run`(18건, 신규 `adActive.test.ts` 3건 포함) 전부 통과
+- Playwright E2E 신규 5건: 광고 신청→관리자 승인→검색결과 "광고" 라벨 노출→클릭 시 실제
+  상품 페이지로 이동까지 전 과정 확인. DB 직접 조회로 impressions/clicks 증가도 확인
+- `curl`로 홈페이지 HTML에 시드 데이터 배너 광고("광고" 라벨 + 상품명)가 포함되는지 확인
+- M1(10건)·M2 장바구니(8건)·공동구매(10/11, 기존과 동일한 테스트 노이즈 1건) 재실행 — 회귀 없음.
+  리뷰 E2E는 여러 스위트를 같은 DB에 연달아 실행해 주문이 누적되며 테스트 스크립트의 버튼
+  선택자가 모호해진 것으로, 별도 세션에서 이미 10/10 확인했으므로 광고 기능과 무관한 테스트
+  스코프 문제로 판단(앱 코드 변경 없음)
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(Ad 모델), `prisma/seed.ts`(데모 배너광고 1건),
+`src/lib/adActive.ts`, `src/server/ads/*`, `src/app/api/ads/[id]/click/route.ts`,
+`src/components/catalog/AdCard.tsx`, `src/app/(buyer)/page.tsx`(배너),
+`src/app/(buyer)/category/[slug]/page.tsx`, `src/app/(buyer)/search/page.tsx`,
+`src/app/seller/ads/**`, `src/app/admin/ads/page.tsx`, `tests/unit/adActive.test.ts`,
+`docs/{ARCHITECTURE,PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 배너/공지 CMS, 분쟁 티켓, 대리등록 등 M3 나머지 항목 계속 진행.

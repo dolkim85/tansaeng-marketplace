@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { getCategoryWithProducts } from "@/server/catalog/queries";
+import { getActiveCategoryTopAd } from "@/server/ads/queries";
 import { ProductCard } from "@/components/catalog/ProductCard";
+import { AdCard } from "@/components/catalog/AdCard";
 
 export default async function CategoryPage({
   params,
@@ -11,6 +13,8 @@ export default async function CategoryPage({
   const result = await getCategoryWithProducts(slug);
   if (!result) notFound();
   const { category, products } = result;
+  const categoryIds = [category.id, ...category.children.map((c) => c.id)];
+  const topAd = await getActiveCategoryTopAd(categoryIds);
 
   return (
     <section className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
@@ -19,12 +23,13 @@ export default async function CategoryPage({
         {category.name}
       </h1>
 
-      {products.length === 0 ? (
+      {products.length === 0 && !topAd ? (
         <p className="mt-6 text-sm text-brand-deepgreen/60">
           아직 등록된 상품이 없습니다.
         </p>
       ) : (
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          {topAd && <AdCard ad={topAd} />}
           {products.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
