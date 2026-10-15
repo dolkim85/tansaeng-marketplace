@@ -48,3 +48,64 @@
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 사용자 승인 하에 M1(계정·카테고리·찜 등 거래 카탈로그) 착수. 착수 전 로컬 PostgreSQL
 신규 설치(사용자 PC에 처음 설치되는 패키지이므로 사전 확인) 필요.
+
+---
+
+## M1 — 거래 카탈로그 + 계정 + 찜 (2026-10-15, 핵심 부분 완료)
+
+**완료 기능:**
+- Prisma + SQLite 스키마(`User/Seller/SellerApplication/Category/Product/ProductMedia/Wishlist/SellerFollow`)
+  및 시드 스크립트(데모 계정 4종 — buyer/seller_pending/seller_approved/admin, 카테고리, 상품 3건)
+- 커스텀 로그인/회원가입/로그아웃 (bcryptjs 해시 + jose JWT + httpOnly 쿠키 세션)
+- `src/proxy.ts`(RBAC): `/admin/*`→ADMIN 이상, `/seller/*`→SELLER 이상, 구매자 개인화 페이지→로그인 필요
+- `/categories`, `/category/[slug]`, `/products/[slug]`, `/search` — 실 DB 연동
+- 찜(Wishlist)·생산자 팔로우(SellerFollow) 토글, `/wishlist` `/following` `/farms/[slug]` 실데이터
+- 판매자 입점 신청(`/seller/onboarding`) + 관리자 승인/반려(`/admin/sellers`)
+- 판매자 상품 등록(`/seller/products/new`) — 승인 전 `DRAFT`, 승인 후 `ON_SALE` 자동 분기,
+  관리자 승인 시 기존 DRAFT 상품 일괄 `ON_SALE` 전환
+- `/seller`, `/admin` 대시보드에 실제 집계 수치 연결
+- 유닛 테스트 추가(`src/lib/slug.ts`), `vitest`를 `^3`→`^4`로 업그레이드(치명적 취약점 해소)
+
+**미완료 기능과 이유:**
+- 상품 사진/영상 업로드, EXIF 제거, 10장 갤러리 — M1 범위에서 의도적으로 제외(핵심 거래 흐름 우선 검증).
+  상세페이지는 "사진 없음" 플레이스홀더로 정직하게 표시
+- 상세페이지 블록 편집기/템플릿 — 미구현(현재는 textarea 설명 1개 필드만)
+- 인앱 알림(진짜 알림 센터) — 미구현(`/alerts`는 여전히 자리표시자)
+- PostgreSQL 전환 — 아직 SQLite 유지(전환 체크리스트는 `docs/ERD.md`에 기록)
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`: 오류 없음
+- `next build`: 42개 라우트 전체 생성 성공 (정적 2 / 동적 40 — 로그인 상태에 따라 UI가 달라지는 페이지가
+  많아져 M0 대비 동적 라우트 비중 증가)
+- `eslint`: 오류 없음
+- `vitest run`: 2개 파일, 7개 테스트 전부 통과
+- **Playwright E2E 스모크 테스트 10건 전부 통과**: 비로그인 RBAC 리다이렉트, 구매자 로그인, 잘못된
+  역할 접근 차단, 찜 토글, 로그아웃, 관리자 로그인, 입점 심사 승인 처리(DB 반영 확인), 승인된
+  판매자가 본인 상태 확인
+- 추가로 승인된 판매자의 상품 등록 → 공개 카테고리 페이지 즉시 노출까지 수동 스모크로 확인
+- 모바일(375px)/PC(1280px) 스크린샷으로 실데이터 반응형 레이아웃 확인(가격 포맷팅·카드 그리드·
+  찜 버튼 상태 등 정상)
+
+**발견 및 수정한 이슈 (검증 과정에서):**
+- Next.js `next dev`/`next start`가 `-H` 생략 시 기본적으로 `0.0.0.0`에 바인딩됨을 발견 →
+  스크립트에 `-H 127.0.0.1` 명시 (`docs/SAFETY_BASELINE.md` §6-A)
+- `middleware.ts`는 Next 16.4.1부터 deprecated → `proxy.ts`로 전환
+- SQLite DB 파일을 **dev 서버가 살아있는 상태로 삭제/재생성**하면 "readonly database" 오류 발생 →
+  항상 서버 종료 후 DB 재생성, 재기동 순서로 처리
+- `npm audit`에서 `vitest`의 치명적(critical) 취약점 발견 → `vitest@4`로 업그레이드해 해소.
+  `prisma`/`eslint-config-next`의 고위험 항목은 빌드 도구 체인 한정이라 수용(위 결정 근거는
+  `docs/PRODUCT_DECISIONS.md` 참고)
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210` (`npm run dev`)
+
+**생성/수정한 파일(신규 프로젝트 내부만):** `prisma/schema.prisma`, `prisma/seed.ts`,
+`src/lib/{auth,db,slug}.ts`, `src/server/{session.ts, auth/actions.ts, catalog/*, seller/*, admin/*}`,
+`src/proxy.ts`(신규, `src/middleware.ts` 삭제), 관련 `src/app/**/page.tsx` 다수 교체,
+`src/components/catalog/ProductCard.tsx`, `tests/unit/slug.test.ts`, `package.json`/`package-lock.json`,
+`.env.example`, `README.md`, `docs/{ARCHITECTURE,PRODUCT_DECISIONS,ERD,SAFETY_BASELINE,PROGRESS}.md
+
+**사용한 포트와 독립 DB:** 웹앱 `127.0.0.1:3210`, DB는 `prisma/dev.db`(SQLite 파일, 기존 DB와 무관)
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자 지시에 따라 M2(공동구매, 장바구니, 주문, Mock 결제)로 계속 진행.

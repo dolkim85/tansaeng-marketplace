@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { logoutAction } from "@/server/auth/actions";
 
 const NAV = [
   { href: "/seller", label: "현황" },
@@ -17,7 +18,13 @@ function isActive(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
-export function SellerChrome({ children }: { children: ReactNode }) {
+export function SellerChrome({
+  children,
+  sellerName,
+}: {
+  children: ReactNode;
+  sellerName: string;
+}) {
   const pathname = usePathname();
 
   return (
@@ -25,6 +32,14 @@ export function SellerChrome({ children }: { children: ReactNode }) {
       <aside className="hidden w-56 shrink-0 border-r border-brand-green/15 bg-white/60 sm:block">
         <div className="px-4 py-4 text-lg font-bold text-brand-green">
           탄생 판매자
+        </div>
+        <div className="flex items-center justify-between px-4 pb-2 text-xs text-brand-deepgreen/60">
+          <span>{sellerName}</span>
+          <form action={logoutAction}>
+            <button type="submit" className="hover:underline">
+              로그아웃
+            </button>
+          </form>
         </div>
         <nav aria-label="판매자 메뉴" className="flex flex-col gap-1 px-2">
           {NAV.map((item) => {

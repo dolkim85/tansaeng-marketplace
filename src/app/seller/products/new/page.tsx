@@ -1,12 +1,18 @@
-import { PlaceholderSection } from "@/components/ui/PlaceholderSection";
+import { listAllCategoriesFlat } from "@/server/seller/queries";
+import { ProductForm } from "./ProductForm";
 
-export default function Page() {
+export default async function NewProductPage() {
+  const categories = await listAllCategoriesFlat();
+
   return (
-    <PlaceholderSection
-      path="/seller/products/new"
-      title="쉬운 상품 등록 위저드"
-      description="판매유형·기본정보·미디어·판매조건·상세설명·검토·등록 7단계 위저드(예정)."
-      bullets={undefined}
-    />
+    <div className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
+      <p className="font-mono text-xs text-brand-green">
+        /seller/products/new
+      </p>
+      <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
+        쉬운 상품 등록
+      </h1>
+      <ProductForm categories={categories} />
+    </div>
   );
 }

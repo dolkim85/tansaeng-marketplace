@@ -1,6 +1,6 @@
 # ARCHITECTURE — 탄생 마켓플레이스
 
-> M0 시점 기준 초안. 실제 구현이 진행될수록 갱신한다.
+> M1 시점 기준. 실제 구현이 진행될수록 갱신한다.
 
 ## 1. 경계 원칙
 
@@ -8,49 +8,64 @@
 `www.tansaeng.com` 운영 서비스와 **코드/런타임/네트워크/DB/스토리지를 완전히 분리**한 독립 애플리케이션이다.
 상세 근거는 [`SAFETY_BASELINE.md`](./SAFETY_BASELINE.md) 참조.
 
-## 2. 논리 구성 (목표 아키텍처)
+## 2. 논리 구성
 
 ```text
 UI (Buyer / Seller / Admin, 반응형 + PWA)
-  -> Next.js App Router (서버 컴포넌트 + 서버 액션 / route handlers)
-     -> src/server  (auth, permissions, services, repositories)
-        -> Prisma Client -> PostgreSQL (전용, 127.0.0.1:55432)
-     -> 파일 스토리지 어댑터 (초기: 로컬 디렉토리 Mock / 추후: MinIO 127.0.0.1:59000)
-     -> Mock PG / Mock 알림 어댑터 (실제 공급자 연동 전)
+  -> Next.js App Router (서버 컴포넌트 + 서버 액션)
+     -> src/proxy.ts  (RBAC: /admin, /seller, 구매자 개인화 페이지 접근 제어)
+     -> src/server/session.ts (쿠키 기반 세션 조회/발급)
+     -> src/server/{auth,catalog,seller,admin}  (서버 전용 쿼리/액션)
+        -> Prisma Client -> SQLite(M1) / PostgreSQL(M2 전환 예정)
+     -> 파일 스토리지: 아직 미구현 (상품 미디어 업로드는 M1에 없음)
+     -> Mock PG / Mock 알림 어댑터: 아직 미구현
 ```
 
-## 3. 현재(M0) 구현 상태
+## 3. 인증/세션 설계 (M1)
 
-- Next.js 16 (App Router, TypeScript strict, Tailwind CSS 4) 스캐폴드만 존재.
-- 실제 DB/Prisma 연결 없음 — M1에서 도입 예정.
-- 실제 파일 업로드/스토리지 없음 — M1에서 도입 예정.
-- 결제/알림은 전부 추후 Mock으로 구현 예정, 현재는 라우트 자리표시자만 존재.
+- NextAuth(Auth.js) 대신 **커스텀 세션**을 선택함: `bcryptjs`로 비밀번호 해시, `jose`로 서명한 JWT를
+  httpOnly/SameSite=Lax 쿠키(`tansaeng_session`)에 저장. 이유는 `docs/PRODUCT_DECISIONS.md` 참고.
+- `src/proxy.ts`(Next.js 16 신규 컨벤션, 구 `middleware.ts`)가 쿠키를 검증해 `/admin/*`은 `ADMIN|SUPER_ADMIN`,
+  `/seller/*`는 `SELLER|ADMIN|SUPER_ADMIN`만 허용하고, 그 외 개인화 페이지(`/account`, `/wishlist` 등)는
+  로그인만 요구한다.
+- 서버 액션(`src/server/**/actions.ts`) 내부에서도 `getSession()`으로 재검증한다(화면 라우팅 보호와 별개로
+  API/서버 단 권한 검사를 중복 적용 — 문서 2장 RBAC 원칙).
 
-## 4. 저장소 구조
+## 4. 현재 구현 상태 (M1)
+
+- 로그인/회원가입/로그아웃, RBAC 라우트 보호 — 동작함(Playwright E2E로 검증).
+- 카테고리/상품 목록·상세 — 실제 Prisma 쿼리로 렌더링.
+- 찜(Wishlist)·팔로우(SellerFollow) — 토글 서버 액션 연결, 중복 방지(`@@unique`).
+- 판매자 입점 신청(SellerApplication) 및 관리자 승인/반려 — 동작함.
+- 판매자 상품 등록 — 승인 여부에 따라 `ON_SALE`/`DRAFT` 자동 분기.
+- 상품 사진/영상 업로드 — **미구현** (상세페이지는 "사진 없음" 플레이스홀더만 표시).
+- 장바구니/주문/결제/공동구매 — **미구현** (M2 예정).
+
+## 5. 저장소 구조
 
 ```text
 tansaeng-marketplace/
-  src/app/                 라우트 (buyer, seller, admin)
-  src/components/          공통 UI
+  src/app/                 라우트 (buyer, seller, admin, auth)
+  src/components/          공통 UI(layout, catalog)
   src/features/            도메인별 기능 모듈 (추후)
-  src/server/               auth, permissions, services, repositories (추후)
-  src/lib/                 공통 유틸/설정
-  prisma/                  DB 스키마 (추후 M1)
+  src/server/              auth, catalog, seller, admin — 서버 전용 쿼리/액션
+  src/lib/                 공통 유틸(auth 토큰, currency, slug)
+  src/proxy.ts             RBAC 라우트 보호
+  prisma/                  schema.prisma(SQLite), seed.ts
   public/                  정적 자산, PWA manifest
-  tests/                   단위/통합/E2E
+  tests/                   단위 테스트(Vitest)
   docs/                    정책·안전기준·진행문서
-  scripts/                 본 프로젝트 전용 로컬 스크립트
   .env.example
   README.md
 ```
 
-## 5. 외부 서비스 경계
+## 6. 외부 서비스 경계
 
-| 외부 요소 | M0 상태 | 향후 계획 |
+| 외부 요소 | M1 상태 | 향후 계획 |
 |---|---|---|
-| PostgreSQL | 미설치 | M1에서 로컬 전용 인스턴스 신규 설치, 포트 55432 |
-| 객체 스토리지 | 없음 | 로컬 디렉토리 Mock → 필요 시 MinIO(Docker) 검토 |
-| 결제(PG) | 없음 | Mock PG 인터페이스만, 실키 사용 금지 |
+| DB | **SQLite 파일(`prisma/dev.db`)** | M2 진입 전 PostgreSQL(127.0.0.1:55432)로 전환 |
+| 객체 스토리지 | 없음(업로드 기능 자체가 없음) | M1 후반 또는 M2에서 로컬 Mock → MinIO 검토 |
+| 결제(PG) | 없음 | Mock PG 인터페이스, 실키 사용 금지 |
 | 알림(SMS/카카오/푸시) | 없음 | Mock 발송 로그만, 실발송 금지 |
 | 기존 스마트팜 MQTT/ESP32/Node-RED | 연결 안 함 | 연결 계획 없음(설계상 완전 분리) |
 | 기존 운영 DB/서버 | 연결 안 함 | 연결 금지 |

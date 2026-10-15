@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { logoutAction } from "@/server/auth/actions";
+
+type SessionInfo = { name: string } | null;
 
 const BOTTOM_NAV = [
   { href: "/", label: "홈" },
@@ -17,7 +20,13 @@ function isActive(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
-export function BuyerChrome({ children }: { children: ReactNode }) {
+export function BuyerChrome({
+  children,
+  session,
+}: {
+  children: ReactNode;
+  session: SessionInfo;
+}) {
   const pathname = usePathname();
 
   return (
@@ -50,13 +59,34 @@ export function BuyerChrome({ children }: { children: ReactNode }) {
           >
             🔔
           </Link>
-          <Link
-            href="/account"
-            className="shrink-0 rounded-full p-2 text-brand-deepgreen hover:bg-brand-green/10"
-            aria-label="로그인/마이"
-          >
-            👤
-          </Link>
+          {session ? (
+            <div className="flex shrink-0 items-center gap-1">
+              <Link
+                href="/account"
+                className="rounded-full p-2 text-brand-deepgreen hover:bg-brand-green/10"
+                aria-label="마이페이지"
+                title={session.name}
+              >
+                👤
+              </Link>
+              <form action={logoutAction}>
+                <button
+                  type="submit"
+                  className="rounded-full px-2 py-1 text-xs text-brand-deepgreen/60 hover:bg-brand-green/10"
+                >
+                  로그아웃
+                </button>
+              </form>
+            </div>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="shrink-0 rounded-full p-2 text-brand-deepgreen hover:bg-brand-green/10"
+              aria-label="로그인"
+            >
+              로그인
+            </Link>
+          )}
         </div>
         <nav
           aria-label="전체 카테고리"

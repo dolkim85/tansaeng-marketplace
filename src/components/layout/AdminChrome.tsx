@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { logoutAction } from "@/server/auth/actions";
 
 const NAV = [
   { href: "/admin", label: "대시보드" },
@@ -25,7 +26,13 @@ function isActive(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
-export function AdminChrome({ children }: { children: ReactNode }) {
+export function AdminChrome({
+  children,
+  adminName,
+}: {
+  children: ReactNode;
+  adminName: string;
+}) {
   const pathname = usePathname();
 
   return (
@@ -33,6 +40,14 @@ export function AdminChrome({ children }: { children: ReactNode }) {
       <aside className="hidden w-60 shrink-0 overflow-y-auto border-r border-brand-deepgreen/15 bg-brand-deepgreen/5 sm:block">
         <div className="px-4 py-4 text-lg font-bold text-brand-deepgreen">
           탄생 운영
+        </div>
+        <div className="flex items-center justify-between px-4 pb-2 text-xs text-brand-deepgreen/60">
+          <span>{adminName}</span>
+          <form action={logoutAction}>
+            <button type="submit" className="hover:underline">
+              로그아웃
+            </button>
+          </form>
         </div>
         <nav aria-label="관리자 메뉴" className="flex flex-col gap-1 px-2 pb-6">
           {NAV.map((item) => {

@@ -1,0 +1,161 @@
+// 탄생 마켓플레이스 — 신규 독립 DB 스키마 (기존 운영 DB와 완전 분리)
+// M1 단계: SQLite로 시작(설치 없는 로컬 개발), M2 진입 전 PostgreSQL로 전환 예정.
+// 전환 시 datasource.provider만 바꾸고 마이그레이션을 재생성한다(docs/PRODUCT_DECISIONS.md 참고).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  BUYER
+  SELLER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum SellerIdentityType {
+  BUSINESS_PRODUCER
+  FARM_ENTITY_ONLY
+  PLATFORM_SUPPLIER
+}
+
+enum SellerApplicationStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum ProductStatus {
+  DRAFT
+  IN_REVIEW
+  ON_SALE
+  HIDDEN
+  SOLD_OUT
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole @default(BUYER)
+  status       UserStatus @default(APPROVED)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  seller          Seller?
+  wishlists       Wishlist[]
+  sellerFollows   SellerFollow[]
+
+  @@index([role])
+}
+
+model Seller {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storeName    String
+  storeSlug    String   @unique
+  identityType SellerIdentityType
+  createdAt    DateTime @default(now())
+
+  applications SellerApplication[]
+  products     Product[]
+  follows      SellerFollow[]
+}
+
+model SellerApplication {
+  id          String                   @id @default(cuid())
+  sellerId    String
+  seller      Seller                   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  status      SellerApplicationStatus  @default(SUBMITTED)
+  note        String?
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime                 @default(now())
+
+  @@index([status])
+}
+
+model Category {
+  id       String     @id @default(cuid())
+  slug     String     @unique
+  name     String
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+  products Product[]
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  sellerId    String
+  seller      Seller        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id])
+  slug        String        @unique
+  title       String
+  originRegion String
+  priceKrw    Int
+  stockQty    Int           @default(0)
+  status      ProductStatus @default(DRAFT)
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  media     ProductMedia[]
+  wishlists Wishlist[]
+
+  @@index([categoryId])
+  @@index([sellerId])
+  @@index([status])
+}
+
+model ProductMedia {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  kind      String   // "image" | "video"
+  url       String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+model SellerFollow {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sellerId  String
+  seller    Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, sellerId])
+  @@index([userId])
+}

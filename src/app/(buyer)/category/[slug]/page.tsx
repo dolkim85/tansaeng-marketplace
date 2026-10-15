@@ -1,16 +1,35 @@
-import { PlaceholderSection } from "@/components/ui/PlaceholderSection";
+import { notFound } from "next/navigation";
+import { getCategoryWithProducts } from "@/server/catalog/queries";
+import { ProductCard } from "@/components/catalog/ProductCard";
 
-export default async function Page({
+export default async function CategoryPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const result = await getCategoryWithProducts(slug);
+  if (!result) notFound();
+  const { category, products } = result;
+
   return (
-    <PlaceholderSection
-      path={`/category/${slug}`}
-      title="카테고리 상품 목록"
-      description={`선택한 카테고리의 상품을 필터/정렬과 함께 보여줍니다. (${slug} 식별자 기준)`}
-    />
+    <section className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
+      <p className="font-mono text-xs text-brand-green">/category/{slug}</p>
+      <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
+        {category.name}
+      </h1>
+
+      {products.length === 0 ? (
+        <p className="mt-6 text-sm text-brand-deepgreen/60">
+          아직 등록된 상품이 없습니다.
+        </p>
+      ) : (
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          {products.map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

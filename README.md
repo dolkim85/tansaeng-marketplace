@@ -9,7 +9,8 @@
 
 - Node.js 20 LTS 이상
 - npm 10 이상
-- (M1 이후) PostgreSQL 16 — 이 프로젝트 전용 인스턴스만 사용, 기존 DB 재사용 금지
+- DB는 M1 기준 **SQLite(설치 불필요, 파일 기반)**. M2 진입 전 PostgreSQL 16으로 전환 예정
+  (전용 인스턴스만 사용, 기존 DB 재사용 금지 — `docs/ERD.md` 전환 체크리스트 참고)
 
 ## 2. 시작하기
 
@@ -37,14 +38,27 @@ npm install
 npm run dev
 ```
 
-개발 서버 기본 주소: **http://127.0.0.1:3210** (포트 충돌 시 `next dev -p <포트>`로 변경, 포트 제안값은
-`docs/SAFETY_BASELINE.md` §2 참고)
-
-package.json의 `dev` 스크립트에 포트가 고정되어 있지 않다면 아래처럼 실행합니다.
+### DB 준비 (최초 1회 + 스키마 변경 시)
 
 ```bash
-npx next dev -p 3210
+cp .env.example .env.local   # DATABASE_URL, AUTH_SECRET 포함
+npm run db:push              # SQLite 파일(prisma/dev.db) 생성/동기화
+npm run db:seed              # 데모 계정/카테고리/상품 시드
+npm run dev
 ```
+
+데모 계정(비밀번호 전부 `demo1234`):
+
+| 이메일 | 역할 |
+|---|---|
+| `buyer_demo@tansaeng.local` | 구매자 |
+| `seller_pending@tansaeng.local` | 판매자(입점 심사중) |
+| `seller_approved@tansaeng.local` | 판매자(승인됨) |
+| `admin_demo@tansaeng.local` | 관리자 |
+
+개발 서버 기본 주소: **http://127.0.0.1:3210** (`-H 127.0.0.1`이 스크립트에 고정되어 있음 —
+`-H` 생략 시 Next.js가 기본적으로 `0.0.0.0`에 바인딩되는 것을 확인했기 때문. 포트 충돌 시
+`package.json`의 `dev`/`start` 스크립트에서 `-p` 값만 바꾸세요)
 
 ## 3. 스크립트
 
@@ -56,15 +70,20 @@ npx next dev -p 3210
 | `npm run lint` | ESLint 검사 |
 | `npm run typecheck` | TypeScript strict 타입 검사 (`tsc --noEmit`) |
 | `npm test` | Vitest 단위 테스트 |
+| `npm run db:push` | Prisma 스키마를 SQLite DB에 반영 |
+| `npm run db:seed` | 데모 계정/카테고리/상품 시드 |
+| `npm run db:reset` | DB 강제 초기화 후 재시드 |
 
-## 4. 현재 진행 단계 (M0)
+## 4. 현재 진행 단계 (M1)
 
-- [x] 안전 경계 확인 및 `docs/SAFETY_BASELINE.md` 작성
-- [x] Next.js(App Router) + TypeScript strict + Tailwind CSS 4 스캐폴드
-- [x] 구매자/판매자/관리자 반응형 레이아웃 뼈대 및 정보구조(IA) 라우트 자리표시자
-- [x] Vitest 테스트 실행 환경
-- [ ] 실제 DB(PostgreSQL/Prisma) 연결 — M1에서 진행
-- [ ] 실제 로그인/인가, 상품 데이터, 찜 기능 — M1에서 진행
+- [x] (M0) 안전 경계 확인, Next.js 스캐폴드, 반응형 레이아웃 뼈대
+- [x] 로그인/회원가입/로그아웃, RBAC 라우트 보호
+- [x] 카테고리/상품 목록·상세 (실 DB 연동)
+- [x] 찜·팔로우 토글
+- [x] 판매자 입점 신청 + 관리자 승인/반려
+- [x] 판매자 상품 등록(승인 여부에 따라 DRAFT/ON_SALE 자동 분기)
+- [ ] 상품 사진/영상 업로드 — 다음 단계
+- [ ] 장바구니/주문/결제/공동구매 — M2에서 진행
 
 상세 진행 상황은 [`docs/PROGRESS.md`](./docs/PROGRESS.md) 참고.
 
