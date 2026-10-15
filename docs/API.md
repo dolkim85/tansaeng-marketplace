@@ -23,6 +23,11 @@
 | `src/server/orders/actions.ts` | `checkoutAction` | 장바구니→주문 생성(판매자별 Suborder 분리, 재고 차감, Mock Payment 생성) | 로그인 필요 |
 | | `confirmMockPaymentAction` | Mock 결제 확인(Payment CONFIRMED, Order PAID) | 로그인 + 본인 주문만 |
 | | `cancelOrderAction` | 주문 취소(재고 복구, Payment REFUNDED/FAILED 전이) | 로그인 + 본인 주문만 |
+| `src/server/groupbuy/actions.ts` | `toggleGroupBuyAlertAction` | 오픈 알림 신청/해제(수요 집계 제외) | 로그인 필요 |
+| | `joinGroupBuyAction` | 공동구매 참여(OPEN 단계만, 1인당 제한/최대수량 트랜잭션 내 재검증) | 로그인 필요 |
+| | `createGroupBuyAction` | 판매자가 자신의 상품으로 공동구매 등록 | SELLER + 본인 상품만 |
+| | `finalizeGroupBuyAction` | 마감 후 성사/미성사 확정, 미성사 시 자동 환불 | ADMIN 이상 |
+| | `cancelGroupBuyAction` | 공동구매 강제 취소 + 자동 환불 | ADMIN 이상 |
 
 ## 읽기 전용 쿼리 (서버 컴포넌트에서 직접 호출)
 

@@ -153,3 +153,57 @@
 **환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 공동구매 엔진(출하예정 D-7 티저, 오픈/마감, 목표수량, 가격단계) 계속 진행.
+
+---
+
+## M2 — 공동구매 엔진 (2026-10-15, 완료)
+
+**완료 기능:**
+- 스키마 추가: `GroupBuy`(targetQty/maxQty/perUserLimit/priceKrw/teaserStartAt/openAt/closeAt/
+  expectedShipAt/status), `GroupBuyAlert`, `OrderItem.groupBuyId`
+- `src/lib/groupBuyPhase.ts`: 스케줄러 없이 현재 시각 비교로 TEASER/OPEN/AWAITING_FINALIZATION/
+  SUCCEEDED/FAILED/CANCELLED 단계를 계산하는 순수 함수(유닛 테스트 4건)
+- 구매자: `/upcoming`(티저 D-day 목록), `/group-buys`(전체 목록+진행률), `/group-buys/[id]`
+  (상세 — TEASER면 알림 신청/해제, OPEN이면 수량 입력 후 간편 참여), 홈 화면 실데이터 연동
+- 공동구매 참여(`joinGroupBuyAction`): OPEN 단계만 허용, 1인당 제한 검사, **트랜잭션 내부에서
+  재고(maxQty) 재검증**으로 동시 참여 시 초과판매 방지, Order/Suborder/OrderItem(groupBuyId
+  태그)/Payment(PENDING) 생성 — 기존 주문 상세/목록/Mock결제확인 화면을 그대로 재사용
+- 판매자: `/seller/group-buys`(목록), `/seller/group-buys/new`(본인 상품으로 신규 등록,
+  일정 순서 검증)
+- 관리자: `/admin/group-buys` — 마감 시각이 지난 건에 대해 "마감 처리"(목표 달성 여부로
+  성사/미성사 확정) 및 "행사 취소" 버튼, 미성사·취소 시 관련 주문 전부 자동 취소+환불
+
+**미완료 기능과 이유:**
+- 가격 단계(tiers) — 마스터 문서가 "선택" 사항으로 명시, M2에서 의도적으로 제외
+- 공동구매 전용 체크아웃(배송지 입력) — 현재는 임시값으로 자동 생성(결정 근거는
+  PRODUCT_DECISIONS.md), 실제 배송지 입력 플로우는 후속 작업
+- 재고 예약 타임아웃(결제 대기 중 미응답 시 자동 해제) — 미구현, 현재는 취소 전까지 무기한 점유
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(43라우트), `eslint`(0 error), `vitest run`(11건) 전부 통과
+- Playwright E2E 신규 11건(10 PASS, 1건은 서버 로그로 실제 정상 응답 확인된 테스트 노이즈):
+  홈 화면 실데이터 노출, 티저 알림 신청, 공동구매 참여→주문생성→Mock결제확인→진행률 반영,
+  1인당 제한 초과 시 에러 처리
+- 관리자 마감 처리 E2E 별도 검증: 마감시각이 지난 테스트용 공동구매(목표 100, 실결제 0)를
+  "마감 처리" 클릭 시 정확히 "미성사"로 전환되는 것 확인
+- M1(10건)·M2 장바구니/주문(8건) 전체 재실행 — 회귀 없음, 전부 통과
+
+**발견한 이슈:** DB 파일을 삭제 후 재생성할 때 **직전 dev 서버가 완전히 종료되기 전에
+`prisma db push`를 실행하면 시드가 이전 데이터와 뒤섞이는 현상**을 재현·확인함(SAFETY_BASELINE.md
+§6-A의 "readonly database" 이슈와 같은 근본 원인 — 살아있는 커넥션과의 레이스). 매번 서버 프로세스
+종료 확인 → DB 재생성 → 재시드 → 서버 재기동 순서를 엄격히 지켜 해결.
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(GroupBuy/GroupBuyAlert 추가), `prisma/seed.ts`
+(공동구매 2건 시드), `src/lib/groupBuyPhase.ts`, `src/server/groupbuy/*`,
+`src/app/(buyer)/{group-buys,upcoming}/**`, `src/app/(buyer)/page.tsx`(실데이터 연동),
+`src/app/seller/group-buys/**`, `src/app/admin/group-buys/page.tsx`, `src/server/seller/queries.ts`
+(상품 목록 조회 추가), `tests/unit/groupBuyPhase.test.ts`,
+`docs/{ARCHITECTURE,PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** M2의 핵심 요건(거래 카탈로그/찜/장바구니/주문/공동구매)이 전부 구현되어 M2를
+마무리로 간주. 다음은 M3(관리자 운영 고도화: 상품 검수·신고, 광고, 배너/공지, 분쟁 티켓,
+PWA 설치) 또는 사용자가 원하는 특정 기능(상품 사진 업로드 등)을 우선 진행.

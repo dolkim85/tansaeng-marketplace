@@ -26,3 +26,10 @@ export async function listSellerProducts(sellerId: string) {
 export async function listAllCategoriesFlat() {
   return prisma.category.findMany({ orderBy: { name: "asc" } });
 }
+
+export async function listSellerProductsWithoutGroupBuy(sellerId: string) {
+  return prisma.product.findMany({
+    where: { sellerId, groupBuy: null },
+    orderBy: { createdAt: "desc" },
+  });
+}

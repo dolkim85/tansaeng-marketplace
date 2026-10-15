@@ -163,6 +163,49 @@ async function main() {
     create: { userId: buyer.id, sellerId: sellerApproved.id },
   });
 
+  const onion = await prisma.product.findUniqueOrThrow({
+    where: { slug: "onion-5kg" },
+  });
+  const hanwoo = await prisma.product.findUniqueOrThrow({
+    where: { slug: "hanwoo-sirloin-500g" },
+  });
+  const now = Date.now();
+  const day = 24 * 60 * 60 * 1000;
+
+  await prisma.groupBuy.upsert({
+    where: { productId: onion.id },
+    update: {},
+    create: {
+      productId: onion.id,
+      title: "햇양파 5kg 공동구매",
+      targetQty: 50,
+      maxQty: 80,
+      perUserLimit: 5,
+      priceKrw: 10000,
+      teaserStartAt: new Date(now - 8 * day),
+      openAt: new Date(now - 1 * day),
+      closeAt: new Date(now + 6 * day),
+      expectedShipAt: new Date(now + 9 * day),
+    },
+  });
+
+  await prisma.groupBuy.upsert({
+    where: { productId: hanwoo.id },
+    update: {},
+    create: {
+      productId: hanwoo.id,
+      title: "한우 등심 1++ 공동구매",
+      targetQty: 30,
+      maxQty: 50,
+      perUserLimit: 0,
+      priceKrw: 62000,
+      teaserStartAt: new Date(now - 1 * day),
+      openAt: new Date(now + 3 * day),
+      closeAt: new Date(now + 10 * day),
+      expectedShipAt: new Date(now + 13 * day),
+    },
+  });
+
   console.log("=== 시드 완료 ===");
   console.log("데모 계정 비밀번호(전체 공통):", DEMO_PASSWORD);
   console.log("- buyer_demo@tansaeng.local (구매자)");

@@ -24,7 +24,13 @@ User
  └─ 1:N Order (recipientName/Phone, addressLine 스냅샷, totalKrw, status)
       └─ 1:1 Payment (status, provider="mock")
       └─ 1:N Suborder (판매자별 분리, Seller 참조)
-           └─ 1:N OrderItem (titleSnapshot/priceKrwSnapshot — 주문 시점 가격 고정)
+           └─ 1:N OrderItem (titleSnapshot/priceKrwSnapshot — 주문 시점 가격 고정, groupBuyId 선택)
+ └─ 1:N GroupBuyAlert (User, GroupBuy) — @@unique(userId, groupBuyId), 수요 집계와 무관
+
+Product
+ └─ 1:1 GroupBuy (상품 1개당 공동구매 1건, targetQty/maxQty/perUserLimit/priceKrw/일정/status)
+      └─ 1:N GroupBuyAlert
+      └─ 1:N OrderItem(groupBuyId로 역참조) — 실제 결제 주문만 목표 수량에 집계
 ```
 
 ## 설계 메모
@@ -34,6 +40,12 @@ User
 - 찜/팔로우는 복합 유니크 제약으로 중복 생성을 DB 레벨에서 방지.
 - `SellerApplication`은 재신청(REJECTED 이후) 시 같은 Seller에 새 레코드를 추가하는 구조 — 이력이 남는다.
 - `Product.status`: `DRAFT`(미승인 판매자가 등록) / `ON_SALE`(승인된 판매자 또는 관리자 승인 후) / `IN_REVIEW` / `HIDDEN` / `SOLD_OUT`(후자 셋은 아직 전환 로직 미구현, 스키마만 존재).
+- `GroupBuy`(M2): DB의 `status`는 `SCHEDULED/SUCCEEDED/FAILED/CANCELLED` 4가지만 저장한다.
+  화면에 보이는 티저/오픈/마감 단계는 `src/lib/groupBuyPhase.ts`가 `openAt`/`closeAt`과 현재 시각을
+  비교해 그때그때 계산한다(별도 스케줄러/크론 없음). 목표 달성 집계는 `OrderItem.groupBuyId`로 연결된
+  항목 중 **Payment가 CONFIRMED인 것만** 센다(알림 신청 `GroupBuyAlert`는 집계에서 완전히 제외).
+  관리자가 "마감 처리"를 누르면 그 시점에 성사/미성사를 확정하고, 미성사·취소 시 관련 주문을 전부
+  취소+환불 처리한다.
 - `Order`/`Suborder`/`OrderItem`/`Payment`(M2): 체크아웃 시 장바구니를 판매자별로 묶어 `Suborder`를 생성하고,
   `OrderItem`에 상품명/가격을 **스냅샷**으로 저장한다(이후 판매자가 가격을 바꿔도 과거 주문 금액은 불변).
   재고는 주문 생성 시 즉시 차감하고, 주문 취소 시 전부 복구한다(별도의 `stock_reservations` 타이머는 아직 미구현).
@@ -42,7 +54,8 @@ User
 
 ## M2 이후 추가 예정 (마스터 문서 13장 전체 목록 중 미구현)
 
-`group_buys`, `group_buy_tiers`, `alert_subscriptions`, `notification_outbox`,
+`group_buy_tiers`(가격 단계, 현재는 단일가만 지원), `alert_subscriptions`(공동구매 전용
+`GroupBuyAlert`만 있고 가격변경/재입고 등 범용 알림 구독은 없음), `notification_outbox`,
 `fees`, `settlements`, `ledger_entries`, `refunds`(현재는 Payment.status=REFUNDED로만 표현),
 `reviews`, `questions`, `support_tickets`, `ads`, `campaigns`, `banners`, `notices`,
 `policy_versions`, `audit_logs`, `feature_flags`, `stock_reservations`, `shipments`/송장 등록.

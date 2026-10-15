@@ -67,6 +67,16 @@ enum PaymentStatus {
   REFUNDED
 }
 
+/// DB에 저장되는 "기준" 상태. 실제 화면에 보이는 티저/오픈/마감 단계는
+/// src/lib/groupBuyPhase.ts가 openAt/closeAt과 현재 시각을 비교해 계산한다(별도 스케줄러 없음).
+/// SUCCEEDED/FAILED/CANCELLED는 관리자의 "마감 처리" 액션으로만 전이된다.
+enum GroupBuyStatus {
+  SCHEDULED
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -82,6 +92,7 @@ model User {
   sellerFollows   SellerFollow[]
   cart            Cart?
   orders          Order[]
+  groupBuyAlerts  GroupBuyAlert[]
 
   @@index([role])
 }
@@ -144,6 +155,7 @@ model Product {
   wishlists  Wishlist[]
   cartItems  CartItem[]
   orderItems OrderItem[]
+  groupBuy   GroupBuy?
 
   @@index([categoryId])
   @@index([sellerId])
@@ -242,16 +254,19 @@ model Suborder {
 }
 
 model OrderItem {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   suborderId       String
-  suborder         Suborder @relation(fields: [suborderId], references: [id], onDelete: Cascade)
+  suborder         Suborder  @relation(fields: [suborderId], references: [id], onDelete: Cascade)
   productId        String
-  product          Product  @relation(fields: [productId], references: [id])
+  product          Product   @relation(fields: [productId], references: [id])
   titleSnapshot    String
   priceKrwSnapshot Int
   quantity         Int
+  groupBuyId       String?
+  groupBuy         GroupBuy? @relation(fields: [groupBuyId], references: [id])
 
   @@index([suborderId])
+  @@index([groupBuyId])
 }
 
 /// Mock PG 전용. 실결제 연동 전까지 status는 로컬에서만 전이된다.
@@ -264,4 +279,40 @@ model Payment {
   provider    String        @default("mock")
   confirmedAt DateTime?
   createdAt   DateTime      @default(now())
+}
+
+/// 공동구매. 문서 7장 — 상품 1개당 공동구매 1건(1:1). 알림 신청(GroupBuyAlert)은
+/// 실제 결제 주문과 분리되어 목표수량에 집계되지 않는다(문서 7.2 필수 요건).
+model GroupBuy {
+  id             String         @id @default(cuid())
+  productId      String         @unique
+  product        Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  title          String
+  targetQty      Int
+  maxQty         Int
+  perUserLimit   Int            @default(0) // 0 = 제한 없음
+  priceKrw       Int
+  teaserStartAt  DateTime
+  openAt         DateTime
+  closeAt        DateTime
+  expectedShipAt DateTime
+  status         GroupBuyStatus @default(SCHEDULED)
+  createdAt      DateTime       @default(now())
+
+  alerts     GroupBuyAlert[]
+  orderItems OrderItem[]
+
+  @@index([status])
+}
+
+model GroupBuyAlert {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupBuyId String
+  groupBuy   GroupBuy @relation(fields: [groupBuyId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, groupBuyId])
+  @@index([groupBuyId])
 }
