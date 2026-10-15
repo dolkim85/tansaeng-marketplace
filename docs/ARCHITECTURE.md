@@ -15,7 +15,7 @@ UI (Buyer / Seller / Admin, 반응형 + PWA)
   -> Next.js App Router (서버 컴포넌트 + 서버 액션)
      -> src/proxy.ts  (RBAC: /admin, /seller, 구매자 개인화 페이지 접근 제어)
      -> src/server/session.ts (쿠키 기반 세션 조회/발급)
-     -> src/server/{auth,catalog,seller,admin}  (서버 전용 쿼리/액션)
+     -> src/server/{auth,catalog,seller,admin,cart,orders}  (서버 전용 쿼리/액션)
         -> Prisma Client -> SQLite(M1) / PostgreSQL(M2 전환 예정)
      -> 파일 스토리지: 아직 미구현 (상품 미디어 업로드는 M1에 없음)
      -> Mock PG / Mock 알림 어댑터: 아직 미구현
@@ -31,15 +31,18 @@ UI (Buyer / Seller / Admin, 반응형 + PWA)
 - 서버 액션(`src/server/**/actions.ts`) 내부에서도 `getSession()`으로 재검증한다(화면 라우팅 보호와 별개로
   API/서버 단 권한 검사를 중복 적용 — 문서 2장 RBAC 원칙).
 
-## 4. 현재 구현 상태 (M1)
+## 4. 현재 구현 상태 (M2 진행 중)
 
 - 로그인/회원가입/로그아웃, RBAC 라우트 보호 — 동작함(Playwright E2E로 검증).
 - 카테고리/상품 목록·상세 — 실제 Prisma 쿼리로 렌더링.
 - 찜(Wishlist)·팔로우(SellerFollow) — 토글 서버 액션 연결, 중복 방지(`@@unique`).
 - 판매자 입점 신청(SellerApplication) 및 관리자 승인/반려 — 동작함.
 - 판매자 상품 등록 — 승인 여부에 따라 `ON_SALE`/`DRAFT` 자동 분기.
+- **장바구니 → 체크아웃 → Mock 결제 → 주문 취소**(재고 복구 포함) — 전부 동작함(E2E로 검증).
+  판매자별 Suborder 분리, 상품명/가격 스냅샷 저장.
 - 상품 사진/영상 업로드 — **미구현** (상세페이지는 "사진 없음" 플레이스홀더만 표시).
-- 장바구니/주문/결제/공동구매 — **미구현** (M2 예정).
+- 공동구매 — **미구현** (M2 다음 단계).
+- 배송비/쿠폰/재고 예약 타이머 — **미구현**.
 
 ## 5. 저장소 구조
 

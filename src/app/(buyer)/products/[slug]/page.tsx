@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getProductBySlug, isWishlisted } from "@/server/catalog/queries";
 import { toggleWishlistAction } from "@/server/catalog/actions";
+import { addToCartAction } from "@/server/cart/actions";
 import { getSession } from "@/server/session";
 import { formatKRW } from "@/lib/currency";
 
@@ -19,6 +20,8 @@ export default async function ProductDetailPage({
     ? await isWishlisted(session.sub, product.id)
     : false;
   const boundToggle = toggleWishlistAction.bind(null, product.id, product.slug);
+  const boundAddToCart = addToCartAction.bind(null, product.id, product.slug);
+  const canBuy = product.status === "ON_SALE" && product.stockQty > 0;
 
   return (
     <section className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
@@ -63,14 +66,15 @@ export default async function ProductDetailPage({
             {wishlisted ? "♥ 찜 완료" : "♡ 찜하기"}
           </button>
         </form>
-        <button
-          type="button"
-          disabled
-          className="rounded-md bg-brand-green px-4 py-2 text-sm font-semibold text-white opacity-60"
-          title="장바구니/주문은 M2에서 구현 예정"
-        >
-          장바구니(준비중)
-        </button>
+        <form action={boundAddToCart}>
+          <button
+            type="submit"
+            disabled={!canBuy}
+            className="rounded-md bg-brand-green px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
+          >
+            {canBuy ? "장바구니 담기" : "품절/판매중지"}
+          </button>
+        </form>
       </div>
 
       {product.description && (
@@ -80,7 +84,7 @@ export default async function ProductDetailPage({
       )}
 
       <div className="mt-8 rounded-lg border border-dashed border-brand-green/30 bg-white/60 p-4 text-xs text-brand-deepgreen/60">
-        M1 단계: 찜 기능만 연결됨. 장바구니/주문/리뷰는 M2 이후 구현 예정.
+        M2 단계: 장바구니/주문/모의결제까지 연결됨. 리뷰/반품은 다음 단계에서 구현 예정.
       </div>
     </section>
   );

@@ -46,6 +46,27 @@ enum ProductStatus {
   SOLD_OUT
 }
 
+enum OrderStatus {
+  CREATED
+  PAID
+  CANCELLED
+}
+
+enum SuborderStatus {
+  PENDING
+  PREPARING
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  REFUNDED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -59,6 +80,8 @@ model User {
   seller          Seller?
   wishlists       Wishlist[]
   sellerFollows   SellerFollow[]
+  cart            Cart?
+  orders          Order[]
 
   @@index([role])
 }
@@ -75,6 +98,7 @@ model Seller {
   applications SellerApplication[]
   products     Product[]
   follows      SellerFollow[]
+  suborders    Suborder[]
 }
 
 model SellerApplication {
@@ -116,8 +140,10 @@ model Product {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  media     ProductMedia[]
-  wishlists Wishlist[]
+  media      ProductMedia[]
+  wishlists  Wishlist[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
 
   @@index([categoryId])
   @@index([sellerId])
@@ -158,4 +184,84 @@ model SellerFollow {
 
   @@unique([userId, sellerId])
   @@index([userId])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int
+  createdAt DateTime @default(now())
+
+  @@unique([cartId, productId])
+}
+
+/// 구매자가 한 번에 결제한 총주문. 판매자별 하위주문(Suborder)으로 분리된다(문서 9.1).
+model Order {
+  id             String      @id @default(cuid())
+  buyerId        String
+  buyer          User        @relation(fields: [buyerId], references: [id])
+  status         OrderStatus @default(CREATED)
+  totalKrw       Int
+  recipientName  String
+  recipientPhone String
+  addressLine    String
+  createdAt      DateTime    @default(now())
+
+  suborders Suborder[]
+  payment   Payment?
+
+  @@index([buyerId])
+}
+
+/// 판매자별 출고 단위. 같은 Order라도 판매자가 다르면 배송이 분리된다.
+model Suborder {
+  id          String         @id @default(cuid())
+  orderId     String
+  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sellerId    String
+  seller      Seller         @relation(fields: [sellerId], references: [id])
+  status      SuborderStatus @default(PENDING)
+  subtotalKrw Int
+  createdAt   DateTime       @default(now())
+
+  items OrderItem[]
+
+  @@index([orderId])
+  @@index([sellerId])
+}
+
+model OrderItem {
+  id               String   @id @default(cuid())
+  suborderId       String
+  suborder         Suborder @relation(fields: [suborderId], references: [id], onDelete: Cascade)
+  productId        String
+  product          Product  @relation(fields: [productId], references: [id])
+  titleSnapshot    String
+  priceKrwSnapshot Int
+  quantity         Int
+
+  @@index([suborderId])
+}
+
+/// Mock PG 전용. 실결제 연동 전까지 status는 로컬에서만 전이된다.
+model Payment {
+  id          String        @id @default(cuid())
+  orderId     String        @unique
+  order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status      PaymentStatus @default(PENDING)
+  amountKrw   Int
+  provider    String        @default("mock")
+  confirmedAt DateTime?
+  createdAt   DateTime      @default(now())
 }

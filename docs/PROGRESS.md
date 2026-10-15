@@ -109,3 +109,47 @@
 **환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 사용자 지시에 따라 M2(공동구매, 장바구니, 주문, Mock 결제)로 계속 진행.
+
+---
+
+## M2 — 산지직송 주문 (2026-10-15, 장바구니/주문/Mock결제 완료, 공동구매는 다음 단계)
+
+**완료 기능:**
+- 스키마 추가: `Cart`, `CartItem`, `Order`, `Suborder`, `OrderItem`, `Payment`
+- 장바구니: 담기(`addToCartAction`), 수량 +/− (`updateCartItemQuantityAction`), 삭제, 판매자별 그룹 표시
+- 체크아웃: 배송지 입력 폼, 재고/판매상태 재검증, **판매자별 Suborder 자동 분리**,
+  상품명/가격 스냅샷 저장, 재고 즉시 차감, Mock Payment(PENDING) 생성
+- 주문 상세: Mock 결제 확인 버튼(→ Payment CONFIRMED, Order PAID), 주문 취소 버튼
+  (→ 재고 복구, Suborder/Order CANCELLED, Payment REFUNDED/FAILED 전이)
+- `/orders`(구매자 목록), `/orders/[id]`(상세), `/seller/orders`(판매자 접수 목록),
+  `/admin/orders`(관리자 전체 조회) 전부 실데이터 연동
+- 상품 상세페이지의 "장바구니 담기" 버튼 실제 연결(품절/판매중지 시 비활성화)
+
+**미완료 기능과 이유:**
+- 공동구매(출하예정/오픈/마감/목표수량) — 다음 작업 단위로 분리(스키마/상태기계 규모가 커서 별도 검증 필요)
+- 배송비, 쿠폰, 재고 예약 타이머, 송장 등록 — M2 범위에서 의도적으로 단순화(결정 근거는 PRODUCT_DECISIONS.md)
+- 반품/리뷰 — 미구현
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(42라우트), `eslint`, `vitest run`(7건) 전부 통과
+- Playwright E2E 신규 8건 전부 통과: 장바구니 담기(2개 상품)→수량변경→체크아웃→주문생성→
+  Mock결제확인→장바구니 비워짐 확인→주문목록 노출→판매자 화면 노출
+- 추가 수동 스모크: 재고 차감 정확성(DB 직접 조회로 확인: 50→48, 100→99), 주문취소 시 재고 복구
+  정확성(20→0 대신 20 유지 확인, 취소 후 Payment=FAILED), 하위주문 상태 CANCELLED 전이 확인
+- M1 회귀 테스트 10건 재실행 — 전부 통과(스키마 추가가 기존 기능에 영향 없음 확인)
+- 모바일(375px)/PC(1280px) 스크린샷으로 장바구니·체크아웃·주문상세 반응형 확인
+
+**발견한 이슈(실제 버그 아님, 테스트 스크립트 교정):** 체크아웃 폼에 zod 최소 길이(5자) 미만
+주소를 입력했더니 서버가 정상적으로 검증 실패 처리한 것을 테스트 스크립트 버그로 잠시 오인함 →
+입력값을 고쳐 재확인, 실제로는 올바른 유효성 검증 동작이었음.
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(모델 추가), `src/server/{cart,orders}/*`,
+`src/app/(buyer)/{cart,checkout}/*`, `src/app/(buyer)/orders/**`, `src/app/seller/orders/page.tsx`,
+`src/app/admin/orders/page.tsx`, `src/app/(buyer)/products/[slug]/page.tsx`(장바구니 버튼 연결),
+`docs/{ARCHITECTURE,PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 공동구매 엔진(출하예정 D-7 티저, 오픈/마감, 목표수량, 가격단계) 계속 진행.

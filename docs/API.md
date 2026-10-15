@@ -17,6 +17,12 @@
 | | `createProductAction` | 상품 등록(승인 여부로 상태 자동 분기) | SELLER + Seller 레코드 필요 |
 | `src/server/admin/actions.ts` | `approveApplicationAction` | 입점 신청 승인 | ADMIN 이상(내부 재검증) |
 | | `rejectApplicationAction` | 입점 신청 반려 | ADMIN 이상(내부 재검증) |
+| `src/server/cart/actions.ts` | `addToCartAction` | 장바구니 담기(기존 있으면 +1) | 로그인 필요 |
+| | `updateCartItemQuantityAction` | 수량 변경(0 이하면 삭제) | 로그인 + 본인 장바구니만 |
+| | `removeCartItemAction` | 장바구니 항목 삭제 | 로그인 + 본인 장바구니만 |
+| `src/server/orders/actions.ts` | `checkoutAction` | 장바구니→주문 생성(판매자별 Suborder 분리, 재고 차감, Mock Payment 생성) | 로그인 필요 |
+| | `confirmMockPaymentAction` | Mock 결제 확인(Payment CONFIRMED, Order PAID) | 로그인 + 본인 주문만 |
+| | `cancelOrderAction` | 주문 취소(재고 복구, Payment REFUNDED/FAILED 전이) | 로그인 + 본인 주문만 |
 
 ## 읽기 전용 쿼리 (서버 컴포넌트에서 직접 호출)
 
