@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listOpenGroupBuys, listUpcomingGroupBuys } from "@/server/groupbuy/queries";
 import { getActiveHomeBannerAd } from "@/server/ads/queries";
+import { getActiveBanner, listRecentNotices } from "@/server/content/queries";
 import { formatKRW } from "@/lib/currency";
 
 function dDay(openAt: Date): string {
@@ -9,25 +10,46 @@ function dDay(openAt: Date): string {
 }
 
 export default async function BuyerHomePage() {
-  const [upcoming, openGroupBuys, bannerAd] = await Promise.all([
+  const [upcoming, openGroupBuys, bannerAd, banner, notices] = await Promise.all([
     listUpcomingGroupBuys(),
     listOpenGroupBuys(),
     getActiveHomeBannerAd(),
+    getActiveBanner(),
+    listRecentNotices(3),
   ]);
+
+  const bannerContent = (
+    <>
+      <p className="text-xs font-semibold text-brand-green">
+        이번 주 공동구매 · 출하 예정
+      </p>
+      <h1 className="mt-2 text-xl font-bold sm:text-2xl">
+        {banner?.title ?? "산지에서 바로, 탄생과 함께"}
+      </h1>
+      {banner?.subtitle && (
+        <p className="mt-1 text-sm text-brand-deepgreen/70">{banner.subtitle}</p>
+      )}
+    </>
+  );
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6">
-      <section
-        aria-label="메인 배너"
-        className="rounded-xl bg-brand-green/10 p-6 text-brand-deepgreen"
-      >
-        <p className="text-xs font-semibold text-brand-green">
-          이번 주 공동구매 · 출하 예정
-        </p>
-        <h1 className="mt-2 text-xl font-bold sm:text-2xl">
-          산지에서 바로, 탄생과 함께
-        </h1>
-      </section>
+      {banner?.linkUrl ? (
+        <Link
+          href={banner.linkUrl}
+          aria-label="메인 배너"
+          className="block rounded-xl bg-brand-green/10 p-6 text-brand-deepgreen"
+        >
+          {bannerContent}
+        </Link>
+      ) : (
+        <section
+          aria-label="메인 배너"
+          className="rounded-xl bg-brand-green/10 p-6 text-brand-deepgreen"
+        >
+          {bannerContent}
+        </section>
+      )}
 
       {bannerAd && (
         <Link
@@ -123,6 +145,41 @@ export default async function BuyerHomePage() {
         >
           공동구매 모아보기 →
         </Link>
+      </section>
+
+      <section aria-label="공지사항" className="mt-8">
+        <h2 className="text-base font-semibold text-brand-deepgreen">
+          공지사항
+        </h2>
+        {notices.length === 0 ? (
+          <p className="mt-3 text-sm text-brand-deepgreen/50">
+            등록된 공지사항이 없습니다.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {notices.map((n) => (
+              <li
+                key={n.id}
+                className="rounded-lg border border-brand-green/15 bg-white p-3 text-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-brand-deepgreen">
+                    {n.isPinned && (
+                      <span className="mr-1 rounded bg-brand-orange/20 px-1.5 py-0.5 text-[10px] font-semibold text-brand-orange">
+                        고정
+                      </span>
+                    )}
+                    {n.title}
+                  </span>
+                  <span className="text-xs text-brand-deepgreen/50">
+                    {n.createdAt.toLocaleDateString("ko-KR")}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-brand-deepgreen/70">{n.body}</p>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section aria-label="카테고리 탐색" className="mt-8">

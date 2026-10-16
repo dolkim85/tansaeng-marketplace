@@ -394,3 +394,46 @@ PWA 설치) 또는 사용자가 원하는 특정 기능(상품 사진 업로드 
 **환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 배너/공지 CMS, 대리등록 등 M3 나머지 항목 계속 진행.
+
+---
+
+## M3 — 배너/공지/FAQ CMS (2026-10-16, 완료)
+
+**완료 기능:**
+- `Banner`/`Notice`/`Faq` 모델 추가, `src/server/content/{queries,actions}.ts`
+- `/admin/content`: 배너(제목/부제목/링크/우선순위 등록, 활성·비활성 토글, 삭제), 공지(제목/
+  내용/상단고정 등록, 삭제), FAQ(질문/답변/순서 등록, 삭제) 3종 CRUD — 플레이스홀더를 실제
+  기능으로 교체. 카테고리 구조 편집은 범위 밖으로 명시(시드로 고정된 카테고리만 사용)
+- 구매자 홈(`/`): 하드코딩되어 있던 메인 배너 텍스트를 활성 배너(우선순위 최솟값 1건) DB
+  데이터로 교체(없으면 기존 기본 문구로 자연스럽게 폴백), 공지사항 섹션(최신 3건, 고정 글
+  우선 표시) 신규 추가
+- `/help`: M3 분쟁 티켓 작업에서 임시로 넣었던 정적 FAQ 배열을 제거하고 `Faq` 테이블 조회로
+  교체 — 운영자가 추가/삭제한 FAQ가 즉시 반영됨
+
+**미완료 기능과 이유:**
+- 배너 이미지 업로드 — 현재는 텍스트(제목/부제목/링크)만 지원, 이미지 파일 업로드는 상품
+  미디어 업로드(`src/server/media`)와 별도 플로우가 필요해 범위 밖으로 유지
+- 공지사항 상세페이지(`/notices/[id]`) — 마스터 문서 IA에 해당 경로가 없어 홈 화면 목록
+  노출까지만 구현
+- FAQ/공지 수정(edit) — 생성/삭제만 지원, 수정은 삭제 후 재생성으로 대체(Ads 심사 플로우와
+  동일한 단순화 원칙)
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(46라우트, 라우트 자체는 신규 추가 없음 — `/admin/content`는
+  기존 경로), `eslint`(0 error), `vitest run`(18건) 전부 통과
+- Playwright(Python) E2E 신규: 관리자가 배너/공지/FAQ를 각각 생성 → 홈 화면·`/help`에 즉시
+  반영 확인 → 우선순위가 더 높은(sortOrder 작은) 배너가 기존 시드 배너 대신 노출되는지 확인
+  → 비활성화 시 원래 시드 배너로 자연스럽게 되돌아가는지 확인
+- 접근제어 확인: 구매자 계정이 `/admin/content`에 직접 접근 시 proxy.ts에 의해 즉시 리다이렉트
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(Banner/Notice/Faq 모델), `prisma/seed.ts`(배너 1건,
+공지 1건, FAQ 3건 시드), `src/server/content/{queries,actions}.ts`,
+`src/app/admin/content/{page,BannerForm,NoticeForm,FaqForm}.tsx`,
+`src/app/(buyer)/page.tsx`(배너/공지 섹션 연동), `src/app/(buyer)/help/page.tsx`(FAQ를 DB 조회로
+교체), `src/lib/supportLabels.ts`(정적 FAQ_ITEMS 제거), `docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 대리등록(판매자 입점·인증·대리등록, 마스터 문서 10.3절) 진행.

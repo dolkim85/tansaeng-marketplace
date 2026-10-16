@@ -2,7 +2,8 @@ import Link from "next/link";
 import { getSession } from "@/server/session";
 import { prisma } from "@/lib/db";
 import { listMyTickets, listOrderItemsForTicket } from "@/server/support/queries";
-import { TICKET_CATEGORY_LABEL, TICKET_STATUS_LABEL, FAQ_ITEMS } from "@/lib/supportLabels";
+import { listFaqs } from "@/server/content/queries";
+import { TICKET_CATEGORY_LABEL, TICKET_STATUS_LABEL } from "@/lib/supportLabels";
 import { NewProductQuestionForm } from "./NewProductQuestionForm";
 import { NewOrderTicketForm } from "./NewOrderTicketForm";
 
@@ -34,6 +35,7 @@ export default async function HelpPage({
     : [];
 
   const myTickets = session ? await listMyTickets(session.sub) : [];
+  const faqs = await listFaqs();
 
   return (
     <section className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
@@ -45,19 +47,25 @@ export default async function HelpPage({
       <h2 className="mt-6 text-base font-semibold text-brand-deepgreen">
         자주 묻는 질문
       </h2>
-      <div className="mt-2 space-y-2">
-        {FAQ_ITEMS.map((f) => (
-          <details
-            key={f.q}
-            className="rounded-lg border border-brand-green/15 bg-white p-3 text-sm"
-          >
-            <summary className="cursor-pointer font-medium text-brand-deepgreen">
-              {f.q}
-            </summary>
-            <p className="mt-2 text-xs text-brand-deepgreen/70">{f.a}</p>
-          </details>
-        ))}
-      </div>
+      {faqs.length === 0 ? (
+        <p className="mt-2 text-sm text-brand-deepgreen/60">
+          등록된 FAQ가 없습니다.
+        </p>
+      ) : (
+        <div className="mt-2 space-y-2">
+          {faqs.map((f) => (
+            <details
+              key={f.id}
+              className="rounded-lg border border-brand-green/15 bg-white p-3 text-sm"
+            >
+              <summary className="cursor-pointer font-medium text-brand-deepgreen">
+                {f.question}
+              </summary>
+              <p className="mt-2 text-xs text-brand-deepgreen/70">{f.answer}</p>
+            </details>
+          ))}
+        </div>
+      )}
 
       {product && (
         <NewProductQuestionForm productId={product.id} productTitle={product.title} />

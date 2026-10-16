@@ -429,3 +429,40 @@ model SupportTicketMessage {
 
   @@index([ticketId])
 }
+
+/// 홈 메인 배너(마스터 문서 4.2절). 판매자가 신청하는 유료 Ad(HOME_BANNER)와는 별개로,
+/// 운영자가 직접 작성하는 비과금 편집성 배너(공동구매 홍보, 공지 등). isActive인 것 중
+/// sortOrder가 가장 낮은(우선순위 높은) 1건만 홈 화면에 노출된다(복수 노출/캐러셀 없음).
+model Banner {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String?
+  linkUrl   String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([isActive])
+}
+
+/// 공지사항. 고정(isPinned) 글이 항상 먼저, 그 다음 최신순으로 노출된다.
+model Notice {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([isPinned])
+}
+
+/// 자주 묻는 질문. sortOrder 오름차순으로 노출(같으면 생성순).
+model Faq {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([sortOrder])
+}

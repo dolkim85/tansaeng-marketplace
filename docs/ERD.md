@@ -58,6 +58,11 @@ Product
   품목 단위로 정확히 한 판매자에게만 배정됨). `isPublic`은 `PRODUCT_QUESTION`에서만 의미가
   있고(공개 질문은 상품 상세페이지에 노출), 그 외 카테고리는 항상 비공개로 취급한다.
   `SupportTicketMessage.authorRole`은 작성 시점 역할의 스냅샷(이후 역할이 바뀌어도 이력이 안 바뀜).
+- `Banner`/`Notice`/`Faq`(M3): 운영자 CMS 전용 테이블. `Banner`는 판매자가 신청하는 유료
+  `Ad`(placement=HOME_BANNER)와 별개의 비과금 편집성 배너로, `isActive`인 것 중 `sortOrder`가
+  가장 작은(우선순위 높은) 1건만 홈 화면에 노출된다(복수 노출/캐러셀 없음). `Notice`는
+  `isPinned` 우선 → 최신순으로 정렬. `Faq`는 `/help`(구매자)와 `/admin/content`(운영자)가
+  같은 테이블을 공유해 운영자가 추가/삭제한 내용이 즉시 양쪽에 반영된다.
 - `Review`(M3): `Suborder.status`가 `COMPLETED`인 주문 항목에 한해 1건만 작성 가능(`@@unique(orderItemId)`).
   `Suborder.status`는 판매자가 직접 PENDING→PREPARING→SHIPPED→COMPLETED 순서로만 전진시킬 수 있다
   (역행/건너뛰기 불가, `src/server/orders/actions.ts`의 `NEXT_SUBORDER_STATUS` 참고).
@@ -72,9 +77,12 @@ Product
 `group_buy_tiers`(가격 단계, 현재는 단일가만 지원), `alert_subscriptions`(공동구매 전용
 `GroupBuyAlert`만 있고 가격변경/재입고 등 범용 알림 구독은 없음), `notification_outbox`,
 `fees`, `settlements`, `ledger_entries`, `refunds`(현재는 Payment.status=REFUNDED로만 표현),
-`campaigns`, `banners`, `notices`, `policy_versions`, `audit_logs`, `feature_flags`,
-`stock_reservations`, `shipments`/송장 등록.
-(`reviews`/`ads`/`support_tickets`는 M3에서 구현 완료 — 각각 `Review`/`Ad`/`SupportTicket`.)
+`campaigns`, `policy_versions`, `audit_logs`, `feature_flags`,
+`stock_reservations`, `shipments`/송장 등록. 카테고리 구조(`categories`)는 M1 시드로 고정된
+3개(농산물/축산물/수산물)만 사용, 운영자용 트리 편집 UI는 미구현.
+(`reviews`/`ads`/`support_tickets`/`banners`/`notices`는 M3에서 구현 완료 —
+각각 `Review`/`Ad`/`SupportTicket`/`Banner`/`Notice`. FAQ는 마스터 문서에 별도 테이블로
+명시되지 않았으나 같은 맥락으로 `Faq` 테이블을 추가.)
 
 ## PostgreSQL 전환 시 체크리스트 (M2 착수 전)
 

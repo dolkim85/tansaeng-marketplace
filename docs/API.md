@@ -39,6 +39,9 @@
 | | `createOrderTicketAction` | 주문문의/분쟁 티켓 생성(본인 주문의 품목 선택) | 로그인 + 본인 주문만 |
 | | `replyTicketAction` | 답변/추가 메시지 등록(작성자가 작성자 본인이면 OPEN, 아니면 ANSWERED로 전이) | 티켓 당사자(구매자/배정판매자)+ADMIN 이상 |
 | | `closeTicketAction` | 티켓 종료 | 티켓 당사자(구매자/배정판매자)+ADMIN 이상 |
+| `src/server/content/actions.ts` | `createBannerAction` / `toggleBannerActiveAction` / `deleteBannerAction` | 홈 메인 배너 CRUD | ADMIN 이상 |
+| | `createNoticeAction` / `deleteNoticeAction` | 공지사항 CRUD | ADMIN 이상 |
+| | `createFaqAction` / `deleteFaqAction` | FAQ CRUD | ADMIN 이상 |
 
 ## Route Handler
 

@@ -224,6 +224,60 @@ async function main() {
     });
   }
 
+  const existingBanner = await prisma.banner.findFirst({
+    where: { title: "이번 주 공동구매, 산지에서 바로" },
+  });
+  if (!existingBanner) {
+    await prisma.banner.create({
+      data: {
+        title: "이번 주 공동구매, 산지에서 바로",
+        subtitle: "햇양파·한우 공동구매 진행 중",
+        linkUrl: "/group-buys",
+        sortOrder: 0,
+      },
+    });
+  }
+
+  const existingNotice = await prisma.notice.findFirst({
+    where: { title: "탄생 마켓플레이스를 시작합니다" },
+  });
+  if (!existingNotice) {
+    await prisma.notice.create({
+      data: {
+        title: "탄생 마켓플레이스를 시작합니다",
+        body: "산지 직송·공동구매 플랫폼 탄생이 로컬 개발 단계로 오픈했습니다. 이용 중 불편사항은 고객센터로 문의해 주세요.",
+        isPinned: true,
+      },
+    });
+  }
+
+  const faqSeeds = [
+    {
+      question: "주문 후 배송까지 얼마나 걸리나요?",
+      answer:
+        "일반 주문은 판매자가 접수 후 순차 처리합니다. 공동구매는 상품마다 표시된 출하예정일을 따릅니다.",
+      sortOrder: 0,
+    },
+    {
+      question: "상품에 문제가 있으면 어떻게 하나요?",
+      answer:
+        "주문 상세페이지에서 '문의/분쟁 접수'로 해당 상품을 선택해 분쟁(하자/오배송/변질 등)으로 접수해 주세요.",
+      sortOrder: 1,
+    },
+    {
+      question: "구매 전 상품에 대해 질문할 수 있나요?",
+      answer:
+        "상품 상세페이지의 '판매자에게 문의하기'로 질문을 등록할 수 있고, 공개로 설정하면 다른 구매자도 답변을 볼 수 있습니다.",
+      sortOrder: 2,
+    },
+  ];
+  for (const f of faqSeeds) {
+    const existing = await prisma.faq.findFirst({ where: { question: f.question } });
+    if (!existing) {
+      await prisma.faq.create({ data: f });
+    }
+  }
+
   console.log("=== 시드 완료 ===");
   console.log("데모 계정 비밀번호(전체 공통):", DEMO_PASSWORD);
   console.log("- buyer_demo@tansaeng.local (구매자)");
