@@ -60,6 +60,8 @@
 - `src/server/catalog/queries.ts`: 카테고리/상품/찜/팔로우/스토어 조회
 - `src/server/seller/queries.ts`: 판매자 본인 데이터 조회
 - `src/server/admin/queries.ts`: 관리자 전체 데이터 조회
+- `src/server/analytics/queries.ts`: `getAdminAnalyticsSummary` — 거래액(GMV)/활성회원/전환율/
+  공동구매 성사율/광고 CTR/최근 7일 가입·주문 추이를 실제 DB에서 집계(ADMIN 이상, `/admin/analytics`)
 
 ## 인가 이중 검증
 

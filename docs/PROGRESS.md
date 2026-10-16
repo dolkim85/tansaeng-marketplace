@@ -534,3 +534,38 @@ PWA 설치) 또는 사용자가 원하는 특정 기능(상품 사진 업로드 
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 사용자 지정에 따라 관심 알림(/alerts), 관리자 통계(/admin/analytics),
 관리자 감사로그(/admin/audit) 등 나머지 플레이스홀더 중 진행.
+
+---
+
+## 관리자 통계 대시보드 (2026-10-17, 완료)
+
+**완료 기능:**
+- `src/lib/analytics.ts`: `bucketDailyCounts`(날짜 배열을 최근 N일 버킷으로 집계),
+  `safeRatePercent`(0으로 나누기 방지 퍼센트 계산) 순수 함수(유닛 테스트 4건)
+- `src/server/analytics/queries.ts`의 `getAdminAnalyticsSummary`: 새 테이블 없이 기존
+  `User`/`Order`/`Seller`/`GroupBuy`/`Ad`를 요청마다 집계
+- `/admin/analytics`: 거래 지표(GMV/주문수/취소율/평균결제금액), 회원 지표(전체·활성
+  구매자/전환율, 전체·승인 판매자/승인율), 공동구매 성사율, 광고 CTR, 최근 7일 가입·주문
+  추이 테이블 — 플레이스홀더를 실제 기능으로 교체
+
+**미완료 기능과 이유:**
+- 차트/그래프 — 차트 라이브러리 신규 도입은 범위 밖으로 판단, 숫자 표로만 제공
+- 기간 선택(날짜 범위 필터) — 현재는 전체 누적 + 최근 7일 고정, 커스텀 기간 조회는 미구현
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(47라우트, 라우트 추가 없음), `eslint`(0 error),
+  `vitest run`(26건, 신규 `analytics.test.ts` 4건 포함) 전부 통과
+- 기존 세션에서 누적된 실제 데이터(구매자 1명, 유료결제 주문 1건·12,000원)로 DB 직접
+  조회값과 화면 표시값이 일치하는지 수동 대사 확인, Playwright(Python)로 `/admin/analytics`
+  렌더링과 모든 지표 섹션 노출 확인
+- 접근제어 확인: 구매자 계정이 `/admin/analytics`에 접근 시 proxy.ts에 의해 즉시 리다이렉트
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `src/lib/analytics.ts`, `src/server/analytics/queries.ts`,
+`src/app/admin/analytics/page.tsx`, `tests/unit/analytics.test.ts`,
+`docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자 지정에 따라 관심 알림(/alerts) 또는 관리자 감사로그(/admin/audit) 진행.

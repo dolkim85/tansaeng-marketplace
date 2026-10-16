@@ -75,6 +75,11 @@ Product
   구조적으로 불가능하다. `commissionRate`는 배치 생성 시점 값을 그대로 저장해, 이후 전역
   수수료율이 바뀌어도 과거 배치 금액은 바뀌지 않는다. 생성 직후 `PENDING`이며,
   관리자의 별도 승인 액션으로만 `APPROVED`(모의 지급 완료)로 전이한다.
+- `/admin/analytics`(통계 대시보드): 별도 테이블 없이 `User`/`Order`/`Seller`/`GroupBuy`/`Ad`를
+  요청마다 집계해서 보여준다(캐시/배치 집계 테이블 없음 — 공동구매 phase 계산과 동일한
+  "저장 대신 그때그때 계산" 원칙). "거래액(GMV)"은 `Order.status=PAID` 합계 기준으로,
+  `/admin/settlements`의 배송완료(COMPLETED) 기준 정산대상액과는 **정의가 다르므로** 두 숫자가
+  일치하지 않을 수 있다(의도된 차이 — PRODUCT_DECISIONS.md 참고).
 - `Review`(M3): `Suborder.status`가 `COMPLETED`인 주문 항목에 한해 1건만 작성 가능(`@@unique(orderItemId)`).
   `Suborder.status`는 판매자가 직접 PENDING→PREPARING→SHIPPED→COMPLETED 순서로만 전진시킬 수 있다
   (역행/건너뛰기 불가, `src/server/orders/actions.ts`의 `NEXT_SUBORDER_STATUS` 참고).
