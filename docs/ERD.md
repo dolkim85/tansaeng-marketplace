@@ -68,6 +68,13 @@ Product
   `approveApplicationAction`의 일괄 DRAFT→ON_SALE 전환 대상에서 **명시적으로 제외**되며,
   오직 `approveProxyProductAction`(관리자 전용)으로만 `ON_SALE`로 바뀐다 — "농가 동의 없는
   무단 게시 금지"(마스터 문서 10.3절)를 코드 레벨에서 강제하기 위함.
+- `Settlement`/`Suborder.settlementId`(정산/대사, 마스터 문서 11.3절): 관리자가 "정산 실행"을
+  누른 시점에 해당 판매자의 `COMPLETED`이면서 아직 어떤 배치에도 속하지 않은(`settlementId=null`)
+  `Suborder`를 전부 모아 스냅샷(gross/commission/payout)을 만들고, 그 `Suborder`들을 즉시 해당
+  `Settlement`에 연결한다 — 이후 새로 생성되는 주문만 다음 배치의 대상이 되어 이중 집계가
+  구조적으로 불가능하다. `commissionRate`는 배치 생성 시점 값을 그대로 저장해, 이후 전역
+  수수료율이 바뀌어도 과거 배치 금액은 바뀌지 않는다. 생성 직후 `PENDING`이며,
+  관리자의 별도 승인 액션으로만 `APPROVED`(모의 지급 완료)로 전이한다.
 - `Review`(M3): `Suborder.status`가 `COMPLETED`인 주문 항목에 한해 1건만 작성 가능(`@@unique(orderItemId)`).
   `Suborder.status`는 판매자가 직접 PENDING→PREPARING→SHIPPED→COMPLETED 순서로만 전진시킬 수 있다
   (역행/건너뛰기 불가, `src/server/orders/actions.ts`의 `NEXT_SUBORDER_STATUS` 참고).
@@ -81,13 +88,15 @@ Product
 
 `group_buy_tiers`(가격 단계, 현재는 단일가만 지원), `alert_subscriptions`(공동구매 전용
 `GroupBuyAlert`만 있고 가격변경/재입고 등 범용 알림 구독은 없음), `notification_outbox`,
-`fees`, `settlements`, `ledger_entries`, `refunds`(현재는 Payment.status=REFUNDED로만 표현),
-`campaigns`, `policy_versions`, `audit_logs`, `feature_flags`,
-`stock_reservations`, `shipments`/송장 등록. 카테고리 구조(`categories`)는 M1 시드로 고정된
-3개(농산물/축산물/수산물)만 사용, 운영자용 트리 편집 UI는 미구현.
-(`reviews`/`ads`/`support_tickets`/`banners`/`notices`는 M3에서 구현 완료 —
-각각 `Review`/`Ad`/`SupportTicket`/`Banner`/`Notice`. FAQ는 마스터 문서에 별도 테이블로
-명시되지 않았으나 같은 맥락으로 `Faq` 테이블을 추가.)
+`fees`(품목/판매자/기간별 차등 요율 미구현, 전역 상수 `COMMISSION_RATE` 하나만 사용),
+`ledger_entries`(불변 원장은 미구현, `Settlement`가 배치 단위 기록만 보존),
+`refunds`(현재는 Payment.status=REFUNDED로만 표현), `campaigns`, `policy_versions`,
+`audit_logs`, `feature_flags`, `stock_reservations`, `shipments`/송장 등록. 카테고리 구조
+(`categories`)는 M1 시드로 고정된 3개(농산물/축산물/수산물)만 사용, 운영자용 트리 편집
+UI는 미구현.
+(`reviews`/`ads`/`support_tickets`/`banners`/`notices`/`settlements`는 구현 완료 —
+각각 `Review`/`Ad`/`SupportTicket`/`Banner`/`Notice`/`Settlement`. FAQ는 마스터 문서에 별도
+테이블로 명시되지 않았으나 같은 맥락으로 `Faq` 테이블을 추가.)
 
 ## PostgreSQL 전환 시 체크리스트 (M2 착수 전)
 

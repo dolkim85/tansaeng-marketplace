@@ -488,3 +488,49 @@ PWA 설치) 또는 사용자가 원하는 특정 기능(상품 사진 업로드 
 **다음 단계:** M3(관리자 운영 고도화) 전체 완료. 마스터 문서 기준 다음 우선순위는 M4
 (알림 체계 실가동, PostgreSQL 전환, 상품 상세 블록 에디터, 정산/대사 고도화 등) 중 사용자가
 지정하는 항목으로 진행.
+
+---
+
+## 정산/대사 (2026-10-17, 완료)
+
+**완료 기능:**
+- `Settlement` 모델 + `Suborder.settlementId`(정산 배치에 연결된 Suborder는 다음 배치에서
+  제외되어 이중 집계 방지), `SettlementStatus`(PENDING/APPROVED)
+- `src/lib/settlement.ts`: `COMMISSION_RATE`(전역 상수 5%, 초기 예시값) + 순수 계산 함수
+  `calcSettlement`(유닛 테스트 4건)
+- `runSettlementAction`(관리자): 판매자의 미정산 COMPLETED Suborder를 모아 배치 생성(트랜잭션
+  내에서 Settlement 생성 + 대상 Suborder 연결을 함께 처리), `approveSettlementAction`(관리자):
+  PENDING→APPROVED 승인
+- `/admin/settlements`: 전체 GMV/수수료/정산대상액/환불액 요약 카드(광고매출은 "모의 미집계"로
+  명시), 정산대기 판매자 목록+정산실행 버튼, 정산 배치 테이블+승인 버튼 — 플레이스홀더를 실제
+  기능으로 교체
+- `/seller/settlements`: 본인 정산대기금액(예상 수수료/정산액 포함)과 정산 배치 이력 — 플레이스홀더를
+  실제 기능으로 교체
+
+**미완료 기능과 이유:**
+- 품목/판매자/기간별 차등 수수료율 — 마스터 문서가 "확정 요율 아님"이라 명시, 전역 상수
+  하나만 사용
+- 불변 원장(ledger_entries), 실제 PG 비용/원천징수/증빙 — 로컬 샌드박스 범위 밖
+- 판매자별 환불액 세분화 — Payment가 Order(여러 판매자 혼합 가능) 단위라 전역 합계로만 표시
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(47라우트, 라우트 추가 없음 — 기존 placeholder 경로 교체),
+  `eslint`(0 error), `vitest run`(22건, 신규 `settlement.test.ts` 4건 포함) 전부 통과
+- Playwright(Python) E2E 신규: 장바구니→체크아웃→Mock결제확인→배송상태 3단계 전진(COMPLETED)
+  → 판매자 화면에 정산대기금액 노출 확인 → 관리자가 정산 실행(수수료 5% 계산 정확성:
+  12,000원 GMV → 수수료 600원 · 정산액 11,400원 확인) → 승인 후 같은 판매자를 다시 정산
+  실행해도 대기 목록에 더 이상 나타나지 않음(이중 집계 방지) 확인 → 판매자 화면에 "지급완료"
+  반영 확인
+- 접근제어 확인: 구매자 계정이 `/admin/settlements`에 접근 시 proxy.ts에 의해 즉시 리다이렉트
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(Settlement 모델, Suborder.settlementId),
+`src/lib/settlement.ts`, `src/server/settlement/{queries,actions}.ts`,
+`src/app/admin/settlements/page.tsx`, `src/app/seller/settlements/page.tsx`,
+`tests/unit/settlement.test.ts`, `docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자 지정에 따라 관심 알림(/alerts), 관리자 통계(/admin/analytics),
+관리자 감사로그(/admin/audit) 등 나머지 플레이스홀더 중 진행.

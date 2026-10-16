@@ -46,6 +46,8 @@
 | | `approveProxyProductAction` | 대리등록 상품 최종 승인(DRAFT→ON_SALE) | ADMIN 이상 |
 | | `deleteProxyProductAction` | 승인 전 대리등록 상품 삭제 | ADMIN 이상 |
 | `src/server/seller/actions.ts` | `stopSellingProductAction` / `resumeSellingProductAction` | 본인 상품(대리등록 포함) 판매중단/재개 | 로그인 + 본인 상품만 |
+| `src/server/settlement/actions.ts` | `runSettlementAction` | 판매자의 미정산(COMPLETED) Suborder를 모아 정산 배치 생성(중복 집계 방지) | ADMIN 이상 |
+| | `approveSettlementAction` | 정산 배치 승인(모의 지급 완료 처리) | ADMIN 이상 |
 
 ## Route Handler
 

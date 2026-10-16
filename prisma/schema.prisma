@@ -101,6 +101,11 @@ enum GroupBuyStatus {
   CANCELLED
 }
 
+enum SettlementStatus {
+  PENDING
+  APPROVED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -139,6 +144,7 @@ model Seller {
   suborders      Suborder[]
   ads            Ad[]
   supportTickets SupportTicket[]
+  settlements    Settlement[]
 }
 
 model SellerApplication {
@@ -282,19 +288,22 @@ model Order {
 
 /// 판매자별 출고 단위. 같은 Order라도 판매자가 다르면 배송이 분리된다.
 model Suborder {
-  id          String         @id @default(cuid())
-  orderId     String
-  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  sellerId    String
-  seller      Seller         @relation(fields: [sellerId], references: [id])
-  status      SuborderStatus @default(PENDING)
-  subtotalKrw Int
-  createdAt   DateTime       @default(now())
+  id           String         @id @default(cuid())
+  orderId      String
+  order        Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sellerId     String
+  seller       Seller         @relation(fields: [sellerId], references: [id])
+  status       SuborderStatus @default(PENDING)
+  subtotalKrw  Int
+  createdAt    DateTime       @default(now())
+  settlementId String?
+  settlement   Settlement?    @relation(fields: [settlementId], references: [id])
 
   items OrderItem[]
 
   @@index([orderId])
   @@index([sellerId])
+  @@index([settlementId])
 }
 
 model OrderItem {
@@ -476,4 +485,28 @@ model Faq {
   createdAt DateTime @default(now())
 
   @@index([sortOrder])
+}
+
+/// 모의 정산 배치(마스터 문서 11.3절). 관리자가 "정산 실행"을 누른 시점에 그 판매자의
+/// 아직 어떤 배치에도 포함되지 않은 COMPLETED(배송완료) Suborder들을 모아 스냅샷으로 만든다
+/// (이후 생성되는 주문은 자동으로 다음 배치 대상이 됨 — 이중 집계 방지). commissionRate는
+/// 생성 시점의 비율을 기록해 두어, 이후 전역 비율이 바뀌어도 과거 배치 금액은 바뀌지 않는다.
+/// 생성 직후 PENDING이며, 관리자의 별도 "승인" 액션으로만 APPROVED(모의 지급 완료)로 전이한다.
+model Settlement {
+  id             String           @id @default(cuid())
+  sellerId       String
+  seller         Seller           @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  grossKrw       Int
+  commissionRate Float
+  commissionKrw  Int
+  payoutKrw      Int
+  status         SettlementStatus @default(PENDING)
+  approvedBy     String?
+  approvedAt     DateTime?
+  createdAt      DateTime         @default(now())
+
+  suborders Suborder[]
+
+  @@index([sellerId])
+  @@index([status])
 }
