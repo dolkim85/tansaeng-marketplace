@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getSession } from "@/server/session";
 import { getSellerWithLatestApplication, listSellerProducts } from "@/server/seller/queries";
+import { stopSellingProductAction, resumeSellingProductAction } from "@/server/seller/actions";
 import { formatKRW } from "@/lib/currency";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -61,10 +62,13 @@ export default async function SellerProductsPage() {
       ) : (
         <ul className="mt-6 space-y-2">
           {products.map((p) => (
-            <li key={p.id}>
+            <li
+              key={p.id}
+              className="rounded-lg border border-brand-green/15 bg-white p-3 text-sm"
+            >
               <Link
                 href={`/seller/products/${p.id}/edit`}
-                className="flex items-center gap-3 rounded-lg border border-brand-green/15 bg-white p-3 text-sm hover:bg-brand-green/5"
+                className="flex items-center gap-3 hover:opacity-90"
               >
                 {p.media[0] ? (
                   <Image
@@ -80,7 +84,14 @@ export default async function SellerProductsPage() {
                   </div>
                 )}
                 <div className="flex-1">
-                  <p className="font-medium text-brand-deepgreen">{p.title}</p>
+                  <p className="font-medium text-brand-deepgreen">
+                    {p.isProxyRegistered && (
+                      <span className="mr-1 rounded bg-brand-orange/20 px-1.5 py-0.5 text-[10px] font-semibold text-brand-orange">
+                        대리등록
+                      </span>
+                    )}
+                    {p.title}
+                  </p>
                   <p className="text-xs text-brand-deepgreen/50">
                     {p.category.name} · {formatKRW(p.priceKrw)} · 재고{" "}
                     {p.stockQty}
@@ -90,6 +101,37 @@ export default async function SellerProductsPage() {
                   {STATUS_LABEL[p.status]}
                 </span>
               </Link>
+              {p.isProxyRegistered && p.proxySourceNote && (
+                <p className="mt-2 text-xs text-brand-deepgreen/50">
+                  운영자가 대신 등록한 상품입니다(출처: {p.proxySourceNote}
+                  {p.proxyConsentAt &&
+                    ` · 동의 확인 ${p.proxyConsentAt.toLocaleDateString("ko-KR")}`}
+                  ).
+                </p>
+              )}
+              {(p.status === "ON_SALE" || p.status === "HIDDEN") && (
+                <div className="mt-2">
+                  {p.status === "ON_SALE" ? (
+                    <form action={stopSellingProductAction.bind(null, p.id)}>
+                      <button
+                        type="submit"
+                        className="text-xs text-red-600 underline-offset-2 hover:underline"
+                      >
+                        판매중단
+                      </button>
+                    </form>
+                  ) : (
+                    <form action={resumeSellingProductAction.bind(null, p.id)}>
+                      <button
+                        type="submit"
+                        className="text-xs text-brand-green underline-offset-2 hover:underline"
+                      >
+                        판매재개
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
             </li>
           ))}
         </ul>

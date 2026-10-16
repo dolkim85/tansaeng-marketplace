@@ -180,6 +180,17 @@ model Product {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
+  /// 대리등록(마스터 문서 10.3절) — 운영자가 농가 대신 등록한 상품만 아래 필드를 채운다.
+  /// 대리등록 상품은 판매자의 입점 승인 상태와 무관하게 항상 DRAFT로 시작하며,
+  /// `approveProxyProductAction`(관리자 전용)으로만 ON_SALE로 전환된다
+  /// (`approveApplicationAction`의 일괄 DRAFT→ON_SALE 전환 대상에서 제외됨).
+  isProxyRegistered Boolean   @default(false)
+  proxySourceNote   String?
+  proxyConsentAt    DateTime?
+  proxyRegisteredBy String?
+  proxyApprovedAt   DateTime?
+  proxyApprovedBy   String?
+
   media          ProductMedia[]
   wishlists      Wishlist[]
   cartItems      CartItem[]

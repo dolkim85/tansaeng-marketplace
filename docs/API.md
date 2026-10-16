@@ -42,6 +42,10 @@
 | `src/server/content/actions.ts` | `createBannerAction` / `toggleBannerActiveAction` / `deleteBannerAction` | 홈 메인 배너 CRUD | ADMIN 이상 |
 | | `createNoticeAction` / `deleteNoticeAction` | 공지사항 CRUD | ADMIN 이상 |
 | | `createFaqAction` / `deleteFaqAction` | FAQ CRUD | ADMIN 이상 |
+| `src/server/admin/actions.ts` | `createProxyProductAction` | 농가 대신 상품 대리등록(항상 DRAFT로 생성, 동의 확인 필수) | ADMIN 이상 |
+| | `approveProxyProductAction` | 대리등록 상품 최종 승인(DRAFT→ON_SALE) | ADMIN 이상 |
+| | `deleteProxyProductAction` | 승인 전 대리등록 상품 삭제 | ADMIN 이상 |
+| `src/server/seller/actions.ts` | `stopSellingProductAction` / `resumeSellingProductAction` | 본인 상품(대리등록 포함) 판매중단/재개 | 로그인 + 본인 상품만 |
 
 ## Route Handler
 

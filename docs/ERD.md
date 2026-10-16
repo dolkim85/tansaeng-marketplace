@@ -63,6 +63,11 @@ Product
   가장 작은(우선순위 높은) 1건만 홈 화면에 노출된다(복수 노출/캐러셀 없음). `Notice`는
   `isPinned` 우선 → 최신순으로 정렬. `Faq`는 `/help`(구매자)와 `/admin/content`(운영자)가
   같은 테이블을 공유해 운영자가 추가/삭제한 내용이 즉시 양쪽에 반영된다.
+- `Product.isProxyRegistered`/`proxy*`(M3, 대리등록): 운영자가 농가 대신 등록한 상품만 채워지는
+  필드. 대리등록 상품은 판매자의 입점 승인 상태와 무관하게 항상 `DRAFT`로 생성되고,
+  `approveApplicationAction`의 일괄 DRAFT→ON_SALE 전환 대상에서 **명시적으로 제외**되며,
+  오직 `approveProxyProductAction`(관리자 전용)으로만 `ON_SALE`로 바뀐다 — "농가 동의 없는
+  무단 게시 금지"(마스터 문서 10.3절)를 코드 레벨에서 강제하기 위함.
 - `Review`(M3): `Suborder.status`가 `COMPLETED`인 주문 항목에 한해 1건만 작성 가능(`@@unique(orderItemId)`).
   `Suborder.status`는 판매자가 직접 PENDING→PREPARING→SHIPPED→COMPLETED 순서로만 전진시킬 수 있다
   (역행/건너뛰기 불가, `src/server/orders/actions.ts`의 `NEXT_SUBORDER_STATUS` 참고).

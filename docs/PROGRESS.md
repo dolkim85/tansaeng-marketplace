@@ -437,3 +437,54 @@ PWA 설치) 또는 사용자가 원하는 특정 기능(상품 사진 업로드 
 **환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 대리등록(판매자 입점·인증·대리등록, 마스터 문서 10.3절) 진행.
+
+---
+
+## M3 — 대리등록 (2026-10-16, 완료 — M3 전체 완료)
+
+**완료 기능:**
+- `Product`에 `isProxyRegistered`/`proxySourceNote`/`proxyConsentAt`/`proxyRegisteredBy`/
+  `proxyApprovedAt`/`proxyApprovedBy` 필드 추가
+- `/admin/products/proxy-new`: 운영자가 임의의 판매자(입점 승인 여부 무관)를 선택해 대신
+  상품을 등록. 정보 출처(전달 경로)와 사전 동의 확인 체크박스가 필수이며, 항상 DRAFT로 생성
+- `/admin/products`: "+ 대리등록" 진입 링크, 대리등록 상품에 "승인 대기"/"승인됨" 배지와
+  승인/삭제(승인 전만) 버튼 추가
+- `approveApplicationAction`의 기존 "입점 승인 시 해당 판매자 DRAFT 상품 전부 ON_SALE 전환"
+  로직에서 `isProxyRegistered` 상품을 명시적으로 제외 — 대리등록 상품은 입점 승인과 별개로
+  관리자의 개별 최종 승인(`approveProxyProductAction`)이 있어야만 공개됨(회귀 테스트로 확인)
+- `/seller/products`: 대리등록 상품에 "대리등록" 배지 + 출처/동의일 표시, 판매중단/재개
+  버튼 신규 추가(ON_SALE↔HIDDEN 즉시 토글, 대리등록 여부와 무관하게 모든 본인 상품에 적용)
+- `/seller/products/[id]/edit`: 대리등록 상품이면 출처/승인상태 안내 문구 노출
+
+**미완료 기능과 이유:**
+- 상품명/가격/설명 등 텍스트 필드 수정 — 이미 이전 단계부터 "다음 단계 예정"으로 남아있던
+  범위이며, 이번 작업에서 새로 끼워넣지 않음(판매중단만 새로 구현)
+- 실제 농가 전자동의(SMS 인증 등) 연동 — 로컬 샌드박스 범위 밖, 관리자가 수기로 출처/동의
+  확인 체크박스만 기록
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(47라우트, `/admin/products/proxy-new` 신규), `eslint`(0 error),
+  `vitest run`(18건) 전부 통과
+- Playwright(Python) E2E 신규: 관리자가 미승인 판매자를 대상으로 대리등록 → DRAFT로 생성되고
+  공개 카테고리 목록에는 아직 노출되지 않음 확인 → 해당 판매자가 본인 상품 목록에서
+  "대리등록" 배지와 함께 확인 → 관리자가 승인 → 판매자 화면에서 "판매중" 확인 → 판매자가
+  직접 판매중단→재개 토글 → 비관리자/비로그인 사용자가 `/admin/products/proxy-new`에 접근
+  시 각각 올바른 경로로 리다이렉트되는지 확인
+- 회귀 테스트 별도 작성: 대리등록 DRAFT 상품을 만든 뒤 해당 판매자의 입점 신청을 승인해도
+  그 대리등록 상품이 자동으로 ON_SALE 전환되지 않고 "승인 대기" 상태를 유지함을 확인
+  (기존 `approveApplicationAction`의 일괄 전환 로직 수정이 의도대로 동작)
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(Product에 proxy 필드 추가),
+`src/server/admin/{actions,queries}.ts`(대리등록 CRUD + 판매자 선택 목록),
+`src/server/seller/actions.ts`(판매중단/재개), `src/app/admin/products/page.tsx`,
+`src/app/admin/products/proxy-new/{page,ProxyProductForm}.tsx`,
+`src/app/seller/products/page.tsx`(배지+판매중단/재개), `src/app/seller/products/[id]/edit/page.tsx`
+(대리등록 안내), `docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** M3(관리자 운영 고도화) 전체 완료. 마스터 문서 기준 다음 우선순위는 M4
+(알림 체계 실가동, PostgreSQL 전환, 상품 상세 블록 에디터, 정산/대사 고도화 등) 중 사용자가
+지정하는 항목으로 진행.

@@ -41,6 +41,17 @@ export default async function EditProductPage({
         공개 상세페이지 미리보기 →
       </Link>
 
+      {product.isProxyRegistered && (
+        <p className="mt-2 rounded-md bg-brand-orange/10 p-2 text-xs text-brand-orange">
+          운영자가 농가를 대신해 등록한 상품입니다
+          {product.proxySourceNote && `(출처: ${product.proxySourceNote})`}.
+          {product.status === "DRAFT"
+            ? " 관리자 최종 승인 전까지는 공개되지 않습니다."
+            : " 승인되어 공개 중입니다."}{" "}
+          정보가 잘못되었거나 판매를 중단하고 싶으면 운영자에게 문의해 주세요.
+        </p>
+      )}
+
       <h2 className="mt-6 text-base font-semibold text-brand-deepgreen">
         사진 · 영상 ({product.media.filter((m) => m.kind === "image").length}/10,
         영상 {product.media.filter((m) => m.kind === "video").length}/1)

@@ -128,3 +128,29 @@ export async function createProductAction(
   revalidatePath("/seller/products");
   redirect("/seller/products");
 }
+
+/// 농가가 자신의(대리등록 포함) 상품 판매를 즉시 중단/재개한다(마스터 문서 10.3절
+/// "농가가... 판매 중단을 요청할 수 있게 하며" 요건의 최소 구현 — 승인 대기열 없이 즉시 반영).
+async function setSellingState(productId: string, nextStatus: "ON_SALE" | "HIDDEN") {
+  const session = await getSession();
+  if (!session) redirect("/auth/login?from=/seller/products");
+
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  const seller = await prisma.seller.findUnique({ where: { userId: session.sub } });
+  if (!product || !seller || product.sellerId !== seller.id) return;
+  if (product.status !== "ON_SALE" && product.status !== "HIDDEN") return;
+
+  await prisma.product.update({
+    where: { id: productId },
+    data: { status: nextStatus },
+  });
+  revalidatePath("/seller/products");
+}
+
+export async function stopSellingProductAction(productId: string): Promise<void> {
+  await setSellingState(productId, "HIDDEN");
+}
+
+export async function resumeSellingProductAction(productId: string): Promise<void> {
+  await setSellingState(productId, "ON_SALE");
+}
