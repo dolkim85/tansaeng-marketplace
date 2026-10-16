@@ -67,6 +67,18 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum SupportTicketStatus {
+  OPEN
+  ANSWERED
+  CLOSED
+}
+
+enum SupportTicketCategory {
+  PRODUCT_QUESTION
+  ORDER_INQUIRY
+  DISPUTE
+}
+
 enum AdPlacement {
   SEARCH
   CATEGORY_TOP
@@ -99,13 +111,15 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  seller          Seller?
-  wishlists       Wishlist[]
-  sellerFollows   SellerFollow[]
-  cart            Cart?
-  orders          Order[]
-  groupBuyAlerts  GroupBuyAlert[]
-  reviews         Review[]
+  seller              Seller?
+  wishlists           Wishlist[]
+  sellerFollows       SellerFollow[]
+  cart                Cart?
+  orders              Order[]
+  groupBuyAlerts      GroupBuyAlert[]
+  reviews             Review[]
+  supportTickets      SupportTicket[]
+  supportTicketMessages SupportTicketMessage[]
 
   @@index([role])
 }
@@ -119,11 +133,12 @@ model Seller {
   identityType SellerIdentityType
   createdAt    DateTime @default(now())
 
-  applications SellerApplication[]
-  products     Product[]
-  follows      SellerFollow[]
-  suborders    Suborder[]
-  ads          Ad[]
+  applications   SellerApplication[]
+  products       Product[]
+  follows        SellerFollow[]
+  suborders      Suborder[]
+  ads            Ad[]
+  supportTickets SupportTicket[]
 }
 
 model SellerApplication {
@@ -165,13 +180,14 @@ model Product {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  media      ProductMedia[]
-  wishlists  Wishlist[]
-  cartItems  CartItem[]
-  orderItems OrderItem[]
-  groupBuy   GroupBuy?
-  reviews    Review[]
-  ads        Ad[]
+  media          ProductMedia[]
+  wishlists      Wishlist[]
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  groupBuy       GroupBuy?
+  reviews        Review[]
+  ads            Ad[]
+  supportTickets SupportTicket[]
 
   @@index([categoryId])
   @@index([sellerId])
@@ -246,8 +262,9 @@ model Order {
   addressLine    String
   createdAt      DateTime    @default(now())
 
-  suborders Suborder[]
-  payment   Payment?
+  suborders      Suborder[]
+  payment        Payment?
+  supportTickets SupportTicket[]
 
   @@index([buyerId])
 }
@@ -371,4 +388,44 @@ model Ad {
 
   @@index([status])
   @@index([placement])
+}
+
+/// 상품질문/주문문의/분쟁 티켓(문서 9.4절). 세 종류 모두 같은 상태기계(OPEN→ANSWERED→CLOSED)와
+/// 메시지 스레드(SupportTicketMessage)를 공유한다. isPublic은 PRODUCT_QUESTION에서만 의미가 있고
+/// (공개 질문은 상품 상세페이지 노출용), 그 외 카테고리는 항상 비공개로 취급한다.
+model SupportTicket {
+  id         String                @id @default(cuid())
+  userId     String
+  user       User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   SupportTicketCategory
+  subject    String
+  status     SupportTicketStatus   @default(OPEN)
+  isPublic   Boolean               @default(false)
+  productId  String?
+  product    Product?              @relation(fields: [productId], references: [id])
+  orderId    String?
+  order      Order?                @relation(fields: [orderId], references: [id])
+  sellerId   String?
+  seller     Seller?               @relation(fields: [sellerId], references: [id])
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+
+  messages SupportTicketMessage[]
+
+  @@index([userId])
+  @@index([sellerId])
+  @@index([status])
+}
+
+model SupportTicketMessage {
+  id         String        @id @default(cuid())
+  ticketId   String
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorRole UserRole
+  body       String
+  createdAt  DateTime      @default(now())
+
+  @@index([ticketId])
 }

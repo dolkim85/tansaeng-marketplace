@@ -345,3 +345,52 @@ PWA 설치) 또는 사용자가 원하는 특정 기능(상품 사진 업로드 
 **환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 배너/공지 CMS, 분쟁 티켓, 대리등록 등 M3 나머지 항목 계속 진행.
+
+---
+
+## M3 — 문의/분쟁 티켓(Support Ticket) (2026-10-16, 완료)
+
+**완료 기능:**
+- `SupportTicket`/`SupportTicketMessage` 모델(카테고리: 상품질문/주문문의/분쟁, 상태:
+  답변대기/답변완료/종료), 공통 상태기계 + 1:1 메시지 스레드
+- `createProductQuestionAction`: 상품 상세페이지 "판매자에게 문의하기" 링크로 진입, 공개/비공개 선택 가능
+- `createOrderTicketAction`: 주문 상세페이지 "문의/분쟁 접수" 링크로 진입, 주문 품목을 선택하면
+  그 품목이 속한 Suborder의 판매자로 자동 배정(한 주문에 판매자가 여럿이어도 정확히 배정)
+- `replyTicketAction`: 답변 작성자가 티켓 소유자(구매자)면 OPEN(재질문)으로, 판매자/관리자면
+  ANSWERED로 자동 전이. `closeTicketAction`: 당사자/관리자가 종료
+- `/help`(FAQ + 신규 문의 폼 + 내 문의 내역), `/help/[id]`(구매자 스레드),
+  `/seller/support`·`/seller/support/[id]`(배정된 문의만), `/admin/support`·`/admin/support/[id]`
+  (전체 조회, 분쟁은 빨간 배지로 구분) — 전부 플레이스홀더를 실제 기능으로 교체
+- 상품 상세페이지에 공개 상품질문(+답변) 섹션 노출, 접근제어는 티켓 소유자/배정판매자/관리자만
+  허용(그 외는 404)
+
+**미완료 기능과 이유:**
+- FAQ는 정적 배열(`src/lib/supportLabels.ts`)로만 제공 — 관리자가 FAQ를 직접 편집하는 CMS는
+  `/admin/content`(배너·공지 CMS) 작업 단위에서 함께 다룰 예정
+- 티켓 신고/악성 질문 숨김, 알림(답변 도착 시 푸시/이메일) — `/alerts`가 아직 자리표시자라 연결 보류
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(46라우트, `/help/[id]` `/seller/support/[id]` `/admin/support/[id]`
+  신규 포함), `eslint`(0 error), `vitest run`(18건) 전부 통과
+- Playwright(Python) E2E 신규: 구매자가 상품 상세페이지에서 공개 질문 등록 → 판매자가
+  `/seller/support`에서 답변(상태 ANSWERED 전환 확인) → 구매자가 스레드와 상품 상세페이지
+  양쪽에서 답변 확인 → 장바구니/체크아웃으로 실제 주문 생성 후 주문 상세에서 분쟁(DISPUTE)
+  접수(품목 선택) → 관리자가 `/admin/support`에서 분쟁 확인 후 답변 → 종료 처리까지 전 과정 확인
+- 접근제어 별도 확인: 티켓에 배정되지 않은 다른 판매자가 `/seller/support/[id]`에 직접 접근 시
+  404 응답(서버 로그로 확인)
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(SupportTicket/SupportTicketMessage 모델),
+`src/server/support/{queries,actions}.ts`, `src/lib/supportLabels.ts`,
+`src/components/support/{TicketThread,ReplyForm}.tsx`,
+`src/app/(buyer)/help/{page,NewProductQuestionForm,NewOrderTicketForm}.tsx`,
+`src/app/(buyer)/help/[id]/page.tsx`, `src/app/seller/support/{page,[id]/page}.tsx`,
+`src/app/admin/support/{page,[id]/page}.tsx`,
+`src/app/(buyer)/products/[slug]/page.tsx`(문의 링크+공개질문 섹션),
+`src/app/(buyer)/orders/[id]/page.tsx`(문의/분쟁 접수 링크),
+`docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 배너/공지 CMS, 대리등록 등 M3 나머지 항목 계속 진행.

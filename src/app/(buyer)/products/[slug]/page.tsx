@@ -5,6 +5,7 @@ import { getProductBySlug, isWishlisted } from "@/server/catalog/queries";
 import { toggleWishlistAction } from "@/server/catalog/actions";
 import { addToCartAction } from "@/server/cart/actions";
 import { listProductReviews } from "@/server/reviews/queries";
+import { listPublicProductQuestions } from "@/server/support/queries";
 import { getSession } from "@/server/session";
 import { formatKRW } from "@/lib/currency";
 
@@ -30,6 +31,7 @@ export default async function ProductDetailPage({
     (m) => m.kind === "image" && m.id !== primaryImage?.id
   );
   const { reviews, avgRating } = await listProductReviews(product.id);
+  const questions = await listPublicProductQuestions(product.id);
 
   return (
     <section className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
@@ -116,6 +118,12 @@ export default async function ProductDetailPage({
             {canBuy ? "장바구니 담기" : "품절/판매중지"}
           </button>
         </form>
+        <Link
+          href={`/help?new=product&productId=${product.id}`}
+          className="rounded-md border border-brand-green/30 px-4 py-2 text-sm font-semibold text-brand-deepgreen hover:bg-brand-green/10"
+        >
+          판매자에게 문의하기
+        </Link>
       </div>
 
       {product.description && (
@@ -160,9 +168,34 @@ export default async function ProductDetailPage({
         </ul>
       )}
 
-      <div className="mt-8 rounded-lg border border-dashed border-brand-green/30 bg-white/60 p-4 text-xs text-brand-deepgreen/60">
-        M3 단계: 배송완료 후 후기 작성까지 연결됨. 반품/분쟁 처리는 다음 단계에서 구현 예정.
-      </div>
+      <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
+        상품 질문 {questions.length > 0 && `(${questions.length}건)`}
+      </h2>
+      {questions.length === 0 ? (
+        <p className="mt-2 text-sm text-brand-deepgreen/60">
+          공개된 질문이 없습니다.
+        </p>
+      ) : (
+        <ul className="mt-2 space-y-2">
+          {questions.map((q) => (
+            <li
+              key={q.id}
+              className="rounded-lg border border-brand-green/15 bg-white p-3 text-sm"
+            >
+              <p className="font-medium text-brand-deepgreen">Q. {q.subject}</p>
+              {q.messages.map((m, i) => (
+                <p
+                  key={m.id}
+                  className="mt-1 whitespace-pre-line text-xs text-brand-deepgreen/70"
+                >
+                  {i === 0 ? "" : "A. "}
+                  {m.body}
+                </p>
+              ))}
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

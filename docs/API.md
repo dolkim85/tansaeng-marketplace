@@ -35,6 +35,10 @@
 | `src/server/reviews/actions.ts` | `createReviewAction` | 배송완료 주문 항목에 후기 작성(1건당 1개) | 로그인 + 본인 주문만 |
 | `src/server/ads/actions.ts` | `requestAdAction` | 광고 신청(본인 상품만) | SELLER |
 | | `approveAdAction` / `rejectAdAction` | 광고 심사 | ADMIN 이상 |
+| `src/server/support/actions.ts` | `createProductQuestionAction` | 상품 질문 티켓 생성(공개/비공개 선택) | 로그인 필요 |
+| | `createOrderTicketAction` | 주문문의/분쟁 티켓 생성(본인 주문의 품목 선택) | 로그인 + 본인 주문만 |
+| | `replyTicketAction` | 답변/추가 메시지 등록(작성자가 작성자 본인이면 OPEN, 아니면 ANSWERED로 전이) | 티켓 당사자(구매자/배정판매자)+ADMIN 이상 |
+| | `closeTicketAction` | 티켓 종료 | 티켓 당사자(구매자/배정판매자)+ADMIN 이상 |
 
 ## Route Handler
 

@@ -51,6 +51,13 @@ Product
 - `Ad`(M3): 실제 과금 없이 `impressions`/`clicks` 정수 카운터만 증가시키는 모의 광고. "활성" 여부는
   `status=APPROVED && startAt<=now<=endAt`로 화면에서 계산(`src/lib/adActive.ts`, 공동구매와 동일 패턴).
   클릭은 `/api/ads/[id]/click` 라우트 핸들러를 거쳐 집계 후 실제 상품 페이지로 307 리다이렉트된다.
+- `SupportTicket`/`SupportTicketMessage`(M3): 상품질문/주문문의/분쟁 3종을 같은 상태기계
+  (`OPEN`→`ANSWERED`→`CLOSED`)와 메시지 스레드로 처리한다. `sellerId`는 조회 편의를 위한
+  비정규화 필드로, 상품질문은 `product.sellerId`에서, 주문문의/분쟁은 사용자가 선택한
+  주문 품목이 속한 `Suborder.sellerId`에서 생성 시점에 고정한다(한 주문에 판매자가 여럿이어도
+  품목 단위로 정확히 한 판매자에게만 배정됨). `isPublic`은 `PRODUCT_QUESTION`에서만 의미가
+  있고(공개 질문은 상품 상세페이지에 노출), 그 외 카테고리는 항상 비공개로 취급한다.
+  `SupportTicketMessage.authorRole`은 작성 시점 역할의 스냅샷(이후 역할이 바뀌어도 이력이 안 바뀜).
 - `Review`(M3): `Suborder.status`가 `COMPLETED`인 주문 항목에 한해 1건만 작성 가능(`@@unique(orderItemId)`).
   `Suborder.status`는 판매자가 직접 PENDING→PREPARING→SHIPPED→COMPLETED 순서로만 전진시킬 수 있다
   (역행/건너뛰기 불가, `src/server/orders/actions.ts`의 `NEXT_SUBORDER_STATUS` 참고).
@@ -65,8 +72,9 @@ Product
 `group_buy_tiers`(가격 단계, 현재는 단일가만 지원), `alert_subscriptions`(공동구매 전용
 `GroupBuyAlert`만 있고 가격변경/재입고 등 범용 알림 구독은 없음), `notification_outbox`,
 `fees`, `settlements`, `ledger_entries`, `refunds`(현재는 Payment.status=REFUNDED로만 표현),
-`reviews`, `questions`, `support_tickets`, `ads`, `campaigns`, `banners`, `notices`,
-`policy_versions`, `audit_logs`, `feature_flags`, `stock_reservations`, `shipments`/송장 등록.
+`campaigns`, `banners`, `notices`, `policy_versions`, `audit_logs`, `feature_flags`,
+`stock_reservations`, `shipments`/송장 등록.
+(`reviews`/`ads`/`support_tickets`는 M3에서 구현 완료 — 각각 `Review`/`Ad`/`SupportTicket`.)
 
 ## PostgreSQL 전환 시 체크리스트 (M2 착수 전)
 

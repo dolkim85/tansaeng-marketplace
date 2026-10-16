@@ -120,6 +120,12 @@ export default async function OrderDetailPage({
             후기 작성하기
           </Link>
         )}
+        <Link
+          href={`/help?new=order&orderId=${order.id}`}
+          className="rounded-md border border-brand-green/30 px-4 py-2 text-sm font-semibold text-brand-deepgreen hover:bg-brand-green/10"
+        >
+          문의/분쟁 접수
+        </Link>
       </div>
     </section>
   );
