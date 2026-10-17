@@ -48,6 +48,7 @@
 | `src/server/seller/actions.ts` | `stopSellingProductAction` / `resumeSellingProductAction` | 본인 상품(대리등록 포함) 판매중단/재개 | 로그인 + 본인 상품만 |
 | `src/server/settlement/actions.ts` | `runSettlementAction` | 판매자의 미정산(COMPLETED) Suborder를 모아 정산 배치 생성(중복 집계 방지) | ADMIN 이상 |
 | | `approveSettlementAction` | 정산 배치 승인(모의 지급 완료 처리) | ADMIN 이상 |
+| `src/server/notifications/actions.ts` | `updateNotificationPreferenceAction` | 광고성 정보 수신동의(이메일/푸시) 저장 | 로그인 필요 |
 
 ## Route Handler
 
@@ -62,6 +63,10 @@
 - `src/server/admin/queries.ts`: 관리자 전체 데이터 조회
 - `src/server/analytics/queries.ts`: `getAdminAnalyticsSummary` — 거래액(GMV)/활성회원/전환율/
   공동구매 성사율/광고 CTR/최근 7일 가입·주문 추이를 실제 DB에서 집계(ADMIN 이상, `/admin/analytics`)
+- `src/server/groupbuy/queries.ts`: `listMyGroupBuyAlerts` — 구매자가 신청한 공동구매 오픈
+  알림 목록(`/alerts`)
+- `src/server/notifications/queries.ts`: `getNotificationPreference` — 구매자 수신설정 조회
+  (레코드 없으면 기본값: 전부 미동의)
 
 ## 인가 이중 검증
 

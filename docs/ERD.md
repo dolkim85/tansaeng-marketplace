@@ -80,6 +80,10 @@ Product
   "저장 대신 그때그때 계산" 원칙). "거래액(GMV)"은 `Order.status=PAID` 합계 기준으로,
   `/admin/settlements`의 배송완료(COMPLETED) 기준 정산대상액과는 **정의가 다르므로** 두 숫자가
   일치하지 않을 수 있다(의도된 차이 — PRODUCT_DECISIONS.md 참고).
+- `NotificationPreference`(관심 알림·수신설정): 거래 알림(주문/배송/정산 등)은 서비스 이용에
+  필수라 끄는 옵션 없이 항상 발송 대상으로 간주하고, 이 테이블은 **광고성 정보 수신동의만**
+  이메일/푸시 채널별로 저장한다(레코드가 없으면 전부 미동의로 간주). 공동구매 오픈 알림은
+  이미 있던 `GroupBuyAlert`를 그대로 재사용(`/alerts`에서 신청/해제 모두 가능).
 - `Review`(M3): `Suborder.status`가 `COMPLETED`인 주문 항목에 한해 1건만 작성 가능(`@@unique(orderItemId)`).
   `Suborder.status`는 판매자가 직접 PENDING→PREPARING→SHIPPED→COMPLETED 순서로만 전진시킬 수 있다
   (역행/건너뛰기 불가, `src/server/orders/actions.ts`의 `NEXT_SUBORDER_STATUS` 참고).
@@ -91,8 +95,10 @@ Product
 
 ## M2 이후 추가 예정 (마스터 문서 13장 전체 목록 중 미구현)
 
-`group_buy_tiers`(가격 단계, 현재는 단일가만 지원), `alert_subscriptions`(공동구매 전용
-`GroupBuyAlert`만 있고 가격변경/재입고 등 범용 알림 구독은 없음), `notification_outbox`,
+`group_buy_tiers`(가격 단계, 현재는 단일가만 지원), `alert_subscriptions`(공동구매 오픈 알림과
+광고성 정보 수신동의는 구현했으나, 가격변경/재입고 등 그 외 알림 종류별 구독은 없음),
+`notification_outbox`/`notification_logs`(실제 발송 로그/예약/재시도는 `/admin/notifications`
+플레이스홀더에서 다룰 범위, 아직 미구현),
 `fees`(품목/판매자/기간별 차등 요율 미구현, 전역 상수 `COMMISSION_RATE` 하나만 사용),
 `ledger_entries`(불변 원장은 미구현, `Settlement`가 배치 단위 기록만 보존),
 `refunds`(현재는 Payment.status=REFUNDED로만 표현), `campaigns`, `policy_versions`,

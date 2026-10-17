@@ -103,6 +103,23 @@ export async function isAlerted(userId: string, groupBuyId: string) {
   return Boolean(row);
 }
 
+/** 구매자가 오픈 알림을 신청한 공동구매 목록(/alerts 페이지용). */
+export async function listMyGroupBuyAlerts(userId: string) {
+  const alerts = await prisma.groupBuyAlert.findMany({
+    where: { userId },
+    include: { groupBuy: { include: { product: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return alerts.map((a) => ({
+    ...a,
+    groupBuy: {
+      ...a.groupBuy,
+      phase: computeGroupBuyPhase(a.groupBuy) as GroupBuyPhase,
+    },
+  }));
+}
+
 export async function listGroupBuysForSeller(sellerId: string) {
   const groupBuys = await prisma.groupBuy.findMany({
     where: { product: { sellerId } },

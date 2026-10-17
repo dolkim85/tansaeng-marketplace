@@ -125,6 +125,7 @@ model User {
   reviews             Review[]
   supportTickets      SupportTicket[]
   supportTicketMessages SupportTicketMessage[]
+  notificationPreference NotificationPreference?
 
   @@index([role])
 }
@@ -509,4 +510,15 @@ model Settlement {
 
   @@index([sellerId])
   @@index([status])
+}
+
+/// 수신동의(마스터 문서 13장 alert_subscriptions 중 채널/동의 측면). 거래 알림(주문/배송/정산 등)은
+/// 서비스 이용에 필수라 끄는 옵션을 두지 않고, 광고성 정보만 채널별(이메일/푸시)로 동의를 받는다.
+model NotificationPreference {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  marketingEmailOptIn Boolean  @default(false)
+  marketingPushOptIn  Boolean  @default(false)
+  updatedAt           DateTime @updatedAt
 }

@@ -569,3 +569,43 @@ PWA 설치) 또는 사용자가 원하는 특정 기능(상품 사진 업로드 
 **환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 사용자 지정에 따라 관심 알림(/alerts) 또는 관리자 감사로그(/admin/audit) 진행.
+
+---
+
+## 관심 알림·수신설정 (2026-10-17, 완료)
+
+**완료 기능:**
+- `NotificationPreference` 모델(사용자당 1개, 이메일/푸시 채널별 광고성 정보 수신동의만 저장)
+- `listMyGroupBuyAlerts`(기존 `GroupBuyAlert` 재사용), `getNotificationPreference`/
+  `updateNotificationPreferenceAction` 신규
+- `/alerts`: "공동구매 오픈 알림" 섹션(신청한 공동구매 목록 + 단계 라벨 + 알림 해제 버튼,
+  기존 `toggleGroupBuyAlertAction` 재사용), "수신설정" 섹션(거래 알림은 필수 안내 문구만,
+  광고성 정보는 이메일/푸시 체크박스로 저장) — 플레이스홀더를 실제 기능으로 교체
+
+**미완료 기능과 이유:**
+- 가격변경/재입고 등 알림 종류별 구독 — 해당 이벤트 자체가 추적되지 않아 범위 밖
+- 실제 이메일/푸시 발송, 발송 로그/예약/재시도 — `/admin/notifications`(아직 플레이스홀더)
+  범위로 분리, 이번 작업은 동의 여부 저장까지만
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(47라우트, 라우트 추가 없음), `eslint`(0 error),
+  `vitest run`(26건, 기존 테스트 전부 회귀 없음) 전부 통과
+- Playwright(Python) E2E 신규: 비로그인 방문 시 `/alerts`가 리다이렉트 없이 로그인 안내만
+  표시 확인(이 경로는 `proxy.ts` matcher에 없어 페이지 자체에서 분기) → 로그인 후 공동구매
+  오픈 알림 신청 → `/alerts`에 반영 확인 → 수신설정 저장 후 새로고침해도 체크 상태 유지
+  확인 → `/alerts`에서 알림 해제 → 공동구매 상세페이지에도 해제 상태가 반영되는지 확인
+- 테스트 중 Playwright `page.content()`로 해제 직후를 검사했을 때 Next.js React Flight
+  하이드레이션용 `<script>` 페이로드에 남아있던 문자열 때문에 오탐이 발생 — DB 직접 조회로
+  실제 삭제가 정상 처리된 것을 확인하고, 이후 검증을 로케이터 기반(`locator(...).count()`)으로
+  바꿔 해결(앱 코드에는 문제 없었음, 테스트 스크립트만 수정)
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(NotificationPreference 모델),
+`src/server/groupbuy/queries.ts`(listMyGroupBuyAlerts 추가),
+`src/server/notifications/{queries,actions}.ts`, `src/app/(buyer)/alerts/page.tsx`,
+`docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자 지정에 따라 관리자 감사로그(/admin/audit) 진행.
