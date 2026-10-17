@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/server/session";
+import { logAdminAction } from "@/server/audit/log";
 
 const ADMIN_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
 
@@ -29,7 +30,7 @@ export async function createBannerAction(
   _prevState: ContentFormState,
   formData: FormData
 ): Promise<ContentFormState> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const parsed = bannerSchema.safeParse({
     title: formData.get("title"),
@@ -41,27 +42,51 @@ export async function createBannerAction(
     return { error: parsed.error.issues[0]?.message ?? "입력값을 확인하세요." };
   }
 
-  await prisma.banner.create({ data: parsed.data });
+  const banner = await prisma.banner.create({ data: parsed.data });
+  await logAdminAction({
+    actorId: session.sub,
+    action: "BANNER_CREATED",
+    targetType: "Banner",
+    targetId: banner.id,
+    detail: banner.title,
+  });
+
   revalidatePath("/admin/content");
   revalidatePath("/");
   return undefined;
 }
 
 export async function toggleBannerActiveAction(bannerId: string): Promise<void> {
-  await requireAdmin();
+  const session = await requireAdmin();
   const banner = await prisma.banner.findUnique({ where: { id: bannerId } });
   if (!banner) return;
   await prisma.banner.update({
     where: { id: bannerId },
     data: { isActive: !banner.isActive },
   });
+  await logAdminAction({
+    actorId: session.sub,
+    action: "BANNER_TOGGLED",
+    targetType: "Banner",
+    targetId: bannerId,
+    detail: `${banner.title} → ${banner.isActive ? "비활성" : "활성"}`,
+  });
   revalidatePath("/admin/content");
   revalidatePath("/");
 }
 
 export async function deleteBannerAction(bannerId: string): Promise<void> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const banner = await prisma.banner.findUnique({ where: { id: bannerId } });
+  if (!banner) return;
   await prisma.banner.delete({ where: { id: bannerId } });
+  await logAdminAction({
+    actorId: session.sub,
+    action: "BANNER_DELETED",
+    targetType: "Banner",
+    targetId: bannerId,
+    detail: banner.title,
+  });
   revalidatePath("/admin/content");
   revalidatePath("/");
 }
@@ -76,7 +101,7 @@ export async function createNoticeAction(
   _prevState: ContentFormState,
   formData: FormData
 ): Promise<ContentFormState> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const parsed = noticeSchema.safeParse({
     title: formData.get("title"),
@@ -87,15 +112,32 @@ export async function createNoticeAction(
     return { error: parsed.error.issues[0]?.message ?? "입력값을 확인하세요." };
   }
 
-  await prisma.notice.create({ data: parsed.data });
+  const notice = await prisma.notice.create({ data: parsed.data });
+  await logAdminAction({
+    actorId: session.sub,
+    action: "NOTICE_CREATED",
+    targetType: "Notice",
+    targetId: notice.id,
+    detail: notice.title,
+  });
+
   revalidatePath("/admin/content");
   revalidatePath("/");
   return undefined;
 }
 
 export async function deleteNoticeAction(noticeId: string): Promise<void> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const notice = await prisma.notice.findUnique({ where: { id: noticeId } });
+  if (!notice) return;
   await prisma.notice.delete({ where: { id: noticeId } });
+  await logAdminAction({
+    actorId: session.sub,
+    action: "NOTICE_DELETED",
+    targetType: "Notice",
+    targetId: noticeId,
+    detail: notice.title,
+  });
   revalidatePath("/admin/content");
   revalidatePath("/");
 }
@@ -110,7 +152,7 @@ export async function createFaqAction(
   _prevState: ContentFormState,
   formData: FormData
 ): Promise<ContentFormState> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const parsed = faqSchema.safeParse({
     question: formData.get("question"),
@@ -121,15 +163,32 @@ export async function createFaqAction(
     return { error: parsed.error.issues[0]?.message ?? "입력값을 확인하세요." };
   }
 
-  await prisma.faq.create({ data: parsed.data });
+  const faq = await prisma.faq.create({ data: parsed.data });
+  await logAdminAction({
+    actorId: session.sub,
+    action: "FAQ_CREATED",
+    targetType: "Faq",
+    targetId: faq.id,
+    detail: faq.question,
+  });
+
   revalidatePath("/admin/content");
   revalidatePath("/help");
   return undefined;
 }
 
 export async function deleteFaqAction(faqId: string): Promise<void> {
-  await requireAdmin();
+  const session = await requireAdmin();
+  const faq = await prisma.faq.findUnique({ where: { id: faqId } });
+  if (!faq) return;
   await prisma.faq.delete({ where: { id: faqId } });
+  await logAdminAction({
+    actorId: session.sub,
+    action: "FAQ_DELETED",
+    targetType: "Faq",
+    targetId: faqId,
+    detail: faq.question,
+  });
   revalidatePath("/admin/content");
   revalidatePath("/help");
 }

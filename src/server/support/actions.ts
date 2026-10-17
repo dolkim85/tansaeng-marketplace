@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/server/session";
+import { logAdminAction } from "@/server/audit/log";
 
 const ADMIN_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
 
@@ -148,7 +149,7 @@ export async function replyTicketAction(
   _prevState: TicketFormState,
   formData: FormData
 ): Promise<TicketFormState> {
-  const { session, ticket, isOwner } = await assertCanAccessTicket(ticketId);
+  const { session, ticket, isOwner, isAdmin } = await assertCanAccessTicket(ticketId);
   if (ticket.status === "CLOSED") {
     return { error: "종료된 문의에는 답변할 수 없습니다." };
   }
@@ -171,6 +172,16 @@ export async function replyTicketAction(
     data: { status: isOwner ? "OPEN" : "ANSWERED" },
   });
 
+  if (isAdmin) {
+    await logAdminAction({
+      actorId: session.sub,
+      action: "SUPPORT_TICKET_REPLIED",
+      targetType: "SupportTicket",
+      targetId: ticketId,
+      detail: ticket.subject,
+    });
+  }
+
   revalidatePath(`/help/${ticketId}`);
   revalidatePath(`/seller/support/${ticketId}`);
   revalidatePath(`/admin/support/${ticketId}`);
@@ -178,11 +189,22 @@ export async function replyTicketAction(
 }
 
 export async function closeTicketAction(ticketId: string): Promise<void> {
-  await assertCanAccessTicket(ticketId);
+  const { session, ticket, isAdmin } = await assertCanAccessTicket(ticketId);
   await prisma.supportTicket.update({
     where: { id: ticketId },
     data: { status: "CLOSED" },
   });
+
+  if (isAdmin) {
+    await logAdminAction({
+      actorId: session.sub,
+      action: "SUPPORT_TICKET_CLOSED",
+      targetType: "SupportTicket",
+      targetId: ticketId,
+      detail: ticket.subject,
+    });
+  }
+
   revalidatePath(`/help/${ticketId}`);
   revalidatePath("/help");
   revalidatePath("/seller/support");

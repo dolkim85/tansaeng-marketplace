@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { slugify, randomSuffix } from "@/lib/slug";
 import { getSession } from "@/server/session";
+import { logAdminAction } from "@/server/audit/log";
 
 const ADMIN_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
 
@@ -29,6 +30,7 @@ export async function approveApplicationAction(
       reviewedBy: session.sub,
       reviewedAt: new Date(),
     },
+    include: { seller: true },
   });
 
   // 승인 시 기존 임시저장(DRAFT) 상품을 판매중으로 전환한다.
@@ -43,6 +45,14 @@ export async function approveApplicationAction(
     data: { status: "ON_SALE" },
   });
 
+  await logAdminAction({
+    actorId: session.sub,
+    action: "SELLER_APPLICATION_APPROVED",
+    targetType: "SellerApplication",
+    targetId: applicationId,
+    detail: application.seller.storeName,
+  });
+
   revalidatePath("/admin/sellers");
 }
 
@@ -51,13 +61,22 @@ export async function rejectApplicationAction(
 ): Promise<void> {
   const session = await requireAdmin();
 
-  await prisma.sellerApplication.update({
+  const application = await prisma.sellerApplication.update({
     where: { id: applicationId },
     data: {
       status: "REJECTED",
       reviewedBy: session.sub,
       reviewedAt: new Date(),
     },
+    include: { seller: true },
+  });
+
+  await logAdminAction({
+    actorId: session.sub,
+    action: "SELLER_APPLICATION_REJECTED",
+    targetType: "SellerApplication",
+    targetId: applicationId,
+    detail: application.seller.storeName,
   });
 
   revalidatePath("/admin/sellers");
@@ -108,7 +127,7 @@ export async function createProxyProductAction(
   }
 
   const slug = `${slugify(parsed.data.title)}-${randomSuffix()}`;
-  await prisma.product.create({
+  const product = await prisma.product.create({
     data: {
       sellerId: seller.id,
       categoryId: parsed.data.categoryId,
@@ -124,6 +143,14 @@ export async function createProxyProductAction(
       proxyConsentAt: new Date(),
       proxyRegisteredBy: session.sub,
     },
+  });
+
+  await logAdminAction({
+    actorId: session.sub,
+    action: "PROXY_PRODUCT_CREATED",
+    targetType: "Product",
+    targetId: product.id,
+    detail: `${seller.storeName} - ${product.title}`,
   });
 
   revalidatePath("/admin/products");
@@ -145,15 +172,32 @@ export async function approveProxyProductAction(productId: string): Promise<void
     },
   });
 
+  await logAdminAction({
+    actorId: session.sub,
+    action: "PROXY_PRODUCT_APPROVED",
+    targetType: "Product",
+    targetId: productId,
+    detail: product.title,
+  });
+
   revalidatePath("/admin/products");
 }
 
 export async function deleteProxyProductAction(productId: string): Promise<void> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const product = await prisma.product.findUnique({ where: { id: productId } });
   if (!product || !product.isProxyRegistered || product.status !== "DRAFT") return;
 
   await prisma.product.delete({ where: { id: productId } });
+
+  await logAdminAction({
+    actorId: session.sub,
+    action: "PROXY_PRODUCT_DELETED",
+    targetType: "Product",
+    targetId: productId,
+    detail: product.title,
+  });
+
   revalidatePath("/admin/products");
 }

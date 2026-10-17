@@ -126,6 +126,7 @@ model User {
   supportTickets      SupportTicket[]
   supportTicketMessages SupportTicketMessage[]
   notificationPreference NotificationPreference?
+  auditLogs           AuditLog[]
 
   @@index([role])
 }
@@ -521,4 +522,23 @@ model NotificationPreference {
   marketingEmailOptIn Boolean  @default(false)
   marketingPushOptIn  Boolean  @default(false)
   updatedAt           DateTime @updatedAt
+}
+
+/// 관리자 주요 작업이력(마스터 문서 11.3/17장). targetType/targetId는 Product/Ad/Settlement 등
+/// 삭제될 수도 있는 레코드를 가리킬 수 있어 일반 String으로만 보존한다(FK 아님 — 대상이
+/// 삭제되어도 이력 자체는 남아야 하기 때문). action은 고정된 코드 문자열(예: AD_APPROVED)이며
+/// 화면 라벨은 src/lib/auditLabels.ts에서 매핑한다.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actor      User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  action     String
+  targetType String
+  targetId   String
+  detail     String?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([targetType, targetId])
+  @@index([createdAt])
 }

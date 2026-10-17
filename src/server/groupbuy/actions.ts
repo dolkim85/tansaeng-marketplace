@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/server/session";
+import { logAdminAction } from "@/server/audit/log";
 import { computeGroupBuyPhase } from "@/lib/groupBuyPhase";
 import {
   getConfirmedQty,
@@ -225,7 +226,7 @@ async function requireAdmin() {
 
 /** 마감 시각이 지난 공동구매를 성사/미성사로 확정하고, 미성사 시 전액 환불 처리한다. */
 export async function finalizeGroupBuyAction(groupBuyId: string): Promise<void> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const gb = await prisma.groupBuy.findUnique({ where: { id: groupBuyId } });
   if (!gb || gb.status !== "SCHEDULED") return;
@@ -243,13 +244,21 @@ export async function finalizeGroupBuyAction(groupBuyId: string): Promise<void> 
     await refundAllOrdersForGroupBuy(groupBuyId);
   }
 
+  await logAdminAction({
+    actorId: session.sub,
+    action: "GROUP_BUY_FINALIZED",
+    targetType: "GroupBuy",
+    targetId: groupBuyId,
+    detail: `${gb.title} - ${succeeded ? "성사" : "미성사(환불)"}`,
+  });
+
   revalidatePath("/admin/group-buys");
   revalidatePath(`/group-buys/${groupBuyId}`);
   revalidatePath("/group-buys");
 }
 
 export async function cancelGroupBuyAction(groupBuyId: string): Promise<void> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const gb = await prisma.groupBuy.findUnique({ where: { id: groupBuyId } });
   if (!gb || gb.status !== "SCHEDULED") return;
@@ -259,6 +268,14 @@ export async function cancelGroupBuyAction(groupBuyId: string): Promise<void> {
     data: { status: "CANCELLED" },
   });
   await refundAllOrdersForGroupBuy(groupBuyId);
+
+  await logAdminAction({
+    actorId: session.sub,
+    action: "GROUP_BUY_CANCELLED",
+    targetType: "GroupBuy",
+    targetId: groupBuyId,
+    detail: gb.title,
+  });
 
   revalidatePath("/admin/group-buys");
   revalidatePath(`/group-buys/${groupBuyId}`);

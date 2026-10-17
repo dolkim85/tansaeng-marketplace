@@ -84,6 +84,12 @@ Product
   필수라 끄는 옵션 없이 항상 발송 대상으로 간주하고, 이 테이블은 **광고성 정보 수신동의만**
   이메일/푸시 채널별로 저장한다(레코드가 없으면 전부 미동의로 간주). 공동구매 오픈 알림은
   이미 있던 `GroupBuyAlert`를 그대로 재사용(`/alerts`에서 신청/해제 모두 가능).
+- `AuditLog`(관리자 작업이력): `targetType`/`targetId`는 **일반 String일 뿐 실제 FK가 아니다** —
+  대상 레코드(예: 대리등록 삭제된 Product)가 나중에 삭제되어도 이력 자체는 영구히 남아야
+  하기 때문. `action`은 고정 코드 문자열(`src/lib/auditLabels.ts`에서 화면 라벨로 매핑)이며,
+  각 관리자 액션의 "성공 경로" 끝에서만 `logAdminAction()`을 호출한다(검증 실패로 반려된
+  입력은 기록하지 않음). 문의 답변/종료처럼 구매자·판매자·관리자가 모두 호출할 수 있는
+  액션은 호출자가 ADMIN일 때만 기록한다.
 - `Review`(M3): `Suborder.status`가 `COMPLETED`인 주문 항목에 한해 1건만 작성 가능(`@@unique(orderItemId)`).
   `Suborder.status`는 판매자가 직접 PENDING→PREPARING→SHIPPED→COMPLETED 순서로만 전진시킬 수 있다
   (역행/건너뛰기 불가, `src/server/orders/actions.ts`의 `NEXT_SUBORDER_STATUS` 참고).

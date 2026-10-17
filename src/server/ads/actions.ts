@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/server/session";
+import { logAdminAction } from "@/server/audit/log";
 
 const ADMIN_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
 
@@ -76,18 +77,34 @@ async function requireAdmin() {
 
 export async function approveAdAction(adId: string): Promise<void> {
   const session = await requireAdmin();
-  await prisma.ad.update({
+  const ad = await prisma.ad.update({
     where: { id: adId },
     data: { status: "APPROVED", reviewedBy: session.sub, reviewedAt: new Date() },
+    include: { product: true },
+  });
+  await logAdminAction({
+    actorId: session.sub,
+    action: "AD_APPROVED",
+    targetType: "Ad",
+    targetId: adId,
+    detail: ad.product.title,
   });
   revalidatePath("/admin/ads");
 }
 
 export async function rejectAdAction(adId: string): Promise<void> {
   const session = await requireAdmin();
-  await prisma.ad.update({
+  const ad = await prisma.ad.update({
     where: { id: adId },
     data: { status: "REJECTED", reviewedBy: session.sub, reviewedAt: new Date() },
+    include: { product: true },
+  });
+  await logAdminAction({
+    actorId: session.sub,
+    action: "AD_REJECTED",
+    targetType: "Ad",
+    targetId: adId,
+    detail: ad.product.title,
   });
   revalidatePath("/admin/ads");
 }

@@ -49,6 +49,7 @@
 | `src/server/settlement/actions.ts` | `runSettlementAction` | 판매자의 미정산(COMPLETED) Suborder를 모아 정산 배치 생성(중복 집계 방지) | ADMIN 이상 |
 | | `approveSettlementAction` | 정산 배치 승인(모의 지급 완료 처리) | ADMIN 이상 |
 | `src/server/notifications/actions.ts` | `updateNotificationPreferenceAction` | 광고성 정보 수신동의(이메일/푸시) 저장 | 로그인 필요 |
+| `src/server/audit/log.ts` | `logAdminAction` | 관리자 주요 작업이력 기록(헬퍼, 직접 호출 대상 아님) | - |
 
 ## Route Handler
 
@@ -67,6 +68,8 @@
   알림 목록(`/alerts`)
 - `src/server/notifications/queries.ts`: `getNotificationPreference` — 구매자 수신설정 조회
   (레코드 없으면 기본값: 전부 미동의)
+- `src/server/audit/queries.ts`: `listAuditLogs` — 관리자 작업이력 최근 200건(ADMIN 이상,
+  `/admin/audit`)
 
 ## 인가 이중 검증
 
