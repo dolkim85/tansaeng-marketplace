@@ -123,20 +123,12 @@ UI는 미구현.
 각각 `Review`/`Ad`/`SupportTicket`/`Banner`/`Notice`/`Settlement`. FAQ는 마스터 문서에 별도
 테이블로 명시되지 않았으나 같은 맥락으로 `Faq` 테이블을 추가.)
 
-## PostgreSQL 전환 (2026-10-19)
+## PostgreSQL 전환 (2026-10-19, 완료)
 
 SQLite에서 PostgreSQL 전용 인스턴스(`127.0.0.1:55432`, DB명 `tansaeng_marketplace_dev`)로
-전환했다. 아래 "코드 측 작업"은 완료·검증됨. "로컬 DB 기동" 단계는 **이 저장소를 받는 사람이
-각자 로컬에 PostgreSQL을 설치한 뒤** 한 번만 실행한다(샌드박스 환경에 sudo 비밀번호/Docker
-WSL 통합이 없어 이 세션에서는 설치를 대신 실행할 수 없었음 — `docs/SAFETY_BASELINE.md` §3 참고).
+전환 완료. 설치부터 마이그레이션·시드·E2E 재검증까지 전부 마쳤다(`docs/PROGRESS.md`의
+해당 항목 참고). 다른 환경에서 이 저장소를 새로 받아 세팅할 때는 아래 절차를 그대로 따른다.
 
-**완료(코드 측, DB 연결 없이 검증 가능한 부분):**
-- `prisma/schema.prisma`: `datasource.provider`를 `"postgresql"`로 변경
-- `.env.example`/`.env.local`: `DATABASE_URL`을 `postgresql://tansaeng_dev:tansaeng_dev_local_only@127.0.0.1:55432/tansaeng_marketplace_dev`로 교체(로컬 전용 예시 자격증명)
-- `prisma/migrations/<timestamp>_init/migration.sql` + `migration_lock.toml`: `prisma migrate diff --from-empty`로 생성한 초기 마이그레이션(실DB 연결 없이 생성 가능 — 스키마→SQL 변환만 수행)
-- `npx prisma generate`, `next build`, `eslint`, `vitest run`(39건) 전부 PostgreSQL provider 기준으로 재확인 — 전부 통과(이 저장소의 유닛 테스트는 모두 순수 함수 테스트라 DB 연결이 필요 없음)
-
-**남은 단계(로컬에 PostgreSQL이 실행 중이어야 함 — 각자 1회 실행):**
 ```bash
 # 1) PostgreSQL 설치(터미널에서 직접 실행 — sudo 비밀번호 입력 필요)
 sudo apt update && sudo apt install -y postgresql
@@ -145,13 +137,15 @@ sudo apt update && sudo apt install -y postgresql
 sudo -u postgres psql -c "CREATE ROLE tansaeng_dev WITH LOGIN PASSWORD 'tansaeng_dev_local_only';"
 sudo -u postgres psql -c "CREATE DATABASE tansaeng_marketplace_dev OWNER tansaeng_dev;"
 
-# 3) 127.0.0.1:55432로만 바인딩되는지 postgresql.conf/pg_hba.conf 확인(기본 설치는 보통 5432 포트 —
-#    이 프로젝트 컨벤션인 55432로 맞추려면 postgresql.conf의 port 값을 수정 후 서비스 재시작)
+# 3) 포트를 프로젝트 컨벤션인 55432로 변경(기본 설치는 5432) — /etc/postgresql/16/main/postgresql.conf의
+#    `port = 5432`를 `port = 55432`로 수정 후 `sudo systemctl restart postgresql`.
+#    `listen_addresses`는 기본값(`localhost`, 즉 127.0.0.1만 바인딩)을 그대로 유지하면 된다.
 
 # 4) 마이그레이션 적용 + 시드
 npx prisma migrate deploy
 npx tsx prisma/seed.ts
 ```
-위 4단계가 끝나면 `npm run dev`로 평소처럼 개발을 이어가면 된다. 이 프로젝트의 unique한 모든
-도메인 로직(공동구매 재고 경쟁, 정산 집계 등)은 DB 종류에 무관하므로 추가 코드 변경은
-필요하지 않다 — 여기까지가 "전환 작업"의 전체 범위다.
+
+이 프로젝트의 모든 도메인 로직(공동구매 재고 경쟁, 정산 집계 등)은 DB 종류에 무관하므로
+위 4단계 외 추가 코드 변경은 필요하지 않았다 — 실제로 전환 전/후 `vitest`(39건)와
+Playwright E2E(로그인·장바구니·주문·결제·관리자 CRUD·감사로그) 전부 동일하게 통과했다.

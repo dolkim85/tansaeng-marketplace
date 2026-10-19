@@ -718,45 +718,43 @@ M4 이전 범위(상품 상세 블록 에디터, PostgreSQL 전환, 카테고리
 
 ---
 
-## PostgreSQL 전환 (2026-10-19, 코드 측 완료 — 로컬 DB 기동은 사용자 환경에서 1회 필요)
+## PostgreSQL 전환 (2026-10-19, 완료)
 
 **완료 기능:**
 - `prisma/schema.prisma`의 `datasource.provider`를 `"sqlite"` → `"postgresql"`로 변경
 - `.env.example`/`.env.local`의 `DATABASE_URL`을 `postgresql://tansaeng_dev:tansaeng_dev_local_only@127.0.0.1:55432/tansaeng_marketplace_dev`로 교체(SAFETY_BASELINE.md에서
   확정했던 전용 포트 55432, DB명 `tansaeng_marketplace_dev` 그대로 사용)
 - `prisma migrate diff --from-empty`로 초기 마이그레이션(`prisma/migrations/<timestamp>_init/migration.sql`
-  + `migration_lock.toml`) 생성 — 실DB 연결 없이 스키마→SQL 변환만으로 생성 가능함을 확인
-- `npx prisma generate`, `next build`(47라우트, 라우트 변경 없음), `eslint`(0 error),
-  `vitest run`(39건) 전부 PostgreSQL provider 설정 기준으로 재통과 확인(이 프로젝트의
-  모든 유닛 테스트는 순수 함수 테스트라 실제 DB 연결 없이도 검증 가능함을 재확인)
+  + `migration_lock.toml`) 생성
+- 사용자 환경에 PostgreSQL 16을 설치(`apt install postgresql`), 기본 포트 5432를 프로젝트
+  컨벤션인 55432로 변경(`postgresql.conf`), `127.0.0.1` 바인딩만 사용(기본값 `listen_addresses
+  = 'localhost'` 그대로 유지, 외부 공개 안 함), 전용 역할(`tansaeng_dev`)과 전용
+  DB(`tansaeng_marketplace_dev`)를 신규 생성(기존 DB 계정·이름과 전혀 겹치지 않음)
+- `prisma migrate deploy`로 마이그레이션 적용, `prisma/seed.ts`로 데모 데이터 시딩 — 전부
+  실제 PostgreSQL 인스턴스 기준으로 성공
 
-**미완료/차단된 부분과 이유:**
-- **로컬 PostgreSQL 설치 자체를 이 세션에서 실행할 수 없었음**: 샌드박스에 `sudo` 비밀번호가
-  없고(`sudo -n true` 실패), Docker Desktop도 이 WSL 배포판에 통합되어 있지 않음(`docker` CLI
-  연결 안 됨). 설치는 보안상 사용자가 실제 터미널에서 직접 수행해야 하는 작업으로 판단해
-  대행하지 않음
-- 따라서 `prisma migrate deploy`(마이그레이션 적용), `prisma/seed.ts` 재실행(데이터 시딩),
-  실제 서버 기동 후 로그인/주문/정산 등 DB 의존 기능의 E2E 재검증은 **아직 수행하지 못함**.
-  `docs/ERD.md`의 "PostgreSQL 전환" 절에 설치부터 마이그레이션·시드까지 복붙 가능한 명령어
-  4단계를 정리해 둠 — 사용자가 로컬에 PostgreSQL을 설치한 뒤 그대로 실행하면 완료됨
+**미완료 기능과 이유:** 없음(전환 범위 전체 완료). 차등 수수료 등 기존에 범위 밖으로 분류된
+항목은 이번 작업과 무관.
 
 **실행한 테스트/결과:**
-- `npx prisma validate`: PostgreSQL provider 기준 스키마 문법 오류 없음 확인
-- `npx prisma generate`: 정상 생성(DB 연결 불필요)
-- `next build`(47라우트 전부 정상 생성 — 이 프로젝트의 모든 데이터 조회 페이지가 `force-dynamic`
-  성격이라 빌드 시점에 DB를 조회하는 페이지가 없음을 재확인), `eslint`(0 error),
-  `vitest run`(39건, 전부 통과, DB 연결 테스트 0건)
-- **실DB 연결 테스트는 수행하지 못함** — 사용자가 PostgreSQL을 로컬에 설치한 뒤 재확인 필요
+- `npx prisma validate`/`generate`/`migrate deploy`: 전부 PostgreSQL 기준으로 성공
+- `next build`(47라우트), `eslint`(0 error), `vitest run`(39건) 전부 통과
+- Playwright(Python) E2E로 **실제 PostgreSQL 인스턴스에 대해** 재검증: 로그인 → 카테고리
+  목록 조회(읽기 경로) → 장바구니 담기 → 체크아웃 → 주문 생성 → Mock 결제 확인(쓰기+트랜잭션
+  경로) → 관리자가 주문 확인 → 배너 생성(CRUD 쓰기 경로) → 감사로그에 기록되는지 확인
+  (audit 로깅 경로) — 전부 SQLite 때와 동일하게 정상 동작
+- 테스트로 생성한 배너 1건은 정리, 테스트 주문/결제 1건은 로컬 더미 데이터로 유지
 
-**접속 URL(로컬만):** 아직 기동 불가(DATABASE_URL이 postgresql로 바뀌었고 실제 PostgreSQL이
-아직 없어 `npm run dev` 실행 시 DB 연결 오류 발생 — 설치 완료 후 정상화됨)
+**접속 URL(로컬만):** `http://127.0.0.1:3210` (DB: PostgreSQL `127.0.0.1:55432/tansaeng_marketplace_dev`)
 
 **생성/수정한 파일:** `prisma/schema.prisma`(datasource provider 변경),
 `.env.example`/`.env.local`(DATABASE_URL 교체), `prisma/migrations/<timestamp>_init/migration.sql`,
-`prisma/migrations/migration_lock.toml`, `docs/{PRODUCT_DECISIONS,ERD,PROGRESS}.md`
+`prisma/migrations/migration_lock.toml`, `docs/{PRODUCT_DECISIONS,ERD,PROGRESS}.md`.
+시스템 측: PostgreSQL 16 설치, `/etc/postgresql/16/main/postgresql.conf`의 `port`를
+55432로 변경, 전용 역할/DB 생성(전부 사용자 환경에서 사용자가 직접 sudo 권한으로 실행).
 
-**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인(패키지 설치·DB 생성 등 시스템 변경은
-사용자 환경에서 사용자가 직접 수행, 이 세션에서는 코드/문서만 변경)
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인(설치·설정 변경은 이 로컬 개발 머신의
+PostgreSQL 신규 설치/신규 역할·DB 생성에 한정, 기존 운영 서버·DB와 무관)
 **실결제/실알림/온라인 배포:** 실행 안 함
-**다음 단계:** 사용자가 로컬에 PostgreSQL을 설치하고 `docs/ERD.md`의 4단계 명령을 실행하면
-PostgreSQL 전환이 완전히 마무리됨(이후 재검증은 다음 세션에서 이어서 수행).
+**다음 단계:** 사용자 지정에 따라 카테고리별 판매 허가, 접근성/SEO/보안 점검, 대량주문·동시성
+테스트 중 진행.
