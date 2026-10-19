@@ -147,6 +147,24 @@ async function main() {
     });
   }
 
+  // 승인된 농장은 이미 채소/축산물 카테고리에 상품을 판매 중이므로, 해당 카테고리 판매
+  // 허가도 승인된 상태로 시딩한다(수산물은 아직 요청하지 않은 상태로 남겨 요청 플로우 시연용).
+  for (const categoryId of [vegetables.id, livestock.id]) {
+    await prisma.sellerCategoryPermission.upsert({
+      where: {
+        sellerId_categoryId: { sellerId: sellerApproved.id, categoryId },
+      },
+      update: {},
+      create: {
+        sellerId: sellerApproved.id,
+        categoryId,
+        status: "APPROVED",
+        reviewedBy: admin.id,
+        reviewedAt: new Date(),
+      },
+    });
+  }
+
   const potato = await prisma.product.findUniqueOrThrow({
     where: { slug: "potato-10kg" },
   });

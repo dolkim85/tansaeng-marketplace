@@ -14,7 +14,7 @@
 | `src/server/catalog/actions.ts` | `toggleWishlistAction` | 찜 추가/삭제 | 로그인 필요(내부 체크) |
 | | `toggleFollowAction` | 생산자 팔로우 추가/삭제 | 로그인 필요(내부 체크) |
 | `src/server/seller/actions.ts` | `submitSellerApplicationAction` | 입점 신청 생성/재신청 | 로그인 필요 |
-| | `createProductAction` | 상품 등록(승인 여부로 상태 자동 분기) | SELLER + Seller 레코드 필요 |
+| | `createProductAction` | 상품 등록(승인 여부로 상태 자동 분기, 선택한 카테고리에 대한 APPROVED 판매 허가 필수) | SELLER + Seller 레코드 필요 + 카테고리 판매 허가 |
 | `src/server/admin/actions.ts` | `approveApplicationAction` | 입점 신청 승인 | ADMIN 이상(내부 재검증) |
 | | `rejectApplicationAction` | 입점 신청 반려 | ADMIN 이상(내부 재검증) |
 | `src/server/cart/actions.ts` | `addToCartAction` | 장바구니 담기(기존 있으면 +1) | 로그인 필요 |
@@ -53,6 +53,8 @@
 | `src/server/productBlocks/actions.ts` | `addBlockAction` | 상세페이지 블록 추가(종류별 콘텐츠 검증, IMAGE/VIDEO는 본인 상품의 기존 미디어만 참조) | 로그인 + 본인 상품만 |
 | | `deleteBlockAction` | 블록 삭제 | 로그인 + 본인 상품만 |
 | | `moveBlockAction` | 블록 순서 변경(인접 블록과 sortOrder 교환) | 로그인 + 본인 상품만 |
+| `src/server/categoryPermissions/actions.ts` | `requestCategoryPermissionAction` | 카테고리별 판매 허가 요청(PENDING 생성, 반려 후 재요청 가능) | 로그인 + 본인 판매자만 |
+| | `approveCategoryPermissionAction` / `rejectCategoryPermissionAction` | 카테고리 판매 허가 심사 | ADMIN 이상 |
 
 ## Route Handler
 
@@ -75,6 +77,10 @@
   `/admin/audit`)
 - `src/server/productBlocks/queries.ts`: `listProductBlocks` — 상품 상세페이지 블록 목록
   (sortOrder 순, `/products/[slug]` 및 `/seller/products/[id]/edit`에서 공용)
+- `src/server/categoryPermissions/queries.ts`: `listCategoryPermissionsForSeller`(본인 현황,
+  `/seller/onboarding`), `listApprovedCategoriesForSeller`(상품 등록 폼 선택지,
+  `/seller/products/new`), `hasApprovedCategoryPermission`, `listAllCategoryPermissionsForAdmin`
+  (`/admin/sellers`)
 
 ## 인가 이중 검증
 

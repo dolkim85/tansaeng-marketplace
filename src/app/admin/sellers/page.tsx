@@ -3,6 +3,11 @@ import {
   approveApplicationAction,
   rejectApplicationAction,
 } from "@/server/admin/actions";
+import { listAllCategoryPermissionsForAdmin } from "@/server/categoryPermissions/queries";
+import {
+  approveCategoryPermissionAction,
+  rejectCategoryPermissionAction,
+} from "@/server/categoryPermissions/actions";
 
 const STATUS_LABEL: Record<string, string> = {
   SUBMITTED: "제출됨",
@@ -11,8 +16,17 @@ const STATUS_LABEL: Record<string, string> = {
   REJECTED: "반려됨",
 };
 
+const PERMISSION_STATUS_LABEL: Record<string, string> = {
+  PENDING: "심사 대기",
+  APPROVED: "승인됨",
+  REJECTED: "반려됨",
+};
+
 export default async function AdminSellersPage() {
-  const applications = await listSellerApplications();
+  const [applications, categoryPermissions] = await Promise.all([
+    listSellerApplications(),
+    listAllCategoryPermissionsForAdmin(),
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
@@ -72,6 +86,58 @@ export default async function AdminSellersPage() {
                   </form>
                 </div>
               )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
+        카테고리별 판매 허가 요청
+      </h2>
+      {categoryPermissions.length === 0 ? (
+        <p className="mt-2 text-sm text-brand-deepgreen/60">
+          요청 내역이 없습니다.
+        </p>
+      ) : (
+        <ul className="mt-2 space-y-2">
+          {categoryPermissions.map((p) => (
+            <li
+              key={p.id}
+              className="flex items-center justify-between rounded-lg border border-brand-deepgreen/15 bg-white p-3 text-sm"
+            >
+              <div>
+                <p className="font-medium text-brand-deepgreen">
+                  {p.seller.storeName} · {p.category.name}
+                </p>
+                <p className="text-xs text-brand-deepgreen/50">
+                  요청일 {p.createdAt.toLocaleDateString("ko-KR")}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-brand-deepgreen/10 px-2 py-0.5 text-xs">
+                  {PERMISSION_STATUS_LABEL[p.status]}
+                </span>
+                {p.status === "PENDING" && (
+                  <>
+                    <form action={approveCategoryPermissionAction.bind(null, p.id)}>
+                      <button
+                        type="submit"
+                        className="rounded-md bg-brand-green px-3 py-1.5 text-xs font-semibold text-white"
+                      >
+                        승인
+                      </button>
+                    </form>
+                    <form action={rejectCategoryPermissionAction.bind(null, p.id)}>
+                      <button
+                        type="submit"
+                        className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600"
+                      >
+                        반려
+                      </button>
+                    </form>
+                  </>
+                )}
+              </div>
             </li>
           ))}
         </ul>

@@ -108,6 +108,20 @@ export async function createProductAction(
     return { error: parsed.error.issues[0]?.message ?? "입력값을 확인하세요." };
   }
 
+  // 입점 승인과 별개로, 카테고리별 판매 허가가 APPROVED여야만 그 카테고리에 상품을 등록할 수
+  // 있다(마스터 문서 10.2절 5번 — "품목별 판매 가능 카테고리... 부여").
+  const categoryPermission = await prisma.sellerCategoryPermission.findUnique({
+    where: {
+      sellerId_categoryId: { sellerId: seller.id, categoryId: parsed.data.categoryId },
+    },
+  });
+  if (categoryPermission?.status !== "APPROVED") {
+    return {
+      error:
+        "이 카테고리는 아직 판매 허가를 받지 않았습니다. /seller/onboarding에서 카테고리 판매 허가를 먼저 요청하세요.",
+    };
+  }
+
   const approved = seller.applications[0]?.status === "APPROVED";
   const slug = `${slugify(parsed.data.title)}-${randomSuffix()}`;
 

@@ -98,6 +98,14 @@ Product
   React의 텍스트 자동 이스케이프에 의존한다(스크립트/HTML 삽입 구조적으로 불가능).
   블록이 1개 이상이면 공개 상품 상세페이지는 `Product.description`(기존 단순 텍스트) 대신
   블록을 렌더링한다(없으면 기존 방식으로 자연스럽게 폴백).
+- `SellerCategoryPermission`(카테고리별 판매 허가, 마스터 문서 10.2절 5번): 입점 승인과
+  **별개로** 카테고리마다 허가를 받아야 그 카테고리에 상품을 등록할 수 있다.
+  `createProductAction`은 선택한 `categoryId`에 대해 `(sellerId, categoryId)` 복합 유니크로
+  조회한 권한이 `APPROVED`가 아니면 **서버에서** 상품 생성을 거부한다(클라이언트의 카테고리
+  선택지 필터링은 UX 편의일 뿐, 실제 방어는 서버 액션 내부에서 이루어짐 — UI를 우회해 다른
+  카테고리 id를 강제로 제출해도 동일하게 차단됨을 E2E로 확인). `REJECTED` 상태는 재요청 시
+  `upsert`로 다시 `PENDING`으로 되돌아간다. 대리등록(`createProxyProductAction`)은 관리자가
+  직접 생성·승인하는 별도 흐름이라 이 검증에서 **제외**된다(PRODUCT_DECISIONS.md 참고).
 - `Review`(M3): `Suborder.status`가 `COMPLETED`인 주문 항목에 한해 1건만 작성 가능(`@@unique(orderItemId)`).
   `Suborder.status`는 판매자가 직접 PENDING→PREPARING→SHIPPED→COMPLETED 순서로만 전진시킬 수 있다
   (역행/건너뛰기 불가, `src/server/orders/actions.ts`의 `NEXT_SUBORDER_STATUS` 참고).

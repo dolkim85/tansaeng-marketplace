@@ -1,6 +1,8 @@
 import { getSession } from "@/server/session";
 import { getSellerWithLatestApplication } from "@/server/seller/queries";
+import { listCategoryPermissionsForSeller } from "@/server/categoryPermissions/queries";
 import { OnboardingForm } from "./OnboardingForm";
+import { CategoryPermissionList } from "./CategoryPermissionList";
 
 const STATUS_LABEL: Record<string, string> = {
   SUBMITTED: "제출됨 (심사 대기)",
@@ -14,6 +16,10 @@ export default async function SellerOnboardingPage() {
   const result = session
     ? await getSellerWithLatestApplication(session.sub)
     : null;
+  const isApproved = result?.latestApplication?.status === "APPROVED";
+  const categoryPermissionRows = isApproved
+    ? await listCategoryPermissionsForSeller(result.seller.id)
+    : [];
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
@@ -49,6 +55,19 @@ export default async function SellerOnboardingPage() {
       {(!result?.latestApplication ||
         result.latestApplication.status === "REJECTED") && (
         <OnboardingForm />
+      )}
+
+      {isApproved && (
+        <>
+          <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
+            판매 가능 카테고리
+          </h2>
+          <p className="mt-1 text-xs text-brand-deepgreen/60">
+            입점 승인과 별개로, 상품을 등록하려는 카테고리마다 판매 허가를 요청해 관리자
+            승인을 받아야 합니다.
+          </p>
+          <CategoryPermissionList rows={categoryPermissionRows} />
+        </>
       )}
     </div>
   );

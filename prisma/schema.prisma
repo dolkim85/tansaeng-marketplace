@@ -117,6 +117,12 @@ enum SettlementStatus {
   APPROVED
 }
 
+enum SellerCategoryPermissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -151,13 +157,14 @@ model Seller {
   identityType SellerIdentityType
   createdAt    DateTime @default(now())
 
-  applications   SellerApplication[]
-  products       Product[]
-  follows        SellerFollow[]
-  suborders      Suborder[]
-  ads            Ad[]
-  supportTickets SupportTicket[]
-  settlements    Settlement[]
+  applications        SellerApplication[]
+  products            Product[]
+  follows             SellerFollow[]
+  suborders           Suborder[]
+  ads                 Ad[]
+  supportTickets      SupportTicket[]
+  settlements         Settlement[]
+  categoryPermissions SellerCategoryPermission[]
 }
 
 model SellerApplication {
@@ -181,6 +188,29 @@ model Category {
   parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
   children Category[] @relation("CategoryTree")
   products Product[]
+
+  sellerPermissions SellerCategoryPermission[]
+}
+
+/// 품목별 판매 가능 카테고리 부여(마스터 문서 10.2절 5번). 판매자는 입점 승인만으로 모든
+/// 카테고리에 상품을 등록할 수 없고, 카테고리별로 허가를 요청→관리자가 승인해야 한다.
+/// `createProductAction`은 선택한 카테고리에 대한 APPROVED 권한이 없으면 상품 생성을 막는다.
+model SellerCategoryPermission {
+  id         String                         @id @default(cuid())
+  sellerId   String
+  seller     Seller                         @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category                       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  status     SellerCategoryPermissionStatus @default(PENDING)
+  note       String?
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime                       @default(now())
+
+  @@unique([sellerId, categoryId])
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([status])
 }
 
 model Product {

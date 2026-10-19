@@ -758,3 +758,57 @@ PostgreSQL 신규 설치/신규 역할·DB 생성에 한정, 기존 운영 서�
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 사용자 지정에 따라 카테고리별 판매 허가, 접근성/SEO/보안 점검, 대량주문·동시성
 테스트 중 진행.
+
+---
+
+## 카테고리별 판매 허가 (2026-10-19, 완료)
+
+**완료 기능:**
+- `SellerCategoryPermission` 모델(`(sellerId, categoryId)` 복합 유니크, PENDING/APPROVED/REJECTED)
+- `requestCategoryPermissionAction`(판매자), `approveCategoryPermissionAction`/
+  `rejectCategoryPermissionAction`(관리자, 감사로그 기록 포함)
+- `createProductAction`에 **서버 측** 검증 추가: 선택한 카테고리에 APPROVED 권한이 없으면
+  상품 생성을 거부(입점 승인 여부와 무관한 별도 게이트)
+- `/seller/onboarding`: 입점 승인 후 "판매 가능 카테고리" 섹션 노출(카테고리별 현황 + 허가
+  요청/재요청 버튼, 축산물·수산물은 "추가 허가/신고 대상" 안내 문구 표시)
+- `/seller/products/new`: 승인받은 카테고리만 선택 가능하도록 필터링, 승인된 카테고리가
+  0개면 상품 등록 폼 대신 안내 문구+요청 링크 노출
+- `/admin/sellers`: "카테고리별 판매 허가 요청" 섹션 추가(목록+승인/반려 버튼)
+- 시드 데이터: 승인된 농장이 이미 판매 중인 채소/축산물 카테고리는 APPROVED로, 수산물은
+  미요청 상태로 시딩(요청 플로우 시연용)
+
+**미완료 기능과 이유:**
+- 축산물/수산물/가공식품의 실제 서류(HACCP 인증 등) 업로드·자동 검증 — 로컬 샌드박스에서
+  의미 있게 구현할 수 없는 전문 인증 체계라 범위 밖, UI 안내 문구로만 요건을 표시
+- 대리등록 상품은 이 검증에서 의도적으로 제외(관리자가 이미 직접 책임지는 별도 승인 흐름)
+- 카테고리 트리 자체의 추가/수정(운영자용 카테고리 관리 UI)은 여전히 범위 밖(M1 시드로
+  고정된 3개 카테고리만 사용, ERD.md에 기존부터 기록됨)
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(47라우트, 라우트 추가 없음), `eslint`(0 error),
+  `vitest run`(39건, 회귀 없음 — 이 기능은 새 유닛 테스트 없이 전부 통합/E2E로 검증)
+- Playwright(Python) E2E: 승인된 판매자가 미요청 카테고리(수산물)에 상품 등록 시도 → 폼에서
+  선택 불가 확인 → `/seller/onboarding`에서 허가 요청 → 관리자가 `/admin/sellers`에서 승인 →
+  감사로그에 기록 확인 → 승인 후에는 해당 카테고리로 실제 상품 등록 성공 확인. 승인받은
+  카테고리가 전혀 없는 판매자는 상품 등록 폼 자체가 안내 문구로 대체됨을 확인
+- **보안 재현 테스트**: 브라우저 콘솔에서 DOM을 직접 조작해 승인되지 않은 카테고리 id를
+  강제로 select에 주입·제출(UI 필터 우회 시도) → 서버 액션이 정확한 오류 메시지로 거부하고
+  실제로 상품이 생성되지 않음을 DB 직접 조회로 확인 — 서버 측 검증이 클라이언트 필터링에만
+  의존하지 않음을 증명
+- 테스트 중 겪은 이슈(테스트 스크립트 문제, 앱 결함 아님): (1) 연속 클릭 사이 소프트
+  리렌더링 레이스로 요청 버튼 클릭이 간헐적으로 누락된 것처럼 보임 → DB 직접 조회로 실제
+  동작은 정상임을 확인 후 재시도 (2) Next.js의 route announcer도 `role="alert"`를 가져
+  Playwright 선택자가 모호해짐 → `.first()`로 좁혀 해결
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(SellerCategoryPermission 모델),
+`prisma/seed.ts`(채소/축산물 APPROVED 시딩), `src/server/categoryPermissions/{queries,actions}.ts`,
+`src/server/seller/actions.ts`(createProductAction 권한 검증 추가), `src/lib/auditLabels.ts`,
+`src/app/seller/onboarding/{page,CategoryPermissionList}.tsx`,
+`src/app/seller/products/new/page.tsx`, `src/app/admin/sellers/page.tsx`,
+`docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자 지정에 따라 접근성/SEO/보안 점검, 대량주문·동시성 테스트 중 진행.

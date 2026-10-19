@@ -19,4 +19,6 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   NOTICE_DELETED: "공지 삭제",
   FAQ_CREATED: "FAQ 등록",
   FAQ_DELETED: "FAQ 삭제",
+  CATEGORY_PERMISSION_APPROVED: "카테고리 판매 허가 승인",
+  CATEGORY_PERMISSION_REJECTED: "카테고리 판매 허가 반려",
 };
