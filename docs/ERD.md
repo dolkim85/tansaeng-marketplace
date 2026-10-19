@@ -90,6 +90,14 @@ Product
   각 관리자 액션의 "성공 경로" 끝에서만 `logAdminAction()`을 호출한다(검증 실패로 반려된
   입력은 기록하지 않음). 문의 답변/종료처럼 구매자·판매자·관리자가 모두 호출할 수 있는
   액션은 호출자가 ADMIN일 때만 기록한다.
+- `ProductContentBlock`(상세페이지 블록 에디터, 마스터 문서 8.2절): `content`는 블록 종류별로
+  검증된 JSON 문자열만 저장(`src/lib/productBlocks.ts`의 zod 스키마). `IMAGE`/`VIDEO` 블록은
+  새 업로드를 받지 않고 **이미 업로드된 `ProductMedia`의 id만 참조**(소유자/종류 일치 검증
+  필수) — 매직바이트 검증·EXIF 제거 파이프라인을 그대로 재사용하기 위함. 렌더링은
+  `dangerouslySetInnerHTML`을 전혀 사용하지 않는 `ProductBlocksView` 컴포넌트가 전담해
+  React의 텍스트 자동 이스케이프에 의존한다(스크립트/HTML 삽입 구조적으로 불가능).
+  블록이 1개 이상이면 공개 상품 상세페이지는 `Product.description`(기존 단순 텍스트) 대신
+  블록을 렌더링한다(없으면 기존 방식으로 자연스럽게 폴백).
 - `Review`(M3): `Suborder.status`가 `COMPLETED`인 주문 항목에 한해 1건만 작성 가능(`@@unique(orderItemId)`).
   `Suborder.status`는 판매자가 직접 PENDING→PREPARING→SHIPPED→COMPLETED 순서로만 전진시킬 수 있다
   (역행/건너뛰기 불가, `src/server/orders/actions.ts`의 `NEXT_SUBORDER_STATUS` 참고).

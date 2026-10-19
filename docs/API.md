@@ -50,6 +50,9 @@
 | | `approveSettlementAction` | 정산 배치 승인(모의 지급 완료 처리) | ADMIN 이상 |
 | `src/server/notifications/actions.ts` | `updateNotificationPreferenceAction` | 광고성 정보 수신동의(이메일/푸시) 저장 | 로그인 필요 |
 | `src/server/audit/log.ts` | `logAdminAction` | 관리자 주요 작업이력 기록(헬퍼, 직접 호출 대상 아님) | - |
+| `src/server/productBlocks/actions.ts` | `addBlockAction` | 상세페이지 블록 추가(종류별 콘텐츠 검증, IMAGE/VIDEO는 본인 상품의 기존 미디어만 참조) | 로그인 + 본인 상품만 |
+| | `deleteBlockAction` | 블록 삭제 | 로그인 + 본인 상품만 |
+| | `moveBlockAction` | 블록 순서 변경(인접 블록과 sortOrder 교환) | 로그인 + 본인 상품만 |
 
 ## Route Handler
 
@@ -70,6 +73,8 @@
   (레코드 없으면 기본값: 전부 미동의)
 - `src/server/audit/queries.ts`: `listAuditLogs` — 관리자 작업이력 최근 200건(ADMIN 이상,
   `/admin/audit`)
+- `src/server/productBlocks/queries.ts`: `listProductBlocks` — 상품 상세페이지 블록 목록
+  (sortOrder 순, `/products/[slug]` 및 `/seller/products/[id]/edit`에서 공용)
 
 ## 인가 이중 검증
 

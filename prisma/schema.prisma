@@ -46,6 +46,17 @@ enum ProductStatus {
   SOLD_OUT
 }
 
+enum ProductBlockType {
+  HEADING
+  PARAGRAPH
+  IMAGE
+  VIDEO
+  TABLE
+  DIVIDER
+  FAQ
+  BANNER
+}
+
 enum OrderStatus {
   CREATED
   PAID
@@ -207,6 +218,7 @@ model Product {
   reviews        Review[]
   ads            Ad[]
   supportTickets SupportTicket[]
+  contentBlocks  ProductContentBlock[]
 
   @@index([categoryId])
   @@index([sellerId])
@@ -221,6 +233,24 @@ model ProductMedia {
   url       String
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
+
+  @@index([productId])
+}
+
+/// 상세페이지 블록 에디터(마스터 문서 8.2절 "2. 블록 편집기"). `content`는 type별 스키마로
+/// 검증된 JSON 문자열만 저장하고(src/lib/productBlocks.ts), 렌더링 시 dangerouslySetInnerHTML을
+/// 전혀 사용하지 않아 임의 HTML/스크립트 삽입이 구조적으로 불가능하다(React의 텍스트 자동
+/// 이스케이프에 의존). IMAGE/VIDEO 블록은 새 업로드를 받지 않고 이미 업로드된 ProductMedia의
+/// id만 참조한다(기존 매직바이트 검증·EXIF 제거 파이프라인 재사용, 중복 구현 방지).
+model ProductContentBlock {
+  id        String           @id @default(cuid())
+  productId String
+  product   Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type      ProductBlockType
+  sortOrder Int
+  content   String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
   @@index([productId])
 }

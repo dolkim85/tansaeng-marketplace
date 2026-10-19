@@ -8,6 +8,7 @@ import { listProductReviews } from "@/server/reviews/queries";
 import { listPublicProductQuestions } from "@/server/support/queries";
 import { getSession } from "@/server/session";
 import { formatKRW } from "@/lib/currency";
+import { ProductBlocksView } from "@/components/productBlocks/ProductBlocksView";
 
 export default async function ProductDetailPage({
   params,
@@ -126,10 +127,16 @@ export default async function ProductDetailPage({
         </Link>
       </div>
 
-      {product.description && (
-        <p className="mt-6 whitespace-pre-line text-sm text-brand-deepgreen/80">
-          {product.description}
-        </p>
+      {product.contentBlocks.length > 0 ? (
+        <div className="mt-6">
+          <ProductBlocksView blocks={product.contentBlocks} media={product.media} />
+        </div>
+      ) : (
+        product.description && (
+          <p className="mt-6 whitespace-pre-line text-sm text-brand-deepgreen/80">
+            {product.description}
+          </p>
+        )
       )}
 
       <h2 className="mt-8 flex items-center gap-2 text-base font-semibold text-brand-deepgreen">

@@ -8,7 +8,10 @@ import {
   setPrimaryMediaAction,
 } from "@/server/media/actions";
 import { formatKRW } from "@/lib/currency";
+import { ProductBlocksView } from "@/components/productBlocks/ProductBlocksView";
 import { UploadForm } from "./UploadForm";
+import { AddBlockForm } from "./AddBlockForm";
+import { BlockManager } from "./BlockManager";
 
 export default async function EditProductPage({
   params,
@@ -122,8 +125,29 @@ export default async function EditProductPage({
 
       <UploadForm productId={product.id} />
 
+      <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
+        상세페이지 블록
+      </h2>
+      <p className="text-xs text-brand-deepgreen/50">
+        제목/문단/이미지/영상/표/구분선/FAQ/안내 배너 블록을 추가하고 순서를 바꿀 수 있습니다.
+        블록을 하나도 추가하지 않으면 기존 설명(텍스트) 필드가 그대로 노출됩니다.
+      </p>
+      <BlockManager blocks={product.contentBlocks} />
+      <AddBlockForm productId={product.id} media={product.media} />
+
+      {product.contentBlocks.length > 0 && (
+        <>
+          <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
+            미리보기
+          </h2>
+          <div className="mt-3 rounded-lg border border-brand-green/15 bg-white p-4">
+            <ProductBlocksView blocks={product.contentBlocks} media={product.media} />
+          </div>
+        </>
+      )}
+
       <div className="mt-8 rounded-lg border border-dashed border-brand-green/30 bg-white/60 p-4 text-xs text-brand-deepgreen/60">
-        상품명/가격/설명 등 텍스트 정보 수정 및 블록 에디터는 다음 단계에서 구현 예정.
+        상품명/가격/원산지 등 기본 정보 수정은 다음 단계에서 구현 예정(현재는 블록/사진만 수정 가능).
       </div>
     </div>
   );

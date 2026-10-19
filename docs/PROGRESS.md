@@ -656,3 +656,62 @@ PWA 설치) 또는 사용자가 원하는 특정 기능(상품 사진 업로드 
 **다음 단계:** M3 범위의 모든 플레이스홀더가 실제 기능으로 교체됨. 다음은 사용자가 지정하는
 M4 이전 범위(상품 상세 블록 에디터, PostgreSQL 전환, 카테고리별 판매 허가, 접근성/SEO/보안
 점검, 대량주문·동시성 테스트 등) 중 하나로 진행.
+
+---
+
+## 상품 상세페이지 블록 에디터 (2026-10-19, 완료)
+
+**완료 기능:**
+- `ProductContentBlock` 모델(type/sortOrder/content JSON), `src/lib/productBlocks.ts`
+  (블록 종류별 zod 스키마 8종: 제목/문단/이미지/영상/표/구분선/FAQ/안내배너 + 표·FAQ 텍스트
+  파싱 순수 함수, 유닛 테스트 13건)
+- `addBlockAction`/`deleteBlockAction`/`moveBlockAction`(소유권 검증, IMAGE/VIDEO는 본인
+  상품의 기존 업로드 미디어만 참조 가능하도록 재검증)
+- `ProductBlocksView`: `dangerouslySetInnerHTML` 없이 8종 블록을 안전하게 렌더링하는 공용
+  컴포넌트(공개 상품 상세페이지·판매자 편집 미리보기에서 재사용)
+- `/seller/products/[id]/edit`: 블록 종류 선택형 추가 폼(종류에 따라 입력 필드 전환),
+  블록 목록(위/아래 버튼으로 순서 변경, 삭제), 실시간 미리보기 섹션 추가
+- `/products/[slug]`: 블록이 1개 이상이면 기존 `description` 텍스트 대신 블록을 렌더링
+  (블록이 없으면 기존 방식으로 자연스럽게 폴백)
+
+**미완료 기능과 이유:**
+- 드래그 앤 드롭 순서 변경 — 위/아래 버튼으로 대체(새 드래그 라이브러리 도입 범위 밖)
+- 블록 수정(edit) — 삭제 후 재생성으로 대체(배너/공지/FAQ CMS와 동일한 단순화 원칙)
+- 표/FAQ의 동적 행 추가 UI — 구분자 기반 텍스트 입력(`|`, `Q: .../A: ...`)으로 대체
+- 상품명/가격/원산지 등 기본 정보 수정 — 여전히 범위 밖(기존부터 "다음 단계 예정"으로
+  남아있던 부분, 이번 작업은 블록/미디어만 다룸)
+- AI 초안(마스터 문서 8.2절 4번) — 실 AI API 연동 없이 범위 밖으로 유지
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(47라우트, 라우트 추가 없음), `eslint`(0 error),
+  `vitest run`(39건, 신규 `productBlocks.test.ts` 13건 포함) 전부 통과
+- Playwright(Python) E2E 신규: 판매자가 사진 업로드 후 8종 블록(제목/문단/이미지/영상 대신
+  이미지만 — 테스트 영상 파일 미준비/표/구분선/FAQ/안내배너)을 전부 추가 → 미리보기에
+  전체 내용이 올바르게 렌더링되는지 확인(표 셀, FAQ 질문, 배너 문구, `<img>`/`<hr>` 태그
+  존재 확인) → 블록 순서를 맨 위로 이동(위 버튼 6회) → 블록 삭제 → 공개 상품 상세페이지에
+  동일 내용이 노출되는지 확인
+- **별도 보안 확인**: `<script>`/`onerror` 페이로드를 문단 블록에 입력 후 편집 미리보기와
+  공개 상세페이지 양쪽에서 실행되지 않고 리터럴 텍스트로만 표시되는지 확인(`window` 전역
+  플래그로 실행 여부 검증) — XSS 방어 정상 동작
+- 테스트 중 겪은 이슈(모두 테스트 스크립트 문제, 앱 코드 결함 아님): (1) 직접 작성한 가짜
+  JPEG 바이트가 실제로는 손상된 파일이라 sharp가 정상적으로 업로드를 거부함 → 프로젝트의
+  `sharp`로 유효한 테스트 이미지를 생성해 해결 (2) 블록 목록과 미디어 갤러리가 둘 다
+  `<ul>`+"삭제" 버튼을 가져 Playwright 선택자가 모호하게 매칭됨 → 블록 목록에만 있는
+  ↑/↓ 버튼으로 선택자를 좁혀 해결 (3) 연속 클릭 사이 소프트 리렌더링 타이밍 레이스로
+  순서 변경 검증이 일시적으로 실패 → 각 클릭 뒤 짧은 대기 추가로 해결
+- M1 핵심 플로우·결제·공동구매 등 기존 vitest 전체 스위트 회귀 없음 확인(39건 전부 통과)
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(ProductContentBlock 모델),
+`src/lib/productBlocks.ts`, `src/server/productBlocks/{queries,actions}.ts`,
+`src/components/productBlocks/ProductBlocksView.tsx`,
+`src/app/seller/products/[id]/edit/{page,AddBlockForm,BlockManager}.tsx`,
+`src/app/(buyer)/products/[slug]/page.tsx`(블록 렌더링 연동),
+`src/server/{catalog,seller}/queries.ts`(contentBlocks include 추가),
+`tests/unit/productBlocks.test.ts`, `docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자 지정에 따라 PostgreSQL 전환, 카테고리별 판매 허가, 접근성/SEO/보안
+점검, 대량주문·동시성 테스트 중 진행.

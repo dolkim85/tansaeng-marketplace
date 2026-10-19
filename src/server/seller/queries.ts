@@ -40,6 +40,7 @@ export async function getSellerProductWithMedia(
       seller: true,
       category: true,
       media: { orderBy: { sortOrder: "asc" } },
+      contentBlocks: { orderBy: { sortOrder: "asc" } },
     },
   });
   if (!product || product.seller.userId !== userId) return null;

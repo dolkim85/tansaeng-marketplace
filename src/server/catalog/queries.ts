@@ -29,7 +29,12 @@ export async function getCategoryWithProducts(slug: string) {
 export async function getProductBySlug(slug: string) {
   return prisma.product.findUnique({
     where: { slug },
-    include: { seller: true, category: true, media: { orderBy: { sortOrder: "asc" } } },
+    include: {
+      seller: true,
+      category: true,
+      media: { orderBy: { sortOrder: "asc" } },
+      contentBlocks: { orderBy: { sortOrder: "asc" } },
+    },
   });
 }
 
