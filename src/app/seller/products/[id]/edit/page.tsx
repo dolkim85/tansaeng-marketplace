@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getSession } from "@/server/session";
 import { getSellerProductWithMedia } from "@/server/seller/queries";
+import { listApprovedCategoriesForSeller } from "@/server/categoryPermissions/queries";
 import {
   deleteProductMediaAction,
   setPrimaryMediaAction,
@@ -12,6 +13,7 @@ import { ProductBlocksView } from "@/components/productBlocks/ProductBlocksView"
 import { UploadForm } from "./UploadForm";
 import { AddBlockForm } from "./AddBlockForm";
 import { BlockManager } from "./BlockManager";
+import { EditBasicInfoForm } from "./EditBasicInfoForm";
 
 export default async function EditProductPage({
   params,
@@ -24,6 +26,7 @@ export default async function EditProductPage({
     ? await getSellerProductWithMedia(id, session.sub)
     : null;
   if (!product) notFound();
+  const categories = await listApprovedCategoriesForSeller(product.sellerId);
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
@@ -147,9 +150,10 @@ export default async function EditProductPage({
         </>
       )}
 
-      <div className="mt-8 rounded-lg border border-dashed border-brand-green/30 bg-white/60 p-4 text-xs text-brand-deepgreen/60">
-        상품명/가격/원산지 등 기본 정보 수정은 다음 단계에서 구현 예정(현재는 블록/사진만 수정 가능).
-      </div>
+      <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
+        기본 정보 수정
+      </h2>
+      <EditBasicInfoForm productId={product.id} product={product} categories={categories} />
     </div>
   );
 }
