@@ -1,13 +1,13 @@
 // 탄생 마켓플레이스 — 신규 독립 DB 스키마 (기존 운영 DB와 완전 분리)
-// M1 단계: SQLite로 시작(설치 없는 로컬 개발), M2 진입 전 PostgreSQL로 전환 예정.
-// 전환 시 datasource.provider만 바꾸고 마이그레이션을 재생성한다(docs/PRODUCT_DECISIONS.md 참고).
+// M1 단계는 SQLite로 시작했고, 이후 PostgreSQL로 전환했다(docs/PRODUCT_DECISIONS.md 참고).
+// 전용 인스턴스: 127.0.0.1:55432, DB명 tansaeng_marketplace_dev — 기존 운영 DB와 완전 분리.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

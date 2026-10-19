@@ -123,9 +123,35 @@ UI는 미구현.
 각각 `Review`/`Ad`/`SupportTicket`/`Banner`/`Notice`/`Settlement`. FAQ는 마스터 문서에 별도
 테이블로 명시되지 않았으나 같은 맥락으로 `Faq` 테이블을 추가.)
 
-## PostgreSQL 전환 시 체크리스트 (M2 착수 전)
+## PostgreSQL 전환 (2026-10-19)
 
-1. `prisma/schema.prisma`의 `datasource.provider`를 `"sqlite"` → `"postgresql"`로 변경.
-2. `.env.local`의 `DATABASE_URL`을 `postgresql://...@127.0.0.1:55432/tansaeng_marketplace_dev`로 교체.
-3. `prisma migrate dev`로 마이그레이션 이력을 새로 시작(SQLite는 `db push`만 사용해 마이그레이션 파일이 없음).
-4. seed 스크립트는 그대로 재사용 가능(Prisma Client API는 DB 종류에 무관).
+SQLite에서 PostgreSQL 전용 인스턴스(`127.0.0.1:55432`, DB명 `tansaeng_marketplace_dev`)로
+전환했다. 아래 "코드 측 작업"은 완료·검증됨. "로컬 DB 기동" 단계는 **이 저장소를 받는 사람이
+각자 로컬에 PostgreSQL을 설치한 뒤** 한 번만 실행한다(샌드박스 환경에 sudo 비밀번호/Docker
+WSL 통합이 없어 이 세션에서는 설치를 대신 실행할 수 없었음 — `docs/SAFETY_BASELINE.md` §3 참고).
+
+**완료(코드 측, DB 연결 없이 검증 가능한 부분):**
+- `prisma/schema.prisma`: `datasource.provider`를 `"postgresql"`로 변경
+- `.env.example`/`.env.local`: `DATABASE_URL`을 `postgresql://tansaeng_dev:tansaeng_dev_local_only@127.0.0.1:55432/tansaeng_marketplace_dev`로 교체(로컬 전용 예시 자격증명)
+- `prisma/migrations/<timestamp>_init/migration.sql` + `migration_lock.toml`: `prisma migrate diff --from-empty`로 생성한 초기 마이그레이션(실DB 연결 없이 생성 가능 — 스키마→SQL 변환만 수행)
+- `npx prisma generate`, `next build`, `eslint`, `vitest run`(39건) 전부 PostgreSQL provider 기준으로 재확인 — 전부 통과(이 저장소의 유닛 테스트는 모두 순수 함수 테스트라 DB 연결이 필요 없음)
+
+**남은 단계(로컬에 PostgreSQL이 실행 중이어야 함 — 각자 1회 실행):**
+```bash
+# 1) PostgreSQL 설치(터미널에서 직접 실행 — sudo 비밀번호 입력 필요)
+sudo apt update && sudo apt install -y postgresql
+
+# 2) 전용 역할/DB 생성(기존 DB 계정·이름과 절대 겹치지 않게 새로 생성)
+sudo -u postgres psql -c "CREATE ROLE tansaeng_dev WITH LOGIN PASSWORD 'tansaeng_dev_local_only';"
+sudo -u postgres psql -c "CREATE DATABASE tansaeng_marketplace_dev OWNER tansaeng_dev;"
+
+# 3) 127.0.0.1:55432로만 바인딩되는지 postgresql.conf/pg_hba.conf 확인(기본 설치는 보통 5432 포트 —
+#    이 프로젝트 컨벤션인 55432로 맞추려면 postgresql.conf의 port 값을 수정 후 서비스 재시작)
+
+# 4) 마이그레이션 적용 + 시드
+npx prisma migrate deploy
+npx tsx prisma/seed.ts
+```
+위 4단계가 끝나면 `npm run dev`로 평소처럼 개발을 이어가면 된다. 이 프로젝트의 unique한 모든
+도메인 로직(공동구매 재고 경쟁, 정산 집계 등)은 DB 종류에 무관하므로 추가 코드 변경은
+필요하지 않다 — 여기까지가 "전환 작업"의 전체 범위다.
