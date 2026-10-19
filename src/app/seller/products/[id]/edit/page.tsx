@@ -78,7 +78,7 @@ export default async function EditProductPage({
               {m.kind === "image" ? (
                 <Image
                   src={m.url}
-                  alt=""
+                  alt={idx === 0 ? `${product.title} 대표 사진` : `${product.title} 사진 ${idx + 1}`}
                   width={160}
                   height={160}
                   className="aspect-square w-full object-cover"
@@ -87,6 +87,7 @@ export default async function EditProductPage({
                 <video
                   src={m.url}
                   controls
+                  aria-label={`${product.title} 영상`}
                   className="aspect-square w-full object-cover"
                 />
               )}

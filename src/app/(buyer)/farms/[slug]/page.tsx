@@ -1,8 +1,23 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getSellerStoreBySlug, isFollowingSeller } from "@/server/catalog/queries";
 import { toggleFollowAction } from "@/server/catalog/actions";
 import { getSession } from "@/server/session";
 import { ProductCard } from "@/components/catalog/ProductCard";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const result = await getSellerStoreBySlug(slug);
+  if (!result) return {};
+  return {
+    title: result.seller.storeName,
+    description: `${result.seller.storeName}의 산지직송 상품을 만나보세요.`,
+  };
+}
 
 export default async function FarmStorePage({
   params,

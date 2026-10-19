@@ -812,3 +812,78 @@ PostgreSQL 신규 설치/신규 역할·DB 생성에 한정, 기존 운영 서�
 **환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 사용자 지정에 따라 접근성/SEO/보안 점검, 대량주문·동시성 테스트 중 진행.
+
+---
+
+## 접근성/SEO/보안 점검 + 대량주문·동시성 테스트 (2026-10-20, 완료 — M3 체크리스트 전체 완료)
+
+**완료 기능:**
+- **동시성 버그 4건 발견·수정**(모두 Playwright로 실제 동시 HTTP 요청을 재현해 확인):
+  1. `checkoutAction`(일반 결제): 재고 차감을 조건부 `updateMany`로 원자화(사전 확인만으로는
+     마지막 재고를 여러 구매자가 동시에 통과할 수 있었음)
+  2. `cancelOrderAction`: 상태 전환을 조건부 `updateMany`로 원자화(동시 취소 클릭 시 재고가
+     두 번 복구될 수 있었음)
+  3. `joinGroupBuyAction`(공동구매 참여): `SELECT ... FOR UPDATE`로 해당 공동구매 행을
+     잠가 동시 참여를 직렬화(여러 `OrderItem` 합계 재계산은 단일 행 조건부 업데이트로
+     막을 수 없어 행 잠금 방식 채택)
+  4. `runSettlementAction`(정산 배치 생성): `settlementId IS NULL` 조건부 선점으로
+     동시 실행 시 같은 Suborder가 두 배치에 중복 집계되는 것을 방지
+- **SEO**: 상품/카테고리/농장 스토어 3개 공개 페이지에 `generateMetadata` 추가(제목에
+  `%s | 탄생` 템플릿 적용), `getProductBySlug`/`getCategoryWithProducts`/
+  `getSellerStoreBySlug`를 React `cache()`로 감싸 메타데이터+본문 중복조회 방지,
+  `robots.ts`(로그인 필요 개인화 경로 차단), `sitemap.ts`(공개 상품/카테고리/스토어 목록)
+- **접근성**: 상품 상세 블록 에디터의 이미지/영상 블록에 대체텍스트(alt) 입력란 추가(이전
+  작업에서 빠뜨린 간극), 판매자 미디어 관리 그리드와 공개 상품페이지 서브 이미지 갤러리에
+  순번이 포함된 대체텍스트 적용(목록/카드형처럼 제목이 바로 옆에 보이는 이미지는 중복 안내를
+  피하기 위해 `alt=""` 유지가 맞다는 것을 확인하고 그대로 둠)
+- **보안**: 기본 보안 헤더 추가(`X-Content-Type-Options`/`X-Frame-Options`/`Referrer-Policy`/
+  `Permissions-Policy`), `dangerouslySetInnerHTML` 미사용·원시 SQL 전부 파라미터화·
+  `NEXT_PUBLIC_` 비밀값 노출 없음을 전수 grep으로 확인
+
+**미완료 기능과 이유:**
+- Content-Security-Policy 헤더 — 운영 도메인/폰트·스크립트 소스가 확정되기 전까지 보류
+- 로그인 시도 제한(brute-force 방지), SERIALIZABLE 격리수준·재시도 로직 — 범위 밖으로 판단,
+  단일 행 조건부 업데이트/행 잠금으로 실제 발견된 경쟁 상태는 모두 해결됨
+- WCAG 색상 대비 정량 검증 — 마스터 문서가 브랜드 색상을 "확정 전"으로 명시, 정식 측정은
+  브랜드 색상 확정 후
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(49라우트, `/robots.txt`·`/sitemap.xml` 신규), `eslint`(0 error),
+  `vitest run`(40건, 신규 alt 필드 테스트 1건 포함) 전부 통과
+- **동시성 재현 테스트**(Playwright, 스레드별 독립 브라우저 컨텍스트로 실제 동시 요청):
+  - 공동구매 maxQty=5에 12명 동시 참여 → 정확히 5명만 성공, DB 직접 조회로 커밋 수량 5
+    확인(초과 없음)
+  - 재고 5개 상품에 12명 동시 결제 → 정확히 5건만 성공, 최종 재고 0 확인(음수 없음)
+  - 같은 주문에 6개 동시 취소 클릭 → 재고가 정확히 1회만 복구됨 확인(중복 복구 없음)
+  - 같은 판매자에 4개 동시 "정산 실행" 클릭 → 정산 배치가 정확히 1건만 생성되고 GMV가
+    중복 집계되지 않음 확인
+  - 테스트 중 Playwright 동기 API를 여러 OS 스레드가 공유해 `greenlet.error`가 발생 →
+    스레드마다 독립된 Playwright 드라이버를 쓰도록 수정해 해결(테스트 하니스 문제, 앱
+    결함 아님). 이 환경의 Turbopack dev 서버 최초 컴파일(라우트당 최대 9~10초)로 인한
+    타임아웃도 유사하게 테스트 측 대기시간 문제로 확인
+- SEO: `/robots.txt`, `/sitemap.xml` 응답 확인, 상품/카테고리/농장 페이지 `<title>` 태그가
+  각 콘텐츠명으로 정확히 렌더링되는지 curl로 확인
+- 접근성: 블록 에디터에서 대체텍스트를 입력해 블록 추가 → 편집 미리보기와 공개 상품페이지
+  양쪽의 실제 `<img alt="...">` 속성에 반영되는지 확인
+- 보안: 응답 헤더에 4개 보안 헤더가 모두 존재하는지 curl로 확인
+- 테스트로 생성한 임시 데이터(스트레스 테스트용 구매자 12개 계정, 공동구매 픽스처, 정산
+  테스트 주문 4건, 재고 조정) 전부 정리하고 재고 원복 확인
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `src/server/orders/actions.ts`(재고차감/취소 원자화),
+`src/server/groupbuy/actions.ts`(FOR UPDATE 행 잠금), `src/server/settlement/actions.ts`
+(정산 선점 원자화), `src/app/layout.tsx`(title 템플릿), `src/app/robots.ts`, `src/app/sitemap.ts`,
+`src/app/(buyer)/products/[slug]/page.tsx`(generateMetadata+alt), `src/app/(buyer)/category/[slug]/page.tsx`
+(generateMetadata), `src/app/(buyer)/farms/[slug]/page.tsx`(generateMetadata),
+`src/server/catalog/queries.ts`(React cache() 적용), `src/lib/productBlocks.ts`(alt 필드),
+`src/server/productBlocks/actions.ts`, `src/app/seller/products/[id]/edit/{AddBlockForm,page}.tsx`
+(alt 입력/표시), `src/components/productBlocks/ProductBlocksView.tsx`(alt 렌더링),
+`next.config.ts`(보안 헤더), `tests/unit/productBlocks.test.ts`,
+`docs/{PRODUCT_DECISIONS,ERD,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 마스터 문서 M3 체크리스트 전체 완료. 다음은 사용자가 지정하는 M4 이전 범위
+(실 PG/배송/문자 공급자 계약 등 M4 자체는 "별도 승인 이전 실행 금지") 또는 추가 기능 중
+사용자가 지정하는 항목으로 진행.

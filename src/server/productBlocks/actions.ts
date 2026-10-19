@@ -48,7 +48,7 @@ async function buildRawContent(
       if (!media || media.productId !== productId || media.kind !== expectedKind) {
         return { error: "선택한 미디어를 찾을 수 없습니다." };
       }
-      return { raw: { mediaId } };
+      return { raw: { mediaId, alt: formData.get("alt") ?? "" } };
     }
 
     case "TABLE": {

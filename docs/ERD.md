@@ -114,6 +114,17 @@ Product
   재고는 주문 생성 시 즉시 차감하고, 주문 취소 시 전부 복구한다(별도의 `stock_reservations` 타이머는 아직 미구현).
   `Payment.status`는 결제 전 `PENDING` → Mock 확인 시 `CONFIRMED` → 취소 시 `CONFIRMED`였다면 `REFUNDED`,
   아니었다면 `FAILED`로 전이한다.
+- **동시성 보호**(2026-10-20, Playwright로 실제 동시 요청을 재현해 발견·수정): 재고 차감은
+  `tx.product.updateMany({ where: { id, stockQty: { gte: quantity } }, data: { decrement } })`로
+  "충분할 때만" 원자적으로 차감하고, 실패 시(count=0) 트랜잭션 전체를 롤백한다(체크아웃 전
+  사전 확인만으로는 두 구매자가 마지막 재고를 동시에 통과할 수 있음). 주문 취소도 같은
+  방식으로 `status != CANCELLED` 조건부 `updateMany`를 먼저 통과해야만 재고를 복구해,
+  동시 취소 클릭으로 재고가 두 번 복구되는 것을 막는다. 공동구매 참여(`joinGroupBuyAction`)는
+  여러 `OrderItem`의 합계를 다시 계산해야 해 단일 행 조건부 업데이트로는 막을 수 없어,
+  `SELECT ... FROM "GroupBuy" WHERE id = $1 FOR UPDATE`로 해당 공동구매 행을 잠가 동시
+  참여를 직렬화한다. 정산 배치 생성(`runSettlementAction`)도 같은 이유로 `settlementId
+  IS NULL` 조건부 `updateMany`로 미정산 Suborder를 먼저 "선점"하고, 선점한 개수가 예상과
+  다르면(다른 배치가 먼저 가져감) 트랜잭션 전체를 롤백한다.
 
 ## M2 이후 추가 예정 (마스터 문서 13장 전체 목록 중 미구현)
 

@@ -21,6 +21,19 @@ describe("parseBlockContent", () => {
     expect(result.success).toBe(false);
   });
 
+  it("IMAGE: alt는 생략 시 빈 문자열 기본값, 입력 시 그대로 저장", () => {
+    const withoutAlt = parseBlockContent("IMAGE", { mediaId: "m1" });
+    expect(withoutAlt.success).toBe(true);
+    if (withoutAlt.success) expect(withoutAlt.data.alt).toBe("");
+
+    const withAlt = parseBlockContent("IMAGE", {
+      mediaId: "m1",
+      alt: "강원도 평창 감자밭 전경",
+    });
+    expect(withAlt.success).toBe(true);
+    if (withAlt.success) expect(withAlt.data.alt).toBe("강원도 평창 감자밭 전경");
+  });
+
   it("TABLE: 행이 1개 이상이면 통과, hasHeader 기본값은 false", () => {
     const result = parseBlockContent("TABLE", { rows: [["품목", "중량"]] });
     expect(result.success).toBe(true);

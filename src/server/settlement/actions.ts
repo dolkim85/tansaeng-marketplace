@@ -22,35 +22,49 @@ async function requireAdmin() {
 export async function runSettlementAction(sellerId: string): Promise<void> {
   const session = await requireAdmin();
 
-  const [seller, unsettled] = await Promise.all([
-    prisma.seller.findUnique({ where: { id: sellerId } }),
-    prisma.suborder.findMany({
-      where: { sellerId, status: "COMPLETED", settlementId: null },
-      select: { id: true, subtotalKrw: true },
-    }),
-  ]);
-  if (!seller || unsettled.length === 0) return;
-
-  const grossKrw = unsettled.reduce((sum, s) => sum + s.subtotalKrw, 0);
-  const { commissionRate, commissionKrw, payoutKrw } = calcSettlement(grossKrw);
+  const seller = await prisma.seller.findUnique({ where: { id: sellerId } });
+  if (!seller) return;
 
   const settlement = await prisma.$transaction(async (tx) => {
+    const unsettled = await tx.suborder.findMany({
+      where: { sellerId, status: "COMPLETED", settlementId: null },
+      select: { id: true, subtotalKrw: true },
+    });
+    if (unsettled.length === 0) return null;
+
+    const grossKrw = unsettled.reduce((sum, s) => sum + s.subtotalKrw, 0);
+    const { commissionRate, commissionKrw, payoutKrw } = calcSettlement(grossKrw);
+
     const created = await tx.settlement.create({
       data: { sellerId, grossKrw, commissionRate, commissionKrw, payoutKrw },
     });
-    await tx.suborder.updateMany({
-      where: { id: { in: unsettled.map((s) => s.id) } },
+
+    // 두 번의 "정산 실행" 클릭이 동시에 들어오면 둘 다 위에서 같은 미정산 목록을 읽을 수
+    // 있다. settlementId=null 조건을 건 updateMany로 실제로 "아직 아무도 가져가지 않은"
+    // 건만 원자적으로 선점하고, 하나라도 다른 트랜잭션이 먼저 가져갔다면(count 불일치)
+    // 전체를 롤백해 잘못된 금액의 배치가 남지 않게 한다.
+    const claim = await tx.suborder.updateMany({
+      where: { id: { in: unsettled.map((s) => s.id) }, settlementId: null },
       data: { settlementId: created.id },
     });
+    if (claim.count !== unsettled.length) {
+      throw new Error("CONCURRENT_SETTLEMENT_CONFLICT");
+    }
+
     return created;
+  }).catch((e) => {
+    if (e instanceof Error && e.message === "CONCURRENT_SETTLEMENT_CONFLICT") return null;
+    throw e;
   });
+
+  if (!settlement) return;
 
   await logAdminAction({
     actorId: session.sub,
     action: "SETTLEMENT_RUN",
     targetType: "Settlement",
     targetId: settlement.id,
-    detail: `${seller.storeName} - GMV ${grossKrw}원 / 정산액 ${payoutKrw}원`,
+    detail: `${seller.storeName} - GMV ${settlement.grossKrw}원 / 정산액 ${settlement.payoutKrw}원`,
   });
 
   revalidatePath("/admin/settlements");

@@ -92,11 +92,17 @@ export async function checkoutAction(
         },
       });
 
+      // 체크아웃 전 재고 확인(위 for문)은 트랜잭션 시작 전 시점의 스냅샷이라, 동시에 여러
+      // 구매자가 마지막 재고를 주문하면 둘 다 통과할 수 있다. 실제 차감은 "재고가 충분할
+      // 때만" 조건부로 수행되는 updateMany로 원자적으로 재검증해, 둘 중 하나만 성공하게 한다.
       for (const item of items) {
-        await tx.product.update({
-          where: { id: item.productId },
+        const updated = await tx.product.updateMany({
+          where: { id: item.productId, stockQty: { gte: item.quantity } },
           data: { stockQty: { decrement: item.quantity } },
         });
+        if (updated.count === 0) {
+          throw new Error("OUT_OF_STOCK");
+        }
       }
     }
 
@@ -107,7 +113,16 @@ export async function checkoutAction(
     await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
 
     return createdOrder;
+  }).catch((e) => {
+    if (e instanceof Error && e.message === "OUT_OF_STOCK") return null;
+    throw e;
   });
+
+  if (!order) {
+    return {
+      error: "주문 처리 중 재고가 부족해졌습니다. 장바구니를 확인한 뒤 다시 시도해 주세요.",
+    };
+  }
 
   revalidatePath("/cart");
   redirect(`/orders/${order.id}`);
@@ -177,6 +192,17 @@ export async function cancelOrderAction(orderId: string): Promise<void> {
   if (order.status === "CANCELLED") return;
 
   await prisma.$transaction(async (tx) => {
+    // 두 번의 취소 요청이 동시에 들어오면 둘 다 위의 상태 확인(트랜잭션 밖, 스냅샷 기준)을
+    // 통과할 수 있다. 재고를 두 번 복구하지 않도록, 상태 전환 자체를 조건부 updateMany로
+    // 한 번만 성공하게 만들고, 실패하면(이미 다른 요청이 취소 처리함) 나머지를 건너뛴다.
+    const result = await tx.order.updateMany({
+      where: { id: orderId, status: { not: "CANCELLED" } },
+      data: { status: "CANCELLED" },
+    });
+    if (result.count === 0) {
+      throw new Error("ALREADY_CANCELLED");
+    }
+
     for (const suborder of order.suborders) {
       for (const item of suborder.items) {
         await tx.product.update({
@@ -190,11 +216,6 @@ export async function cancelOrderAction(orderId: string): Promise<void> {
       });
     }
 
-    await tx.order.update({
-      where: { id: orderId },
-      data: { status: "CANCELLED" },
-    });
-
     if (order.payment) {
       await tx.payment.update({
         where: { orderId },
@@ -203,6 +224,9 @@ export async function cancelOrderAction(orderId: string): Promise<void> {
         },
       });
     }
+  }).catch((e) => {
+    if (e instanceof Error && e.message === "ALREADY_CANCELLED") return;
+    throw e;
   });
 
   revalidatePath(`/orders/${orderId}`);

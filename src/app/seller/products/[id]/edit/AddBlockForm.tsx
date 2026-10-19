@@ -63,32 +63,46 @@ export function AddBlockForm({ productId, media }: { productId: string; media: M
         />
       )}
       {type === "IMAGE" && (
-        <select
-          name="mediaId"
-          required
-          className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
-        >
-          <option value="">사진 선택</option>
-          {images.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.url.split("/").pop()}
-            </option>
-          ))}
-        </select>
+        <>
+          <select
+            name="mediaId"
+            required
+            className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
+          >
+            <option value="">사진 선택</option>
+            {images.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.url.split("/").pop()}
+              </option>
+            ))}
+          </select>
+          <input
+            name="alt"
+            placeholder="사진 대체텍스트(화면낭독기 사용자를 위한 설명, 예: 강원도 평창 감자밭 전경)"
+            className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
+          />
+        </>
       )}
       {type === "VIDEO" && (
-        <select
-          name="mediaId"
-          required
-          className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
-        >
-          <option value="">영상 선택</option>
-          {videos.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.url.split("/").pop()}
-            </option>
-          ))}
-        </select>
+        <>
+          <select
+            name="mediaId"
+            required
+            className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
+          >
+            <option value="">영상 선택</option>
+            {videos.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.url.split("/").pop()}
+              </option>
+            ))}
+          </select>
+          <input
+            name="alt"
+            placeholder="영상 설명(화면낭독기 사용자를 위한 설명)"
+            className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
+          />
+        </>
       )}
       {type === "TABLE" && (
         <>

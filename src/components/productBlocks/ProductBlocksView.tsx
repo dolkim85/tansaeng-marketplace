@@ -46,13 +46,14 @@ export function ProductBlocksView({
               </p>
             );
           case "IMAGE": {
-            const m = media.find((mm) => mm.id === (c as { mediaId: string }).mediaId);
+            const image = c as { mediaId: string; alt: string };
+            const m = media.find((mm) => mm.id === image.mediaId);
             if (!m) return null;
             return (
               <Image
                 key={b.id}
                 src={m.url}
-                alt=""
+                alt={image.alt}
                 width={800}
                 height={450}
                 className="w-full rounded-lg object-cover"
@@ -60,10 +61,17 @@ export function ProductBlocksView({
             );
           }
           case "VIDEO": {
-            const m = media.find((mm) => mm.id === (c as { mediaId: string }).mediaId);
+            const video = c as { mediaId: string; alt: string };
+            const m = media.find((mm) => mm.id === video.mediaId);
             if (!m) return null;
             return (
-              <video key={b.id} src={m.url} controls className="w-full rounded-lg" />
+              <video
+                key={b.id}
+                src={m.url}
+                controls
+                aria-label={video.alt || undefined}
+                className="w-full rounded-lg"
+              />
             );
           }
           case "TABLE": {

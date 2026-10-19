@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -9,6 +10,22 @@ import { listPublicProductQuestions } from "@/server/support/queries";
 import { getSession } from "@/server/session";
 import { formatKRW } from "@/lib/currency";
 import { ProductBlocksView } from "@/components/productBlocks/ProductBlocksView";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await getProductBySlug(slug);
+  if (!product) return {};
+  return {
+    title: product.title,
+    description:
+      product.description?.slice(0, 160) ||
+      `${product.originRegion} · ${product.seller.storeName}에서 산지직송하는 ${product.title}`,
+  };
+}
 
 export default async function ProductDetailPage({
   params,
@@ -58,11 +75,11 @@ export default async function ProductDetailPage({
 
       {(extraImages.length > 0 || video) && (
         <div className="mt-2 flex gap-2 overflow-x-auto">
-          {extraImages.map((m) => (
+          {extraImages.map((m, idx) => (
             <Image
               key={m.id}
               src={m.url}
-              alt=""
+              alt={`${product.title} 사진 ${idx + 2}`}
               width={96}
               height={96}
               className="h-20 w-20 shrink-0 rounded-md object-cover"
@@ -72,6 +89,7 @@ export default async function ProductDetailPage({
             <video
               src={video.url}
               controls
+              aria-label={`${product.title} 영상`}
               className="h-20 w-32 shrink-0 rounded-md"
             />
           )}

@@ -1,8 +1,23 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCategoryWithProducts } from "@/server/catalog/queries";
 import { getActiveCategoryTopAd } from "@/server/ads/queries";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { AdCard } from "@/components/catalog/AdCard";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const result = await getCategoryWithProducts(slug);
+  if (!result) return {};
+  return {
+    title: result.category.name,
+    description: `${result.category.name} 카테고리의 산지직송 상품을 만나보세요.`,
+  };
+}
 
 export default async function CategoryPage({
   params,

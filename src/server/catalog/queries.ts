@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { prisma } from "@/lib/db";
 
 export async function listTopCategories() {
@@ -9,7 +10,9 @@ export async function listTopCategories() {
   });
 }
 
-export async function getCategoryWithProducts(slug: string) {
+/// React cache()로 감싸 같은 요청 내에서 generateMetadata와 페이지 본문이 동일한 slug를
+/// 중복 조회하지 않게 한다(Next.js의 fetch() 자동 메모이제이션과 동등한 효과를 수동으로 부여).
+export const getCategoryWithProducts = cache(async (slug: string) => {
   const category = await prisma.category.findUnique({
     where: { slug },
     include: { children: true },
@@ -24,9 +27,9 @@ export async function getCategoryWithProducts(slug: string) {
   });
 
   return { category, products };
-}
+});
 
-export async function getProductBySlug(slug: string) {
+export const getProductBySlug = cache(async (slug: string) => {
   return prisma.product.findUnique({
     where: { slug },
     include: {
@@ -36,7 +39,7 @@ export async function getProductBySlug(slug: string) {
       contentBlocks: { orderBy: { sortOrder: "asc" } },
     },
   });
-}
+});
 
 export async function searchProducts(query: string) {
   if (!query.trim()) return [];
@@ -54,7 +57,7 @@ export async function searchProducts(query: string) {
   });
 }
 
-export async function getSellerStoreBySlug(slug: string) {
+export const getSellerStoreBySlug = cache(async (slug: string) => {
   const seller = await prisma.seller.findUnique({
     where: { storeSlug: slug },
   });
@@ -70,7 +73,7 @@ export async function getSellerStoreBySlug(slug: string) {
   });
 
   return { seller, products };
-}
+});
 
 export async function isWishlisted(userId: string, productId: string) {
   const row = await prisma.wishlist.findUnique({

@@ -72,7 +72,13 @@ export async function joinGroupBuyAction(
   }
 
   // 동시 참여로 인한 초과판매를 막기 위해 트랜잭션 내부에서 다시 한 번 재확인한다.
+  // 재확인은 OrderItem 여러 행의 합계를 다시 계산하는 것이라, 단순 재조회만으로는 두 트랜잭션이
+  // 동시에 "합계+수량 <= maxQty"를 통과해 버릴 수 있다(기본 READ COMMITTED 격리수준에서는
+  // 서로의 미확정 INSERT를 보지 못함). 이를 막기 위해 SELECT ... FOR UPDATE로 이 공동구매
+  // 행 자체를 잠가, 같은 공동구매에 대한 동시 참여를 직렬화한다(다른 공동구매의 참여는 막지 않음).
   const order = await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT id FROM "GroupBuy" WHERE id = ${groupBuyId} FOR UPDATE`;
+
     const committedItems = await tx.orderItem.findMany({
       where: { groupBuyId, suborder: { status: { not: "CANCELLED" } } },
       select: { quantity: true },

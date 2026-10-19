@@ -8,9 +8,11 @@ export const paragraphContentSchema = z.object({
 });
 export const imageContentSchema = z.object({
   mediaId: z.string().min(1, "사진을 선택하세요."),
+  alt: z.string().max(200).default(""),
 });
 export const videoContentSchema = z.object({
   mediaId: z.string().min(1, "영상을 선택하세요."),
+  alt: z.string().max(200).default(""),
 });
 export const tableContentSchema = z.object({
   hasHeader: z.boolean().default(false),

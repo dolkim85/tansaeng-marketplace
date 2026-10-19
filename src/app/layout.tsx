@@ -14,7 +14,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "탄생 | TANSAENG",
+  title: {
+    default: "탄생 | TANSAENG",
+    template: "%s | 탄생",
+  },
   description: "산지 직거래·공동구매 플랫폼 탄생 (로컬 개발 중)",
   manifest: "/manifest.webmanifest",
   icons: {
