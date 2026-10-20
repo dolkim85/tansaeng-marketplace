@@ -145,6 +145,13 @@ export default async function ProductDetailPage({
         </Link>
       </div>
 
+      {product.seller.returnPolicy && (
+        <p className="mt-4 rounded-md bg-brand-green/5 p-3 text-xs text-brand-deepgreen/70">
+          <span className="font-medium text-brand-deepgreen">반품 정책.</span>{" "}
+          {product.seller.returnPolicy}
+        </p>
+      )}
+
       {product.contentBlocks.length > 0 ? (
         <div className="mt-6">
           <ProductBlocksView blocks={product.contentBlocks} media={product.media} />

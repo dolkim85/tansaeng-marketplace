@@ -157,6 +157,13 @@ model Seller {
   identityType SellerIdentityType
   createdAt    DateTime @default(now())
 
+  /// 스토어 소개·정책(마스터 문서 3장 "/seller/store 생산자 스토어 소개·정책",
+  /// 4.4절 6번 "구조화 정보... 반품 정책"). 전부 선택 입력이며, 비어 있으면 공개
+  /// 페이지(/farms/[slug], /products/[slug])에서 해당 섹션 자체를 노출하지 않는다.
+  introduction   String?
+  shippingPolicy String?
+  returnPolicy   String?
+
   applications        SellerApplication[]
   products            Product[]
   follows             SellerFollow[]

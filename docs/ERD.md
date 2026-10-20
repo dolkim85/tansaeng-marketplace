@@ -140,6 +140,12 @@ Product
 각각 `Review`/`Ad`/`SupportTicket`/`Banner`/`Notice`/`Settlement`. FAQ는 마스터 문서에 별도
 테이블로 명시되지 않았으나 같은 맥락으로 `Faq` 테이블을 추가.)
 
+- `Seller.introduction`/`shippingPolicy`/`returnPolicy`(스토어 소개·정책, `/seller/store`,
+  2026-10-20): 전부 선택 입력이며 빈 값은 `null`로 저장한다. 공개 페이지(`/farms/[slug]`,
+  `/products/[slug]`)는 해당 필드가 `null`이면 섹션 자체를 렌더링하지 않는다(빈 섹션 노출
+  방지). `returnPolicy`만 상품 상세페이지에도 중복 노출되는데, 이는 마스터 문서 4.4절 6번
+  "구조화 정보... 반품 정책" 요건을 충족하기 위함 — 나머지 두 필드는 스토어 페이지에만
+  노출된다.
 - `Category`(운영자 카테고리 트리 관리, `/admin/content`, 2026-10-20): 생성/이름변경/삭제를
   지원한다. **트리 깊이는 최상위-하위 2단계로 고정**(상위로 지정 가능한 카테고리는
   `parentId === null`인 카테고리로만 제한) — `getCategoryWithProducts` 등 기존 조회 로직이

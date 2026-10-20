@@ -972,3 +972,46 @@ PostgreSQL 신규 설치/신규 역할·DB 생성에 한정, 기존 운영 서�
 **환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 사용자가 지정하는 다음 항목으로 진행.
+
+---
+
+## 판매자 스토어 소개·정책 (2026-10-20, 완료)
+
+**완료 기능:**
+- `Seller.introduction`/`shippingPolicy`/`returnPolicy` 필드 추가(전부 선택, 빈 값은 null)
+- `updateSellerStoreAction` — 본인 판매자만 수정 가능
+- `/seller/store`: 플레이스홀더를 실제 폼으로 교체(소개/배송정책/반품정책 3개 textarea,
+  공개 스토어 페이지 미리보기 링크)
+- `/farms/[slug]`(공개 스토어 페이지): "생산자 소개", "배송·반품 정책" 섹션을 값이 있을
+  때만 노출
+- `/products/[slug]`(상품 상세): 판매자의 반품 정책을 "구조화 정보" 섹션으로 중복 노출
+  (마스터 문서 4.4절 6번 요건)
+
+**미완료 기능과 이유:**
+- 스토어 이름(storeName) 수정 — 요청 범위 밖("소개·정책"만 명시), 필요 시 별도 작업
+- 배송 정책의 구조화(배송비 금액, 제주/도서산간 추가비용 등 필드 분리) — 현재는 자유
+  텍스트로만 저장, 실제 배송비 계산 로직과 연동하려면 별도의 더 큰 작업 필요(기존
+  PRODUCT_DECISIONS.md에도 "배송비 M2 범위에서 단순화"로 기록되어 있는 것과 동일한 맥락)
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(49라우트, 라우트 추가 없음), `eslint`(0 error),
+  `vitest run`(40건, 회귀 없음) 전부 통과
+- Playwright(Python) E2E: 빈 폼 확인 → 3개 필드 작성 후 저장 → 재조회 시 값 유지 확인 →
+  공개 스토어 페이지에 소개+정책 섹션 노출 확인 → 상품 상세페이지에 반품 정책만 중복
+  노출 확인 → 필드를 전부 비우고 저장 → 공개 페이지에서 해당 섹션들이 사라지는지 확인
+  (빈 섹션 노출 방지 로직 검증) → 다른 판매자 계정은 자신의 별도 빈 폼만 보임을 확인
+  (판매자별 데이터 격리 확인)
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(Seller 필드 추가),
+`src/server/seller/actions.ts`(updateSellerStoreAction 추가),
+`src/app/seller/store/{page,SellerStoreForm}.tsx`,
+`src/app/(buyer)/farms/[slug]/page.tsx`(소개·정책 섹션),
+`src/app/(buyer)/products/[slug]/page.tsx`(반품 정책 노출),
+`docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자가 지정하는 다음 항목으로 진행(남은 플레이스홀더:
+`/admin/notifications`, `/admin/settings`).

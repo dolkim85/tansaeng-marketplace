@@ -58,6 +58,37 @@ export default async function FarmStorePage({
         판매 유형: {seller.identityType}
       </p>
 
+      {seller.introduction && (
+        <>
+          <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
+            생산자 소개
+          </h2>
+          <p className="mt-2 whitespace-pre-line text-sm text-brand-deepgreen/80">
+            {seller.introduction}
+          </p>
+        </>
+      )}
+
+      {(seller.shippingPolicy || seller.returnPolicy) && (
+        <>
+          <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
+            배송·반품 정책
+          </h2>
+          {seller.shippingPolicy && (
+            <p className="mt-2 whitespace-pre-line text-sm text-brand-deepgreen/80">
+              <span className="font-medium text-brand-deepgreen">배송 정책.</span>{" "}
+              {seller.shippingPolicy}
+            </p>
+          )}
+          {seller.returnPolicy && (
+            <p className="mt-2 whitespace-pre-line text-sm text-brand-deepgreen/80">
+              <span className="font-medium text-brand-deepgreen">반품 정책.</span>{" "}
+              {seller.returnPolicy}
+            </p>
+          )}
+        </>
+      )}
+
       <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
         판매 중인 상품
       </h2>

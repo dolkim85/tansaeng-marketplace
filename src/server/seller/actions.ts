@@ -240,3 +240,44 @@ export async function stopSellingProductAction(productId: string): Promise<void>
 export async function resumeSellingProductAction(productId: string): Promise<void> {
   await setSellingState(productId, "ON_SALE");
 }
+
+const storeContentSchema = z.object({
+  introduction: z.string().max(3000).optional(),
+  shippingPolicy: z.string().max(2000).optional(),
+  returnPolicy: z.string().max(2000).optional(),
+});
+
+/// 생산자 소개·배송/반품 정책(마스터 문서 3장 "/seller/store", 4.4절 6번 "반품 정책").
+/// 전부 선택 입력이며, 빈 문자열은 null로 저장해 공개 페이지가 섹션 자체를 숨길 수 있게 한다.
+export async function updateSellerStoreAction(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const session = await getSession();
+  if (!session) redirect("/auth/login?from=/seller/store");
+
+  const seller = await prisma.seller.findUnique({ where: { userId: session.sub } });
+  if (!seller) return { error: "판매자 정보가 없습니다." };
+
+  const parsed = storeContentSchema.safeParse({
+    introduction: formData.get("introduction") ?? undefined,
+    shippingPolicy: formData.get("shippingPolicy") ?? undefined,
+    returnPolicy: formData.get("returnPolicy") ?? undefined,
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "입력값을 확인하세요." };
+  }
+
+  await prisma.seller.update({
+    where: { id: seller.id },
+    data: {
+      introduction: parsed.data.introduction?.trim() || null,
+      shippingPolicy: parsed.data.shippingPolicy?.trim() || null,
+      returnPolicy: parsed.data.returnPolicy?.trim() || null,
+    },
+  });
+
+  revalidatePath("/seller/store");
+  revalidatePath(`/farms/${seller.storeSlug}`);
+  return undefined;
+}
