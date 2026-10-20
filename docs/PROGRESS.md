@@ -1015,3 +1015,60 @@ PostgreSQL 신규 설치/신규 역할·DB 생성에 한정, 기존 운영 서�
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 사용자가 지정하는 다음 항목으로 진행(남은 플레이스홀더:
 `/admin/notifications`, `/admin/settings`).
+
+---
+
+## 관리자 운영설정 (2026-10-20, 완료)
+
+**완료 기능:**
+- `PlatformSettings`(싱글톤, 중개수수료율만 보관), `PolicyVersion`(약관 버전, 생성만 가능)
+  모델 추가
+- `updateCommissionRateAction`(ADMIN 전용, 퍼센트 입력→비율 저장, 감사로그 기록),
+  `createPolicyVersionAction`(ADMIN 전용, 수정/삭제 불가)
+- `/admin/settings`: "중개수수료율"(현재값 표시+변경 폼), "약관 버전"(이력 목록+새 버전
+  등록 폼, 수정/삭제 버튼 없음), "운영설정(읽기 전용)"(APP_ENV/DIRECT_SALE_ENABLED/
+  PAYMENT_PROVIDER/NOTIFICATION_PROVIDER 환경변수 값을 그대로 표시, **편집 불가**) —
+  플레이스홀더를 실제 기능으로 교체
+- `runSettlementAction`이 하드코딩된 `COMMISSION_RATE` 상수 대신 `PlatformSettings`의
+  현재 값을 조회해 사용하도록 변경(기존 상수는 싱글톤의 기본값으로만 남음), `/admin/settlements`
+  `/seller/settlements` 표시 텍스트도 동일하게 동적 값 참조로 전환
+
+**미완료 기능과 이유:**
+- 실결제/실발송 관련 플래그(DIRECT_SALE_ENABLED 등)의 UI 토글 — **의도적으로 미구현**.
+  이 플래그들을 웹 UI에서 즉시 바꿀 수 있게 하는 것 자체가 `docs/RELEASE_CHECKLIST.md`의
+  "실결제/실발송은 사용자 사전 승인 필요" 원칙과 충돌하므로, 읽기 전용 표시로만 제공
+  (서버 환경변수를 통해서만 변경 가능)
+- 품목/판매자/기간별 차등 수수료율 — 여전히 범위 밖(전역 단일 요율만 지원, 기존 결정과 동일)
+- 약관 버전의 실제 구매자 동의 기록·법적 효력 연동 — 마스터 문서 16장이 별도의 사전 출시
+  법무 검토 대상으로 분류한 항목이라 범위 밖
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(49라우트, 라우트 추가 없음), `eslint`(0 error),
+  `vitest run`(40건, 회귀 없음) 전부 통과
+- Playwright(Python) E2E: 기본 5% 수수료율 확인 → 운영설정 플래그가 읽기 전용(입력란
+  없음)으로 표시되는지 확인 → 수수료율을 7.5%로 변경 → `/admin/settlements`와
+  `/seller/settlements` 양쪽에 즉시 반영되는지 확인 → 약관 버전 등록 후 수정/삭제
+  버튼이 전혀 없는지 확인(append-only) → 감사로그에 두 작업 모두 기록됨을 확인 →
+  구매자 계정은 접근 시 리다이렉트됨을 확인
+- **금액 정확성 재검증**: 수수료율을 7.5%로 바꾼 뒤 실제로 새 정산 배치를 생성해 DB를
+  직접 조회 — `commissionRate: 0.075`, `commissionKrw: 750`(GMV 10,000원 기준)으로
+  정확히 스냅샷 저장됨을 확인(이후 수수료율을 다시 바꿔도 이 배치는 영향받지 않음이
+  설계상 보장됨)
+- 테스트 중 겪은 이슈(테스트 스크립트 문제, 앱 결함 아님): React가 인접한 JSX 표현식
+  사이에 하이드레이션용 HTML 주석(`<!-- -->`)을 삽입해, 원시 HTML 문자열에서는 "5.0%"가
+  "5.0<!-- -->%"처럼 끊어져 보임(실제 렌더링된 화면 텍스트는 정상적으로 "5.0%") →
+  `page.content()`(원시 HTML) 대신 `locator("body").inner_text()`(렌더링된 텍스트)로
+  검증 방식을 바꿔 해결
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(PlatformSettings/PolicyVersion 모델),
+`src/server/platformSettings/{queries,actions}.ts`, `src/server/policyVersions/{queries,actions}.ts`,
+`src/lib/auditLabels.ts`, `src/app/admin/settings/{page,CommissionRateForm,PolicyVersionForm}.tsx`,
+`src/server/settlement/actions.ts`(동적 수수료율 조회로 변경),
+`src/app/admin/settlements/page.tsx`, `src/app/seller/settlements/page.tsx`(동적 값 표시),
+`docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자가 지정하는 다음 항목으로 진행(남은 플레이스홀더: `/admin/notifications`).

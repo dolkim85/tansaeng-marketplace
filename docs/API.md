@@ -17,6 +17,8 @@
 | | `createProductAction` | 상품 등록(승인 여부로 상태 자동 분기, 선택한 카테고리에 대한 APPROVED 판매 허가 필수) | SELLER + Seller 레코드 필요 + 카테고리 판매 허가 |
 | | `updateProductAction` | 상품 기본정보 수정(제목/카테고리/가격/재고/원산지/설명, slug는 불변, 카테고리 변경 시에도 APPROVED 판매 허가 필요) | 로그인 + 본인 상품만 + 카테고리 판매 허가 |
 | | `updateSellerStoreAction` | 생산자 소개·배송 정책·반품 정책 수정(빈 값은 null로 저장해 공개 페이지에서 해당 섹션 숨김) | 로그인 + 본인 판매자만 |
+| `src/server/platformSettings/actions.ts` | `updateCommissionRateAction` | 전역 중개수수료율 변경(다음 정산 배치부터 적용, 과거 배치는 생성 시점 값 유지) | ADMIN 이상 |
+| `src/server/policyVersions/actions.ts` | `createPolicyVersionAction` | 약관/정책 새 버전 등록(수정·삭제 불가, append-only) | ADMIN 이상 |
 | `src/server/admin/actions.ts` | `approveApplicationAction` | 입점 신청 승인 | ADMIN 이상(내부 재검증) |
 | | `rejectApplicationAction` | 입점 신청 반려 | ADMIN 이상(내부 재검증) |
 | `src/server/cart/actions.ts` | `addToCartAction` | 장바구니 담기(기존 있으면 +1) | 로그인 필요 |
@@ -88,6 +90,10 @@
   (`/admin/sellers`)
 - `src/server/categories/queries.ts`: `listCategoryTreeForAdmin` — 최상위 카테고리마다 하위
   카테고리와 각 단계의 상품 개수를 포함(`/admin/content`, 삭제 가능 여부 판단용)
+- `src/server/platformSettings/queries.ts`: `getPlatformSettings`/`getCommissionRate` —
+  전역 운영 설정 싱글톤 조회(없으면 기본값으로 생성), 여러 화면(정산 생성/표시)에서 공용
+- `src/server/policyVersions/queries.ts`: `listPolicyVersions` — 약관 버전 전체 이력
+  (`/admin/settings`)
 
 ## 인가 이중 검증
 

@@ -146,6 +146,16 @@ Product
   방지). `returnPolicy`만 상품 상세페이지에도 중복 노출되는데, 이는 마스터 문서 4.4절 6번
   "구조화 정보... 반품 정책" 요건을 충족하기 위함 — 나머지 두 필드는 스토어 페이지에만
   노출된다.
+- `PlatformSettings`(전역 운영 설정, `/admin/settings`, 2026-10-20): `id`가 항상
+  `"default"`인 싱글톤 1행만 존재(`upsert`로 없으면 기본값 생성). `commissionRate`만 담고
+  있으며, **실결제/실발송 관련 안전 플래그(DIRECT_SALE_ENABLED 등)는 의도적으로 포함하지
+  않는다** — 그런 플래그는 관리자가 웹 UI로 즉시 켤 수 있으면 안 되고 서버 환경변수를 통해
+  서만 바뀌어야 한다(`docs/RELEASE_CHECKLIST.md` 참고). `runSettlementAction`은 배치 생성
+  시점의 `commissionRate`를 `Settlement.commissionRate`에 **스냅샷으로 저장**하므로, 이후
+  이 값을 바꿔도 과거 배치 금액은 바뀌지 않는다.
+- `PolicyVersion`(약관/정책 버전 이력, `/admin/settings`, 2026-10-20): 다른 CMS류 모델들과
+  달리 **생성만 지원하고 수정·삭제는 지원하지 않는다** — 법적 성격의 버전 이력이 나중에
+  고친 것처럼 보이면 안 되기 때문. 실제 구매자 동의 기록·법적 효력 연동은 범위 밖.
 - `Category`(운영자 카테고리 트리 관리, `/admin/content`, 2026-10-20): 생성/이름변경/삭제를
   지원한다. **트리 깊이는 최상위-하위 2단계로 고정**(상위로 지정 가능한 카테고리는
   `parentId === null`인 카테고리로만 제한) — `getCategoryWithProducts` 등 기존 조회 로직이

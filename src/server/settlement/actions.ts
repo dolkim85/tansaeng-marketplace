@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/server/session";
 import { logAdminAction } from "@/server/audit/log";
 import { calcSettlement } from "@/lib/settlement";
+import { getCommissionRate } from "@/server/platformSettings/queries";
 
 const ADMIN_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
 
@@ -22,7 +23,10 @@ async function requireAdmin() {
 export async function runSettlementAction(sellerId: string): Promise<void> {
   const session = await requireAdmin();
 
-  const seller = await prisma.seller.findUnique({ where: { id: sellerId } });
+  const [seller, commissionRateNow] = await Promise.all([
+    prisma.seller.findUnique({ where: { id: sellerId } }),
+    getCommissionRate(),
+  ]);
   if (!seller) return;
 
   const settlement = await prisma.$transaction(async (tx) => {
@@ -33,7 +37,10 @@ export async function runSettlementAction(sellerId: string): Promise<void> {
     if (unsettled.length === 0) return null;
 
     const grossKrw = unsettled.reduce((sum, s) => sum + s.subtotalKrw, 0);
-    const { commissionRate, commissionKrw, payoutKrw } = calcSettlement(grossKrw);
+    const { commissionRate, commissionKrw, payoutKrw } = calcSettlement(
+      grossKrw,
+      commissionRateNow
+    );
 
     const created = await tx.settlement.create({
       data: { sellerId, grossKrw, commissionRate, commissionKrw, payoutKrw },

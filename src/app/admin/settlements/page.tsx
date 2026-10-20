@@ -4,7 +4,8 @@ import {
   listAllSettlementsForAdmin,
 } from "@/server/settlement/queries";
 import { runSettlementAction, approveSettlementAction } from "@/server/settlement/actions";
-import { calcSettlement, COMMISSION_RATE } from "@/lib/settlement";
+import { calcSettlement } from "@/lib/settlement";
+import { getCommissionRate } from "@/server/platformSettings/queries";
 import { formatKRW } from "@/lib/currency";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -13,12 +14,13 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default async function AdminSettlementsPage() {
-  const [summary, pendingSellers, settlements] = await Promise.all([
+  const [summary, pendingSellers, settlements, commissionRate] = await Promise.all([
     getGlobalSettlementSummary(),
     listSellersWithPendingSettlement(),
     listAllSettlementsForAdmin(),
+    getCommissionRate(),
   ]);
-  const { commissionKrw, payoutKrw } = calcSettlement(summary.totalGrossKrw);
+  const { commissionKrw, payoutKrw } = calcSettlement(summary.totalGrossKrw, commissionRate);
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
@@ -29,8 +31,12 @@ export default async function AdminSettlementsPage() {
         수수료·정산·대사
       </h1>
       <p className="mt-1 text-xs text-brand-deepgreen/60">
-        전부 샌드박스 모의 정산입니다(실제 지급/원천징수 없음). 중개수수료율{" "}
-        {(COMMISSION_RATE * 100).toFixed(0)}%는 초기 예시값이며 확정 요율이 아닙니다.
+        전부 샌드박스 모의 정산입니다(실제 지급/원천징수 없음). 현재 중개수수료율{" "}
+        {(commissionRate * 100).toFixed(1)}%는{" "}
+        <a href="/admin/settings" className="underline-offset-2 hover:underline">
+          /admin/settings
+        </a>
+        에서 변경할 수 있습니다.
       </p>
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">

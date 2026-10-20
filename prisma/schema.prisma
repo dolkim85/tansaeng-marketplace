@@ -609,3 +609,29 @@ model AuditLog {
   @@index([targetType, targetId])
   @@index([createdAt])
 }
+
+/// 전역 운영 설정의 단일 행(싱글톤). 현재는 중개수수료율만 담는다(마스터 문서 11.1절
+/// "구체 수수료율은 관리자 설정, 초기 샌드박스 임의 기본값" 요건). 실결제/실발송 여부 같은
+/// 안전 관련 플래그(DIRECT_SALE_ENABLED 등)는 **의도적으로 이 테이블에 포함하지 않는다** —
+/// 그런 플래그는 관리자가 웹 UI에서 즉시 켤 수 있어서는 안 되고, 서버 환경변수를 통해서만
+/// 바뀌어야 한다(docs/RELEASE_CHECKLIST.md 참고). id는 항상 `"default"` 하나만 존재한다.
+model PlatformSettings {
+  id             String   @id @default("default")
+  commissionRate Float    @default(0.05)
+  updatedBy      String?
+  updatedAt      DateTime @updatedAt
+}
+
+/// 약관/정책 버전 이력(마스터 문서 13장 `policy_versions`). 생성만 가능하고 **수정/삭제는
+/// 지원하지 않는다** — 법적 성격의 버전 이력은 나중에 고친 것처럼 보이면 안 되기 때문
+/// (다른 CMS류 모델들의 "생성/삭제만 지원" 단순화와는 다른, 의도적인 예외).
+model PolicyVersion {
+  id        String   @id @default(cuid())
+  title     String
+  version   String
+  content   String
+  createdBy String
+  createdAt DateTime @default(now())
+
+  @@index([title])
+}

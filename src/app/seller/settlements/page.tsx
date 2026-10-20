@@ -4,7 +4,8 @@ import {
   getPendingGrossForSeller,
   listSettlementsForSeller,
 } from "@/server/settlement/queries";
-import { calcSettlement, COMMISSION_RATE } from "@/lib/settlement";
+import { calcSettlement } from "@/lib/settlement";
+import { getCommissionRate } from "@/server/platformSettings/queries";
 import { formatKRW } from "@/lib/currency";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -26,11 +27,12 @@ export default async function SellerSettlementsPage() {
     );
   }
 
-  const [pendingGrossKrw, settlements] = await Promise.all([
+  const [pendingGrossKrw, settlements, commissionRate] = await Promise.all([
     getPendingGrossForSeller(result.seller.id),
     listSettlementsForSeller(result.seller.id),
+    getCommissionRate(),
   ]);
-  const pending = calcSettlement(pendingGrossKrw);
+  const pending = calcSettlement(pendingGrossKrw, commissionRate);
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
@@ -39,8 +41,8 @@ export default async function SellerSettlementsPage() {
         매출·수수료·정산 내역
       </h1>
       <p className="mt-1 text-xs text-brand-deepgreen/60">
-        전부 샌드박스 모의 정산입니다. 중개수수료율 {(COMMISSION_RATE * 100).toFixed(0)}%는
-        초기 예시값이며 확정 요율이 아닙니다.
+        전부 샌드박스 모의 정산입니다. 현재 중개수수료율은 {(commissionRate * 100).toFixed(1)}%
+        입니다(운영자가 변경 가능).
       </p>
 
       <div className="mt-5 rounded-lg border border-brand-green/15 bg-white p-4 text-sm">

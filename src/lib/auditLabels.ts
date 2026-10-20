@@ -24,4 +24,6 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   CATEGORY_CREATED: "카테고리 생성",
   CATEGORY_RENAMED: "카테고리 이름 변경",
   CATEGORY_DELETED: "카테고리 삭제",
+  COMMISSION_RATE_UPDATED: "중개수수료율 변경",
+  POLICY_VERSION_CREATED: "약관 버전 등록",
 };
