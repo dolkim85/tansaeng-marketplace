@@ -153,6 +153,14 @@ Product
   서만 바뀌어야 한다(`docs/RELEASE_CHECKLIST.md` 참고). `runSettlementAction`은 배치 생성
   시점의 `commissionRate`를 `Settlement.commissionRate`에 **스냅샷으로 저장**하므로, 이후
   이 값을 바꿔도 과거 배치 금액은 바뀌지 않는다.
+- 관리자/판매자 대시보드 지표(`/admin`, `/seller`, 2026-10-20): 새 테이블 없이 기존
+  `Order`/`Suborder`/`SupportTicket`/`GroupBuy`/`Ad`/`Settlement`을 요청마다 집계한다
+  (통계 대시보드와 동일한 "저장 대신 그때그때 계산" 원칙). "배송 지연"은 결제완료 후
+  **3일**이 지나도 `PENDING`/`PREPARING`/`SHIPPED`에 머물러 있는 `Suborder`로 정의한다 —
+  판매자별/상품별 SLA 약속 필드가 없어 전역 고정 임계값으로 단순화했다(`getAdminDashboardSummary`의
+  `SHIPPING_DELAY_THRESHOLD_MS` 참고). "공동구매 마감 처리 대기"는 `computeGroupBuyPhase`의
+  `AWAITING_FINALIZATION` 조건(`status=SCHEDULED && closeAt < now`)을 쿼리 조건으로 직접
+  표현한 것이고, "정산 승인 대기"는 `Settlement.status=PENDING` 개수다.
 - `NotificationLog`(모의 알림 발송 로그, `/admin/notifications`, 2026-10-20): 채널(이메일/푸시)
   구분 필드가 없다 — `NOTIFICATION_PROVIDER=mock`이라 실제로 어느 채널로도 발송되지 않으므로,
   구분할 실체가 없는 정보를 억지로 모델링하지 않았다. 광고성 알림(마케팅)은 기록 대상이

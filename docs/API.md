@@ -73,8 +73,11 @@
 ## 읽기 전용 쿼리 (서버 컴포넌트에서 직접 호출)
 
 - `src/server/catalog/queries.ts`: 카테고리/상품/찜/팔로우/스토어 조회
-- `src/server/seller/queries.ts`: 판매자 본인 데이터 조회
-- `src/server/admin/queries.ts`: 관리자 전체 데이터 조회
+- `src/server/seller/queries.ts`: 판매자 본인 데이터 조회. `getSellerDashboardSummary`
+  (접수대기 주문/정산대기금액/미해결 문의/광고심사대기/진행중 공동구매, `/seller` 대시보드)
+- `src/server/admin/queries.ts`: 관리자 전체 데이터 조회. `getAdminDashboardSummary`
+  (마스터 문서 4.6절의 운영 지표 7종 — 판매자 심사대기/오늘 주문/배송 지연/반품·분쟁/
+  공동구매 마감대기/광고 심사대기/정산 승인대기, `/admin` 대시보드)
 - `src/server/analytics/queries.ts`: `getAdminAnalyticsSummary` — 거래액(GMV)/활성회원/전환율/
   공동구매 성사율/광고 CTR/최근 7일 가입·주문 추이를 실제 DB에서 집계(ADMIN 이상, `/admin/analytics`)
 - `src/server/groupbuy/queries.ts`: `listMyGroupBuyAlerts` — 구매자가 신청한 공동구매 오픈

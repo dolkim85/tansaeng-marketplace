@@ -53,3 +53,35 @@ export async function listSellerProductsWithoutGroupBuy(sellerId: string) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+/** 판매자 대시보드(/seller) 운영 지표 요약. */
+export async function getSellerDashboardSummary(sellerId: string) {
+  const now = new Date();
+
+  const [
+    pendingSuborders,
+    pendingSettlementGross,
+    pendingAds,
+    openGroupBuys,
+    openTickets,
+  ] = await Promise.all([
+    prisma.suborder.count({ where: { sellerId, status: "PENDING" } }),
+    prisma.suborder.aggregate({
+      where: { sellerId, status: "COMPLETED", settlementId: null },
+      _sum: { subtotalKrw: true },
+    }),
+    prisma.ad.count({ where: { sellerId, status: "REQUESTED" } }),
+    prisma.groupBuy.count({
+      where: { product: { sellerId }, status: "SCHEDULED", openAt: { lte: now }, closeAt: { gte: now } },
+    }),
+    prisma.supportTicket.count({ where: { sellerId, status: { not: "CLOSED" } } }),
+  ]);
+
+  return {
+    pendingSuborders,
+    pendingSettlementGrossKrw: pendingSettlementGross._sum.subtotalKrw ?? 0,
+    pendingAds,
+    openGroupBuys,
+    openTickets,
+  };
+}
