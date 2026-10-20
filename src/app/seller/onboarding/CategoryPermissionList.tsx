@@ -1,6 +1,5 @@
 import { requestCategoryPermissionAction } from "@/server/categoryPermissions/actions";
-
-const REGULATED_SLUGS = new Set(["livestock", "seafood"]);
+import { REGULATED_CATEGORY_SLUGS } from "@/lib/regulatedCategories";
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: "심사 대기",
@@ -23,7 +22,7 @@ export function CategoryPermissionList({ rows }: { rows: Row[] }) {
         >
           <div>
             <p className="font-medium text-brand-deepgreen">{category.name}</p>
-            {REGULATED_SLUGS.has(category.slug) && (
+            {REGULATED_CATEGORY_SLUGS.has(category.slug) && (
               <p className="text-[11px] text-brand-orange">
                 추가 허가/신고/표시·이력관리 대상 품목 — 승인 전 증빙 확인 필요
               </p>

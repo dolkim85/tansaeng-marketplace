@@ -2,8 +2,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { getSession } from "@/server/session";
 import { getSellerWithLatestApplication, listSellerProducts } from "@/server/seller/queries";
-import { stopSellingProductAction, resumeSellingProductAction } from "@/server/seller/actions";
+import {
+  stopSellingProductAction,
+  resumeSellingProductAction,
+  resubmitForReviewAction,
+} from "@/server/seller/actions";
 import { formatKRW } from "@/lib/currency";
+import { REGULATED_CATEGORY_SLUGS } from "@/lib/regulatedCategories";
 
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: "임시저장",
@@ -108,6 +113,23 @@ export default async function SellerProductsPage() {
                     ` · 동의 확인 ${p.proxyConsentAt.toLocaleDateString("ko-KR")}`}
                   ).
                 </p>
+              )}
+              {p.status === "DRAFT" && p.reviewNote && (
+                <p className="mt-2 text-xs text-brand-orange">
+                  검수 반려 사유: {p.reviewNote}
+                </p>
+              )}
+              {approved && p.status === "DRAFT" && REGULATED_CATEGORY_SLUGS.has(p.category.slug) && (
+                <div className="mt-2">
+                  <form action={resubmitForReviewAction.bind(null, p.id)}>
+                    <button
+                      type="submit"
+                      className="text-xs text-brand-green underline-offset-2 hover:underline"
+                    >
+                      {p.reviewNote ? "보완 후 재제출" : "검수 제출"}
+                    </button>
+                  </form>
+                </div>
               )}
               {(p.status === "ON_SALE" || p.status === "HIDDEN") && (
                 <div className="mt-2">

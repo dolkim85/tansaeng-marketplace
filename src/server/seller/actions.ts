@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { slugify, randomSuffix } from "@/lib/slug";
 import { getSession } from "@/server/session";
 import { createSessionCookie } from "@/server/session";
+import { REGULATED_CATEGORY_SLUGS } from "@/lib/regulatedCategories";
 
 export type FormState = { error?: string } | undefined;
 
@@ -114,6 +115,7 @@ export async function createProductAction(
     where: {
       sellerId_categoryId: { sellerId: seller.id, categoryId: parsed.data.categoryId },
     },
+    include: { category: true },
   });
   if (categoryPermission?.status !== "APPROVED") {
     return {
@@ -125,6 +127,11 @@ export async function createProductAction(
   const approved = seller.applications[0]?.status === "APPROVED";
   const slug = `${slugify(parsed.data.title)}-${randomSuffix()}`;
 
+  // 승인된 판매자라도 축산물/수산물 등 추가 허가 대상 카테고리는 즉시 ON_SALE로 전환하지
+  // 않고 관리자 검수(IN_REVIEW)를 거치게 한다(마스터 문서 10.2절 4번).
+  const regulated = REGULATED_CATEGORY_SLUGS.has(categoryPermission.category.slug);
+  const status = !approved ? "DRAFT" : regulated ? "IN_REVIEW" : "ON_SALE";
+
   await prisma.product.create({
     data: {
       sellerId: seller.id,
@@ -135,7 +142,7 @@ export async function createProductAction(
       stockQty: parsed.data.stockQty,
       originRegion: parsed.data.originRegion,
       description: parsed.data.description || null,
-      status: approved ? "ON_SALE" : "DRAFT",
+      status,
     },
   });
 
@@ -239,6 +246,32 @@ export async function stopSellingProductAction(productId: string): Promise<void>
 
 export async function resumeSellingProductAction(productId: string): Promise<void> {
   await setSellingState(productId, "ON_SALE");
+}
+
+/// 관리자 검수에서 반려(IN_REVIEW → DRAFT)된 추가 허가 대상 카테고리 상품을 보완 후
+/// 다시 검수 대기열(IN_REVIEW)로 올린다(마스터 문서 10.2절 4번).
+export async function resubmitForReviewAction(productId: string): Promise<void> {
+  const session = await getSession();
+  if (!session) redirect("/auth/login?from=/seller/products");
+
+  const seller = await prisma.seller.findUnique({
+    where: { userId: session.sub },
+    include: { applications: { orderBy: { createdAt: "desc" }, take: 1 } },
+  });
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    include: { category: true },
+  });
+  if (!product || !seller || product.sellerId !== seller.id) return;
+  if (seller.applications[0]?.status !== "APPROVED") return;
+  if (product.status !== "DRAFT") return;
+  if (!REGULATED_CATEGORY_SLUGS.has(product.category.slug)) return;
+
+  await prisma.product.update({
+    where: { id: productId },
+    data: { status: "IN_REVIEW" },
+  });
+  revalidatePath("/seller/products");
 }
 
 const storeContentSchema = z.object({

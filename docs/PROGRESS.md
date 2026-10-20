@@ -1172,3 +1172,56 @@ PostgreSQL 신규 설치/신규 역할·DB 생성에 한정, 기존 운영 서�
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 사용자가 지정하는 다음 항목으로 진행(예: 신규 상품 검수 워크플로우,
 M4 이전 범위 등).
+
+---
+
+## 신규 상품 검수(IN_REVIEW) 워크플로우 (2026-10-20, 완료)
+
+**완료 기능:**
+- `REGULATED_CATEGORY_SLUGS`(`src/lib/regulatedCategories.ts`)로 "축산물/수산물" 상수를
+  `/seller/onboarding`의 기존 `REGULATED_SLUGS`와 통합(단일 소스)
+- `Product.reviewNote`/`reviewedBy`/`reviewedAt` 필드 추가(마이그레이션
+  `20261020121342_add_product_review_fields`)
+- `createProductAction`: 승인된 판매자가 검수 대상 카테고리에 상품을 등록하면 즉시
+  `IN_REVIEW`로 생성(비규제 카테고리는 기존과 동일하게 `ON_SALE`/`DRAFT`)
+- `resubmitForReviewAction`(판매자): 검수 반려로 `DRAFT`가 된 검수 대상 상품을 보완 후
+  다시 `IN_REVIEW`로 재제출
+- `approveProductReviewAction`/`rejectProductReviewAction`(관리자): `IN_REVIEW`→`ON_SALE`
+  승인(반려 사유 초기화) / `IN_REVIEW`→`DRAFT` 반려(사유 필수 입력, `reviewNote`에 기록)
+  + `AuditLog` 기록(`PRODUCT_REVIEW_APPROVED`/`PRODUCT_REVIEW_REJECTED`)
+- `approveApplicationAction`(입점 승인)의 기존 DRAFT→ON_SALE 일괄 전환을 카테고리
+  기준으로 분기(검수 대상 카테고리는 `IN_REVIEW`로 전환)해, 입점 승인 시점에 이미
+  등록돼 있던 검수 대상 상품이 검수 없이 새 나가지 않도록 보강
+- `/admin/products`: "검수" 열 추가 — `IN_REVIEW` 행에 승인/반려(사유 입력 필수) 버튼,
+  반려 이력이 있는 `DRAFT` 행에는 반려 사유 표시
+- `/seller/products`: `DRAFT` + 검수 대상 카테고리 + 승인된 판매자인 경우 "검수 제출"/
+  "보완 후 재제출" 버튼 노출, 반려 사유가 있으면 상품 카드에 표시
+
+**미완료 기능과 이유:** 없음(계획했던 범위 전부 구현).
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `eslint src`, `next build`(49라우트, 라우트 추가 없음), `vitest run`
+  (40건, 회귀 없음) 전부 통과
+- Playwright(Python) E2E: 승인된 판매자(`seller_approved`)가 축산물 카테고리 상품을
+  등록하면 생성 즉시 `IN_REVIEW`(검수중)로 표시 → 관리자가 사유를 입력해 반려하면
+  `DRAFT`로 돌아가고 판매자 화면에 반려 사유+재제출 버튼이 보임 → 재제출 시
+  `IN_REVIEW`로 복귀 → 관리자가 승인하면 `ON_SALE`(판매중)로 전환되고 반려 사유가
+  양쪽 화면에서 모두 사라짐 → 구매자(`buyer_demo`) 계정은 `/admin/products` 접근 시
+  proxy.ts에 의해 리다이렉트됨을 확인
+- 테스트 중 생성한 상품은 DB에서 직접 정리(원상복구)
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(+마이그레이션),
+`src/lib/regulatedCategories.ts`(신규), `src/lib/auditLabels.ts`,
+`src/server/seller/actions.ts`(createProductAction 수정, resubmitForReviewAction 추가),
+`src/server/admin/actions.ts`(approveApplicationAction 수정, approveProductReviewAction/
+rejectProductReviewAction 추가), `src/app/admin/products/page.tsx`,
+`src/app/seller/products/page.tsx`,
+`src/app/seller/onboarding/CategoryPermissionList.tsx`(공유 상수로 교체),
+`docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자가 지정하는 다음 항목으로 진행(예: 회원 설정(/account) 고도화,
+M4 이전 범위 등).

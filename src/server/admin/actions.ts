@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { slugify, randomSuffix } from "@/lib/slug";
 import { getSession } from "@/server/session";
 import { logAdminAction } from "@/server/audit/log";
+import { REGULATED_CATEGORY_SLUGS } from "@/lib/regulatedCategories";
 
 const ADMIN_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
 
@@ -36,13 +37,26 @@ export async function approveApplicationAction(
   // 승인 시 기존 임시저장(DRAFT) 상품을 판매중으로 전환한다.
   // 대리등록 상품(isProxyRegistered)은 별도의 관리자 최종 승인(approveProxyProductAction)이
   // 있어야만 판매중으로 전환된다 — 입점 승인과 묶어서 자동 전환하지 않는다(마스터 문서 10.3절).
+  // 축산물/수산물 등 추가 허가 대상 카테고리는 ON_SALE이 아니라 관리자 검수(IN_REVIEW)
+  // 대기열로 보낸다(마스터 문서 10.2절 4번).
+  const regulatedSlugs = Array.from(REGULATED_CATEGORY_SLUGS);
   await prisma.product.updateMany({
     where: {
       sellerId: application.sellerId,
       status: "DRAFT",
       isProxyRegistered: false,
+      category: { slug: { notIn: regulatedSlugs } },
     },
     data: { status: "ON_SALE" },
+  });
+  await prisma.product.updateMany({
+    where: {
+      sellerId: application.sellerId,
+      status: "DRAFT",
+      isProxyRegistered: false,
+      category: { slug: { in: regulatedSlugs } },
+    },
+    data: { status: "IN_REVIEW" },
   });
 
   await logAdminAction({
@@ -200,4 +214,70 @@ export async function deleteProxyProductAction(productId: string): Promise<void>
   });
 
   revalidatePath("/admin/products");
+}
+
+/// 축산물/수산물 등 추가 허가 대상 카테고리 상품의 검수 승인(IN_REVIEW → ON_SALE).
+/// 이전 반려 사유(reviewNote)가 남아있다면 승인과 함께 지운다(마스터 문서 10.2절 4번).
+export async function approveProductReviewAction(productId: string): Promise<void> {
+  const session = await requireAdmin();
+
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (!product || product.status !== "IN_REVIEW") return;
+
+  await prisma.product.update({
+    where: { id: productId },
+    data: {
+      status: "ON_SALE",
+      reviewNote: null,
+      reviewedBy: session.sub,
+      reviewedAt: new Date(),
+    },
+  });
+
+  await logAdminAction({
+    actorId: session.sub,
+    action: "PRODUCT_REVIEW_APPROVED",
+    targetType: "Product",
+    targetId: productId,
+    detail: product.title,
+  });
+
+  revalidatePath("/admin/products");
+  revalidatePath("/seller/products");
+}
+
+/// 검수 반려(IN_REVIEW → DRAFT). 반려 사유는 필수이며 판매자가 보완 후 재제출할 수 있도록
+/// reviewNote에 기록한다(마스터 문서 10.2절 4번 "보완 요청, 승인/반려 사유 기록").
+export async function rejectProductReviewAction(
+  productId: string,
+  formData: FormData
+): Promise<void> {
+  const session = await requireAdmin();
+
+  const reason = String(formData.get("reason") ?? "").trim();
+  if (!reason) return;
+
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (!product || product.status !== "IN_REVIEW") return;
+
+  await prisma.product.update({
+    where: { id: productId },
+    data: {
+      status: "DRAFT",
+      reviewNote: reason,
+      reviewedBy: session.sub,
+      reviewedAt: new Date(),
+    },
+  });
+
+  await logAdminAction({
+    actorId: session.sub,
+    action: "PRODUCT_REVIEW_REJECTED",
+    targetType: "Product",
+    targetId: productId,
+    detail: `${product.title} - ${reason}`,
+  });
+
+  revalidatePath("/admin/products");
+  revalidatePath("/seller/products");
 }

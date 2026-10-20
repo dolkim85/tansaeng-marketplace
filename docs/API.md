@@ -14,7 +14,8 @@
 | `src/server/catalog/actions.ts` | `toggleWishlistAction` | 찜 추가/삭제 | 로그인 필요(내부 체크) |
 | | `toggleFollowAction` | 생산자 팔로우 추가/삭제 | 로그인 필요(내부 체크) |
 | `src/server/seller/actions.ts` | `submitSellerApplicationAction` | 입점 신청 생성/재신청 | 로그인 필요 |
-| | `createProductAction` | 상품 등록(승인 여부로 상태 자동 분기, 선택한 카테고리에 대한 APPROVED 판매 허가 필수) | SELLER + Seller 레코드 필요 + 카테고리 판매 허가 |
+| | `createProductAction` | 상품 등록(승인 여부로 상태 자동 분기 — 승인된 판매자가 검수 대상 카테고리에 등록하면 IN_REVIEW, 그 외는 ON_SALE/DRAFT, 선택한 카테고리에 대한 APPROVED 판매 허가 필수) | SELLER + Seller 레코드 필요 + 카테고리 판매 허가 |
+| | `resubmitForReviewAction` | 검수 반려된 상품을 보완 후 재제출(DRAFT→IN_REVIEW, 검수 대상 카테고리+승인된 판매자만) | 로그인 + 본인 상품만 |
 | | `updateProductAction` | 상품 기본정보 수정(제목/카테고리/가격/재고/원산지/설명, slug는 불변, 카테고리 변경 시에도 APPROVED 판매 허가 필요) | 로그인 + 본인 상품만 + 카테고리 판매 허가 |
 | | `updateSellerStoreAction` | 생산자 소개·배송 정책·반품 정책 수정(빈 값은 null로 저장해 공개 페이지에서 해당 섹션 숨김) | 로그인 + 본인 판매자만 |
 | `src/server/platformSettings/actions.ts` | `updateCommissionRateAction` | 전역 중개수수료율 변경(다음 정산 배치부터 적용, 과거 배치는 생성 시점 값 유지) | ADMIN 이상 |
@@ -50,6 +51,8 @@
 | `src/server/admin/actions.ts` | `createProxyProductAction` | 농가 대신 상품 대리등록(항상 DRAFT로 생성, 동의 확인 필수) | ADMIN 이상 |
 | | `approveProxyProductAction` | 대리등록 상품 최종 승인(DRAFT→ON_SALE) | ADMIN 이상 |
 | | `deleteProxyProductAction` | 승인 전 대리등록 상품 삭제 | ADMIN 이상 |
+| | `approveProductReviewAction` | 신규 상품 검수 승인(IN_REVIEW→ON_SALE, 반려 사유 초기화) | ADMIN 이상 |
+| | `rejectProductReviewAction` | 신규 상품 검수 반려(IN_REVIEW→DRAFT, 반려 사유 필수 입력) | ADMIN 이상 |
 | `src/server/seller/actions.ts` | `stopSellingProductAction` / `resumeSellingProductAction` | 본인 상품(대리등록 포함) 판매중단/재개 | 로그인 + 본인 상품만 |
 | `src/server/settlement/actions.ts` | `runSettlementAction` | 판매자의 미정산(COMPLETED) Suborder를 모아 정산 배치 생성(중복 집계 방지) | ADMIN 이상 |
 | | `approveSettlementAction` | 정산 배치 승인(모의 지급 완료 처리) | ADMIN 이상 |

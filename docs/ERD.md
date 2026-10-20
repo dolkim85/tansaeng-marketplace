@@ -41,7 +41,10 @@ Product
 - 금액은 `priceKrw Int`로 원화 정수 저장(문서 13장 데이터 무결성 원칙 — 부동소수점 금지).
 - 찜/팔로우는 복합 유니크 제약으로 중복 생성을 DB 레벨에서 방지.
 - `SellerApplication`은 재신청(REJECTED 이후) 시 같은 Seller에 새 레코드를 추가하는 구조 — 이력이 남는다.
-- `Product.status`: `DRAFT`(미승인 판매자가 등록) / `ON_SALE`(승인된 판매자 또는 관리자 승인 후) / `IN_REVIEW` / `HIDDEN` / `SOLD_OUT`(후자 셋은 아직 전환 로직 미구현, 스키마만 존재).
+- `Product.status`: `DRAFT`(미승인 판매자가 등록, 또는 검수 반려로 되돌아온 상태) /
+  `IN_REVIEW`(승인된 판매자가 검수 대상 카테고리에 등록, 관리자 승인/반려 대기) /
+  `ON_SALE`(승인된 판매자가 비규제 카테고리에 등록, 또는 `IN_REVIEW` 승인 후) /
+  `HIDDEN`(판매자가 직접 판매중단) / `SOLD_OUT`(전환 로직 미구현, 스키마만 존재).
 - `GroupBuy`(M2): DB의 `status`는 `SCHEDULED/SUCCEEDED/FAILED/CANCELLED` 4가지만 저장한다.
   화면에 보이는 티저/오픈/마감 단계는 `src/lib/groupBuyPhase.ts`가 `openAt`/`closeAt`과 현재 시각을
   비교해 그때그때 계산한다(별도 스케줄러/크론 없음). 목표 달성 집계는 `OrderItem.groupBuyId`로 연결된
@@ -68,6 +71,17 @@ Product
   `approveApplicationAction`의 일괄 DRAFT→ON_SALE 전환 대상에서 **명시적으로 제외**되며,
   오직 `approveProxyProductAction`(관리자 전용)으로만 `ON_SALE`로 바뀐다 — "농가 동의 없는
   무단 게시 금지"(마스터 문서 10.3절)를 코드 레벨에서 강제하기 위함.
+- `Product.reviewNote`/`reviewedBy`/`reviewedAt`(신규 상품 검수, 마스터 문서 10.2절 4번):
+  축산물/수산물 등 `src/lib/regulatedCategories.ts`의 `REGULATED_CATEGORY_SLUGS`에 속한
+  카테고리는 승인된 판매자라도 상품 생성 시 바로 `ON_SALE`이 아니라 `IN_REVIEW`로
+  시작한다. 관리자가 `approveProductReviewAction`으로 승인하면 `ON_SALE`로 전환되고
+  `reviewNote`가 지워지며, `rejectProductReviewAction`으로 반려하면 `DRAFT`로 돌아가고
+  필수 입력한 반려 사유가 `reviewNote`에 남는다. 판매자는 `/seller/products`에서
+  반려 사유를 확인한 뒤 `resubmitForReviewAction`으로 다시 `IN_REVIEW`에 올릴 수 있다
+  (최초 등록 시는 별도 제출 버튼 없이 생성과 동시에 `IN_REVIEW`로 들어가므로, 이 버튼은
+  반려 후 재제출 전용). 입점 승인(`approveApplicationAction`)의 기존 DRAFT→ON_SALE
+  일괄 전환도 같은 카테고리 기준으로 분기해, 승인 시점에 이미 등록돼 있던 검수 대상
+  상품이 검수 없이 `ON_SALE`로 새는 것을 막는다.
 - `Settlement`/`Suborder.settlementId`(정산/대사, 마스터 문서 11.3절): 관리자가 "정산 실행"을
   누른 시점에 해당 판매자의 `COMPLETED`이면서 아직 어떤 배치에도 속하지 않은(`settlementId=null`)
   `Suborder`를 전부 모아 스냅샷(gross/commission/payout)을 만들고, 그 `Suborder`들을 즉시 해당

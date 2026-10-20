@@ -248,6 +248,12 @@ model Product {
   proxyApprovedAt   DateTime?
   proxyApprovedBy   String?
 
+  /// 축산물/수산물 등 추가 허가 대상 카테고리 상품의 관리자 검수(IN_REVIEW) 기록.
+  /// reviewNote는 반려 사유만 채워지며, 승인 시에는 null로 지운다.
+  reviewNote String?
+  reviewedBy String?
+  reviewedAt DateTime?
+
   media          ProductMedia[]
   wishlists      Wishlist[]
   cartItems      CartItem[]

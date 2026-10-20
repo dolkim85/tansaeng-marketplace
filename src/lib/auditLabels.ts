@@ -4,6 +4,8 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   PROXY_PRODUCT_CREATED: "대리등록 상품 생성",
   PROXY_PRODUCT_APPROVED: "대리등록 상품 승인",
   PROXY_PRODUCT_DELETED: "대리등록 상품 삭제",
+  PRODUCT_REVIEW_APPROVED: "신규 상품 검수 승인",
+  PRODUCT_REVIEW_REJECTED: "신규 상품 검수 반려",
   AD_APPROVED: "광고 승인",
   AD_REJECTED: "광고 반려",
   GROUP_BUY_FINALIZED: "공동구매 마감 처리",

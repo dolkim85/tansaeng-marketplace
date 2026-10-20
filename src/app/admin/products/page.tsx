@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { listAllProductsForAdmin } from "@/server/admin/queries";
-import { approveProxyProductAction, deleteProxyProductAction } from "@/server/admin/actions";
+import {
+  approveProxyProductAction,
+  deleteProxyProductAction,
+  approveProductReviewAction,
+  rejectProductReviewAction,
+} from "@/server/admin/actions";
 import { formatKRW } from "@/lib/currency";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -44,6 +49,7 @@ export default async function AdminProductsPage() {
               <th className="py-2">카테고리</th>
               <th className="py-2">가격</th>
               <th className="py-2">상태</th>
+              <th className="py-2">검수</th>
               <th className="py-2">대리등록</th>
             </tr>
           </thead>
@@ -62,6 +68,35 @@ export default async function AdminProductsPage() {
                   <span className="rounded-full bg-brand-deepgreen/10 px-2 py-0.5 text-xs">
                     {STATUS_LABEL[p.status]}
                   </span>
+                </td>
+                <td className="py-2">
+                  {p.status === "IN_REVIEW" ? (
+                    <div className="flex items-center gap-2">
+                      <form action={approveProductReviewAction.bind(null, p.id)}>
+                        <button type="submit" className="text-xs text-brand-green underline-offset-2 hover:underline">
+                          승인
+                        </button>
+                      </form>
+                      <form action={rejectProductReviewAction.bind(null, p.id)} className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          name="reason"
+                          required
+                          placeholder="반려 사유"
+                          className="w-28 rounded border border-brand-deepgreen/15 px-1.5 py-0.5 text-[11px]"
+                        />
+                        <button type="submit" className="text-xs text-red-600 underline-offset-2 hover:underline">
+                          반려
+                        </button>
+                      </form>
+                    </div>
+                  ) : p.reviewNote ? (
+                    <span className="text-[11px] text-brand-orange" title={p.reviewNote}>
+                      반려됨: {p.reviewNote}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-brand-deepgreen/30">-</span>
+                  )}
                 </td>
                 <td className="py-2">
                   {p.isProxyRegistered ? (
