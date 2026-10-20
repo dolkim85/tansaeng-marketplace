@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/server/session";
 import { logAdminAction } from "@/server/audit/log";
+import { logNotification } from "@/server/notifications/log";
 
 const ADMIN_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
 
@@ -179,6 +180,17 @@ export async function replyTicketAction(
       targetType: "SupportTicket",
       targetId: ticketId,
       detail: ticket.subject,
+    });
+  }
+
+  // 티켓 소유자(구매자) 본인이 다시 질문을 추가한 경우는 알림 대상이 아님 — 자신이 쓴
+  // 글을 자신에게 "답변"으로 알릴 이유가 없다. 판매자/관리자가 답했을 때만 알린다.
+  if (!isOwner) {
+    await logNotification({
+      userId: ticket.userId,
+      type: "SUPPORT_TICKET_REPLIED",
+      subject: "문의에 답변이 등록되었습니다",
+      body: `"${ticket.subject}" 문의에 답변이 등록되었습니다.`,
     });
   }
 

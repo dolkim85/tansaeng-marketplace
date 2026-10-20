@@ -1072,3 +1072,54 @@ PostgreSQL 신규 설치/신규 역할·DB 생성에 한정, 기존 운영 서�
 **환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 사용자가 지정하는 다음 항목으로 진행(남은 플레이스홀더: `/admin/notifications`).
+
+---
+
+## 관리자 알림 예약/발송 로그/동의 현황 (2026-10-20, 완료 — 전체 플레이스홀더 소진)
+
+**완료 기능:**
+- `NotificationLog` 모델(채널 구분 없음 — mock 상태라 실체 없는 구분을 모델링하지 않음),
+  `logNotification` 헬퍼
+- 거래 알림(광고성 제외) 발생 지점에 로깅 삽입: `confirmMockPaymentAction`(결제 확인),
+  `cancelOrderAction`(주문 취소, 동시 취소 경쟁 가드를 통과한 경우만), `advanceSuborderStatusAction`
+  (SHIPPED/COMPLETED 전이 시만), `replyTicketAction`(티켓 소유자가 아닌 쪽이 답했을 때만)
+- `/admin/notifications`: "수신동의 현황"(전체회원/이메일·푸시 동의자 수+비율,
+  `safeRatePercent` 재사용), "예약된 알림"(오픈예정 공동구매별 `GroupBuyAlert` 구독 수 —
+  실제 스케줄러 발송이 아님을 명시), "발송 로그"(모의, 최근 200건) — 플레이스홀더를
+  실제 기능으로 교체
+
+**미완료 기능과 이유:**
+- 공동구매 오픈 시점 자동 알림 발송 — 스케줄러를 새로 도입해야 하는 범위라 기존
+  "요청 시점 계산" 아키텍처 원칙과 충돌, 구독 현황판으로 대체
+- 실제 이메일/푸시 채널별 발송 — `NOTIFICATION_PROVIDER=mock`인 동안 범위 밖, 모델에도
+  채널 구분 필드를 추가하지 않음(실제 발송기 도입 시점에 맞춰 설계)
+- 광고성 알림 발송 로그 — 보낼 구체적 콘텐츠(캠페인)가 아직 없어 로깅 대상에서 제외
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `next build`(49라우트, 라우트 추가 없음), `eslint`(0 error — JSX 안의
+  겹낫표를 `&quot;` 엔티티로 교체해 `react/no-unescaped-entities` 수정),
+  `vitest run`(40건, 회귀 없음) 전부 통과
+- Playwright(Python) E2E: 장바구니→체크아웃→Mock결제확인(결제확인 로그 생성)→판매자가
+  배송상태를 준비중→배송중→배송완료까지 전진(배송시작/배송완료 로그 각각 생성)→
+  구매자가 주문 문의 접수→판매자 답변(문의답변 로그 생성, 구매자 본인 재질문이
+  아니므로 기록됨)→주문 취소(취소 로그 생성) 전 과정에서 `/admin/notifications`
+  발송 로그에 정확히 반영되는지 확인. 별도로 오픈예정 공동구매에 알림을 신청한 뒤
+  "예약된 알림" 섹션에 정확한 구독 건수가 표시되는지 확인. 접근제어(구매자 리다이렉트)
+  확인
+- 테스트 중 겪은 이슈 없음(이번 작업은 기존에 확립된 패턴들을 그대로 재사용해 설계
+  단계에서 대부분의 모호함을 미리 제거함)
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(NotificationLog 모델),
+`src/server/notifications/{log,adminQueries}.ts`, `src/lib/notificationLabels.ts`,
+`src/server/groupbuy/queries.ts`(listScheduledGroupBuyAlertCounts 추가),
+`src/app/admin/notifications/page.tsx`,
+`src/server/orders/actions.ts`(결제확인/취소/배송전이 로깅 삽입),
+`src/server/support/actions.ts`(답변 로깅 삽입), `docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 마스터 문서 3장 라우트 전체가 실제 기능으로 구현 완료됨(플레이스홀더 전부
+소진). 다음은 사용자가 지정하는 추가 기능 또는 M4 이전 범위(실제 PG/배송 계약 등 — M4
+자체는 별도 승인 전 실행 금지) 중 하나로 진행.

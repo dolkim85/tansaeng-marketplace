@@ -120,6 +120,24 @@ export async function listMyGroupBuyAlerts(userId: string) {
   }));
 }
 
+/// 오픈예정(TEASER)인 공동구매별 알림 신청자 수(/admin/notifications "예약된 알림"용).
+/// 이 알림은 실제로 자동 발송되지 않는다 — 공동구매 단계는 스케줄러 없이 요청마다 현재
+/// 시각으로 계산되므로(groupBuyPhase.ts), 오픈 시점에 발송을 트리거할 주체가 없다.
+/// 즉 이 목록은 "오픈되면 알림을 받기로 등록된 사람 수"를 보여주는 현황판일 뿐이다.
+export async function listScheduledGroupBuyAlertCounts() {
+  const upcoming = await listUpcomingGroupBuys();
+  const counts = await Promise.all(
+    upcoming.map(async (gb) => ({
+      groupBuyId: gb.id,
+      title: gb.title,
+      productTitle: gb.product.title,
+      openAt: gb.openAt,
+      alertCount: await prisma.groupBuyAlert.count({ where: { groupBuyId: gb.id } }),
+    }))
+  );
+  return counts;
+}
+
 export async function listGroupBuysForSeller(sellerId: string) {
   const groupBuys = await prisma.groupBuy.findMany({
     where: { product: { sellerId } },

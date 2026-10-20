@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/server/session";
+import { logNotification } from "@/server/notifications/log";
 
 export type CheckoutFormState = { error?: string } | undefined;
 
@@ -145,6 +146,13 @@ export async function confirmMockPaymentAction(orderId: string): Promise<void> {
     prisma.order.update({ where: { id: orderId }, data: { status: "PAID" } }),
   ]);
 
+  await logNotification({
+    userId: order.buyerId,
+    type: "ORDER_PAID",
+    subject: "결제가 확인되었습니다",
+    body: `주문 #${order.id.slice(-8)}의 결제가 확인되었습니다.`,
+  });
+
   revalidatePath(`/orders/${orderId}`);
   revalidatePath("/orders");
 }
@@ -175,6 +183,22 @@ export async function advanceSuborderStatusAction(
     data: { status: next as "PREPARING" | "SHIPPED" | "COMPLETED" },
   });
 
+  if (next === "SHIPPED") {
+    await logNotification({
+      userId: suborder.order.buyerId,
+      type: "SUBORDER_SHIPPED",
+      subject: "배송이 시작되었습니다",
+      body: `주문 #${suborder.order.id.slice(-8)}의 배송이 시작되었습니다.`,
+    });
+  } else if (next === "COMPLETED") {
+    await logNotification({
+      userId: suborder.order.buyerId,
+      type: "SUBORDER_COMPLETED",
+      subject: "배송이 완료되었습니다",
+      body: `주문 #${suborder.order.id.slice(-8)}의 배송이 완료되었습니다.`,
+    });
+  }
+
   revalidatePath("/seller/orders");
   revalidatePath(`/orders/${suborder.orderId}`);
   revalidatePath("/orders");
@@ -191,7 +215,7 @@ export async function cancelOrderAction(orderId: string): Promise<void> {
   if (!order || order.buyerId !== session.sub) return;
   if (order.status === "CANCELLED") return;
 
-  await prisma.$transaction(async (tx) => {
+  const cancelled = await prisma.$transaction(async (tx) => {
     // 두 번의 취소 요청이 동시에 들어오면 둘 다 위의 상태 확인(트랜잭션 밖, 스냅샷 기준)을
     // 통과할 수 있다. 재고를 두 번 복구하지 않도록, 상태 전환 자체를 조건부 updateMany로
     // 한 번만 성공하게 만들고, 실패하면(이미 다른 요청이 취소 처리함) 나머지를 건너뛴다.
@@ -224,10 +248,20 @@ export async function cancelOrderAction(orderId: string): Promise<void> {
         },
       });
     }
+    return true;
   }).catch((e) => {
-    if (e instanceof Error && e.message === "ALREADY_CANCELLED") return;
+    if (e instanceof Error && e.message === "ALREADY_CANCELLED") return false;
     throw e;
   });
+
+  if (cancelled) {
+    await logNotification({
+      userId: order.buyerId,
+      type: "ORDER_CANCELLED",
+      subject: "주문이 취소되었습니다",
+      body: `주문 #${order.id.slice(-8)}이 취소되었습니다.`,
+    });
+  }
 
   revalidatePath(`/orders/${orderId}`);
   revalidatePath("/orders");

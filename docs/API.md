@@ -19,6 +19,7 @@
 | | `updateSellerStoreAction` | 생산자 소개·배송 정책·반품 정책 수정(빈 값은 null로 저장해 공개 페이지에서 해당 섹션 숨김) | 로그인 + 본인 판매자만 |
 | `src/server/platformSettings/actions.ts` | `updateCommissionRateAction` | 전역 중개수수료율 변경(다음 정산 배치부터 적용, 과거 배치는 생성 시점 값 유지) | ADMIN 이상 |
 | `src/server/policyVersions/actions.ts` | `createPolicyVersionAction` | 약관/정책 새 버전 등록(수정·삭제 불가, append-only) | ADMIN 이상 |
+| `src/server/notifications/log.ts` | `logNotification` | 모의 알림 발송 기록(헬퍼, 직접 호출 대상 아님 — 주문/배송/문의 답변 액션 내부에서 호출) | - |
 | `src/server/admin/actions.ts` | `approveApplicationAction` | 입점 신청 승인 | ADMIN 이상(내부 재검증) |
 | | `rejectApplicationAction` | 입점 신청 반려 | ADMIN 이상(내부 재검증) |
 | `src/server/cart/actions.ts` | `addToCartAction` | 장바구니 담기(기존 있으면 +1) | 로그인 필요 |
@@ -94,6 +95,10 @@
   전역 운영 설정 싱글톤 조회(없으면 기본값으로 생성), 여러 화면(정산 생성/표시)에서 공용
 - `src/server/policyVersions/queries.ts`: `listPolicyVersions` — 약관 버전 전체 이력
   (`/admin/settings`)
+- `src/server/notifications/adminQueries.ts`: `listNotificationLogsForAdmin`(최근 200건),
+  `getConsentSummary`(전체 회원 대비 광고성 정보 수신동의 집계) — `/admin/notifications`
+- `src/server/groupbuy/queries.ts`의 `listScheduledGroupBuyAlertCounts` — 오픈예정
+  공동구매별 알림 신청 건수(`/admin/notifications` "예약된 알림" 섹션용)
 
 ## 인가 이중 검증
 

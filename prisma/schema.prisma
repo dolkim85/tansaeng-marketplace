@@ -144,6 +144,7 @@ model User {
   supportTicketMessages SupportTicketMessage[]
   notificationPreference NotificationPreference?
   auditLogs           AuditLog[]
+  notificationLogs    NotificationLog[]
 
   @@index([role])
 }
@@ -634,4 +635,24 @@ model PolicyVersion {
   createdAt DateTime @default(now())
 
   @@index([title])
+}
+
+/// 모의 알림 발송 로그(마스터 문서 13장 `notification_outbox`/`notification_logs`를 하나로
+/// 단순화). `NOTIFICATION_PROVIDER=mock`이라 실제 이메일/푸시 발송은 전혀 일어나지 않고,
+/// "실제 서비스라면 이 시점에 발송되었을 것"이라는 기록만 남긴다(채널 구분 없음 — 실제
+/// 채널별 발송기가 붙기 전까지는 구분할 의미가 없음). type은 고정 코드 문자열이며 화면
+/// 라벨은 src/lib/notificationLabels.ts에서 매핑한다. 거래 알림(주문/배송/문의 등)만
+/// 기록하고, 광고성 알림은 실제로 보낼 내용이 없어 기록 대상이 아니다.
+model NotificationLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  subject   String
+  body      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
 }

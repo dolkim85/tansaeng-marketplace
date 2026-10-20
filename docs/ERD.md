@@ -153,6 +153,15 @@ Product
   서만 바뀌어야 한다(`docs/RELEASE_CHECKLIST.md` 참고). `runSettlementAction`은 배치 생성
   시점의 `commissionRate`를 `Settlement.commissionRate`에 **스냅샷으로 저장**하므로, 이후
   이 값을 바꿔도 과거 배치 금액은 바뀌지 않는다.
+- `NotificationLog`(모의 알림 발송 로그, `/admin/notifications`, 2026-10-20): 채널(이메일/푸시)
+  구분 필드가 없다 — `NOTIFICATION_PROVIDER=mock`이라 실제로 어느 채널로도 발송되지 않으므로,
+  구분할 실체가 없는 정보를 억지로 모델링하지 않았다. 광고성 알림(마케팅)은 기록 대상이
+  아니다 — 거래 알림(주문/배송/문의 답변)만 기록하며, 호출 지점은 `confirmMockPaymentAction`/
+  `cancelOrderAction`/`advanceSuborderStatusAction`(SHIPPED·COMPLETED 전이에만)/
+  `replyTicketAction`(티켓 소유자가 아닌 쪽이 답했을 때만)으로 한정된다. "공동구매 오픈"
+  시점의 알림은 **기록하지 않는다** — 공동구매 단계가 스케줄러 없이 요청마다 계산되므로
+  오픈을 트리거할 주체 자체가 없고, 대신 `/admin/notifications`의 "예약된 알림" 섹션이
+  `GroupBuyAlert` 구독 수를 보여주는 것으로 대체한다(실제 발송 없음을 화면에 명시).
 - `PolicyVersion`(약관/정책 버전 이력, `/admin/settings`, 2026-10-20): 다른 CMS류 모델들과
   달리 **생성만 지원하고 수정·삭제는 지원하지 않는다** — 법적 성격의 버전 이력이 나중에
   고친 것처럼 보이면 안 되기 때문. 실제 구매자 동의 기록·법적 효력 연동은 범위 밖.
