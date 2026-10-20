@@ -26,6 +26,8 @@ User
       └─ 1:N Suborder (판매자별 분리, Seller 참조)
            └─ 1:N OrderItem (titleSnapshot/priceKrwSnapshot — 주문 시점 가격 고정, groupBuyId 선택)
  └─ 1:N GroupBuyAlert (User, GroupBuy) — @@unique(userId, groupBuyId), 수요 집계와 무관
+ └─ 1:N Address (label, recipientName/Phone, addressLine, isDefault) — 체크아웃 시 Order에
+      복사(스냅샷)만 하고 참조하지 않음(주소록 수정/삭제가 과거 주문에 영향 없음)
 
 Product
  └─ 1:1 GroupBuy (상품 1개당 공동구매 1건, targetQty/maxQty/perUserLimit/priceKrw/일정/status)
@@ -82,6 +84,13 @@ Product
   반려 후 재제출 전용). 입점 승인(`approveApplicationAction`)의 기존 DRAFT→ON_SALE
   일괄 전환도 같은 카테고리 기준으로 분기해, 승인 시점에 이미 등록돼 있던 검수 대상
   상품이 검수 없이 `ON_SALE`로 새는 것을 막는다.
+- `Address`(구매자 주소록, 마스터 문서 3장 "/account — 회원/주소/동의/보안 설정"): 사용자당
+  여러 주소를 저장할 수 있고 `isDefault` 하나만 항상 참(생성/기본설정/삭제 시 트랜잭션으로
+  단일성을 보장). 체크아웃 폼은 기본 배송지 값을 `defaultValue`로 미리 채워주기만 하며,
+  `Order.recipientName/recipientPhone/addressLine`은 여전히 주문 시점 값을 그대로 복사해
+  저장한다 — 주소록을 참조(FK)하지 않으므로 이후 주소를 수정/삭제해도 이미 생성된 주문의
+  배송지 정보는 바뀌지 않는다. 기본 배송지를 삭제하면 남은 주소 중 가장 최근 것이 자동으로
+  기본으로 승격되어, 기본 배송지가 없는 상태로 방치되지 않는다.
 - `Settlement`/`Suborder.settlementId`(정산/대사, 마스터 문서 11.3절): 관리자가 "정산 실행"을
   누른 시점에 해당 판매자의 `COMPLETED`이면서 아직 어떤 배치에도 속하지 않은(`settlementId=null`)
   `Suborder`를 전부 모아 스냅샷(gross/commission/payout)을 만들고, 그 `Suborder`들을 즉시 해당

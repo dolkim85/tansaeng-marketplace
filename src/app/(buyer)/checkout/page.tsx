@@ -1,5 +1,6 @@
 import { getSession } from "@/server/session";
 import { getCartForUser } from "@/server/cart/queries";
+import { getDefaultAddress } from "@/server/account/queries";
 import { formatKRW } from "@/lib/currency";
 import { CheckoutForm } from "./CheckoutForm";
 
@@ -8,6 +9,7 @@ export default async function CheckoutPage() {
   const { items, totalKrw } = session
     ? await getCartForUser(session.sub)
     : { items: [], totalKrw: 0 };
+  const defaultAddress = session ? await getDefaultAddress(session.sub) : null;
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
@@ -34,7 +36,7 @@ export default async function CheckoutPage() {
         </div>
       </div>
 
-      <CheckoutForm />
+      <CheckoutForm defaultAddress={defaultAddress} />
     </div>
   );
 }

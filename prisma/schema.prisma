@@ -145,8 +145,26 @@ model User {
   notificationPreference NotificationPreference?
   auditLogs           AuditLog[]
   notificationLogs    NotificationLog[]
+  addresses           Address[]
 
   @@index([role])
+}
+
+/// 구매자 주소록(마스터 문서 3장 "/account — 회원/주소/동의/보안 설정"). 체크아웃 시
+/// Order.recipientName/recipientPhone/addressLine은 주문 시점 값을 그대로 복사해 저장하므로
+/// 이후 주소록을 수정/삭제해도 과거 주문 내역은 영향받지 않는다(스냅샷).
+model Address {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label          String?
+  recipientName  String
+  recipientPhone String
+  addressLine    String
+  isDefault      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Seller {

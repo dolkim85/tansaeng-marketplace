@@ -57,6 +57,10 @@
 | `src/server/settlement/actions.ts` | `runSettlementAction` | 판매자의 미정산(COMPLETED) Suborder를 모아 정산 배치 생성(중복 집계 방지) | ADMIN 이상 |
 | | `approveSettlementAction` | 정산 배치 승인(모의 지급 완료 처리) | ADMIN 이상 |
 | `src/server/notifications/actions.ts` | `updateNotificationPreferenceAction` | 광고성 정보 수신동의(이메일/푸시) 저장 | 로그인 필요 |
+| `src/server/account/actions.ts` | `createAddressAction` | 배송지 등록(첫 주소 또는 체크 시 기본 배송지로 자동 지정) | 로그인 필요 |
+| | `setDefaultAddressAction` | 기본 배송지 전환(트랜잭션으로 단일성 보장) | 로그인 + 본인 주소만 |
+| | `deleteAddressAction` | 배송지 삭제(기본 배송지 삭제 시 최근 주소를 자동 승격) | 로그인 + 본인 주소만 |
+| | `changePasswordAction` | 비밀번호 변경(현재 비밀번호 검증 필수) | 로그인 필요 |
 | `src/server/audit/log.ts` | `logAdminAction` | 관리자 주요 작업이력 기록(헬퍼, 직접 호출 대상 아님) | - |
 | `src/server/productBlocks/actions.ts` | `addBlockAction` | 상세페이지 블록 추가(종류별 콘텐츠 검증, IMAGE/VIDEO는 본인 상품의 기존 미디어만 참조) | 로그인 + 본인 상품만 |
 | | `deleteBlockAction` | 블록 삭제 | 로그인 + 본인 상품만 |

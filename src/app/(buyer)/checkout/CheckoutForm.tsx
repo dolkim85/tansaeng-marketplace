@@ -3,11 +3,22 @@
 import { useActionState } from "react";
 import { checkoutAction } from "@/server/orders/actions";
 
-export function CheckoutForm() {
+type DefaultAddress = {
+  recipientName: string;
+  recipientPhone: string;
+  addressLine: string;
+} | null;
+
+export function CheckoutForm({ defaultAddress }: { defaultAddress?: DefaultAddress }) {
   const [state, formAction, pending] = useActionState(checkoutAction, undefined);
 
   return (
     <form action={formAction} className="mt-5 max-w-sm space-y-3">
+      {defaultAddress && (
+        <p className="text-xs text-brand-deepgreen/50">
+          기본 배송지 정보가 자동으로 입력되었습니다. 필요하면 수정하세요.
+        </p>
+      )}
       <div>
         <label
           htmlFor="recipientName"
@@ -19,6 +30,7 @@ export function CheckoutForm() {
           id="recipientName"
           name="recipientName"
           required
+          defaultValue={defaultAddress?.recipientName}
           className="mt-1 w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
         />
       </div>
@@ -34,6 +46,7 @@ export function CheckoutForm() {
           name="recipientPhone"
           required
           placeholder="010-0000-0000"
+          defaultValue={defaultAddress?.recipientPhone}
           className="mt-1 w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
         />
       </div>
@@ -49,6 +62,7 @@ export function CheckoutForm() {
           name="addressLine"
           required
           rows={2}
+          defaultValue={defaultAddress?.addressLine}
           className="mt-1 w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
         />
       </div>

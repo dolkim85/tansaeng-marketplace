@@ -1225,3 +1225,50 @@ rejectProductReviewAction 추가), `src/app/admin/products/page.tsx`,
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 사용자가 지정하는 다음 항목으로 진행(예: 회원 설정(/account) 고도화,
 M4 이전 범위 등).
+
+---
+
+## 회원 설정(/account) 고도화 — 주소록/비밀번호 변경 (2026-10-20, 완료)
+
+**완료 기능:**
+- `Address` 모델 추가(마이그레이션 `20261020142602_add_address`): 사용자당 복수 배송지,
+  `isDefault` 플래그로 기본 배송지 1개만 유지(생성/전환/삭제 모두 트랜잭션)
+- `src/server/account/{queries,actions}.ts`: `listAddresses`/`getDefaultAddress`,
+  `createAddressAction`/`setDefaultAddressAction`/`deleteAddressAction`
+  (기본 배송지 삭제 시 최근 주소로 자동 승격), `changePasswordAction`(현재 비밀번호
+  검증 필수, 기존 `hashPassword`/`verifyPassword` 재사용)
+- `/account`: 배송지 목록+등록 폼(`AddressForm`), 비밀번호 변경 폼(`PasswordForm`),
+  `/alerts`(기존 수신동의 설정)로의 안내 링크 추가. "M1 단계... 다음 단계에서 구현
+  예정" 스텁 제거
+- `/checkout`: 로그인한 구매자의 기본 배송지가 있으면 받는 분/연락처/주소 입력란을
+  `defaultValue`로 미리 채움(여전히 직접 수정 가능, Order는 기존처럼 제출 시점 값만
+  스냅샷으로 저장 — 주소록을 FK로 참조하지 않음)
+
+**미완료 기능과 이유:** 없음(마스터 문서 3장의 "/account — 회원/주소/동의/보안 설정"
+항목 중 "동의"는 기존 `/alerts` 구현을 재사용하는 것으로 범위 내에서 해결, 회원
+탈퇴/2단계 인증 등은 마스터 문서에 명시된 요건이 아니라 범위 밖으로 둠).
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `eslint src`, `next build`(49라우트, 라우트 추가 없음), `vitest run`
+  (40건, 회귀 없음) 전부 통과
+- Playwright(Python) E2E: 첫 주소 등록 시 체크박스 없이 자동으로 기본 배송지 지정 →
+  두 번째 주소는 기본으로 지정하지 않으면 "기본으로 설정" 버튼이 보임 → `/checkout`
+  입력란이 기본 배송지 값으로 정확히 프리필됨 → 기본을 2번째 주소로 전환 → 기존
+  기본(1번째) 삭제 시 2번째 주소의 기본 상태가 유지됨(승격 로직이 불필요하게
+  개입하지 않음 확인) → 잘못된 현재 비밀번호는 거부, 올바른 현재 비밀번호로 변경
+  성공 → 로그아웃 후 새 비밀번호로 재로그인 성공(해시가 실제로 갱신됐음을 증명) →
+  비로그인 상태로 `/account` 접근 시 proxy.ts에 의해 `/auth/login`으로 리다이렉트됨
+  확인
+- 테스트 중 생성한 주소/변경한 비밀번호는 모두 DB에서 직접 원상복구
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(+마이그레이션),
+`src/server/account/{queries,actions}.ts`(신규),
+`src/app/(buyer)/account/{page,AddressForm,PasswordForm}.tsx`,
+`src/app/(buyer)/checkout/{page,CheckoutForm}.tsx`,
+`docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자가 지정하는 다음 항목으로 진행(M4 이전 범위 등).
