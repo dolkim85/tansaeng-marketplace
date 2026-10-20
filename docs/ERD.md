@@ -135,12 +135,18 @@ Product
 `fees`(품목/판매자/기간별 차등 요율 미구현, 전역 상수 `COMMISSION_RATE` 하나만 사용),
 `ledger_entries`(불변 원장은 미구현, `Settlement`가 배치 단위 기록만 보존),
 `refunds`(현재는 Payment.status=REFUNDED로만 표현), `campaigns`, `policy_versions`,
-`audit_logs`, `feature_flags`, `stock_reservations`, `shipments`/송장 등록. 카테고리 구조
-(`categories`)는 M1 시드로 고정된 3개(농산물/축산물/수산물)만 사용, 운영자용 트리 편집
-UI는 미구현.
+`audit_logs`, `feature_flags`, `stock_reservations`, `shipments`/송장 등록.
 (`reviews`/`ads`/`support_tickets`/`banners`/`notices`/`settlements`는 구현 완료 —
 각각 `Review`/`Ad`/`SupportTicket`/`Banner`/`Notice`/`Settlement`. FAQ는 마스터 문서에 별도
 테이블로 명시되지 않았으나 같은 맥락으로 `Faq` 테이블을 추가.)
+
+- `Category`(운영자 카테고리 트리 관리, `/admin/content`, 2026-10-20): 생성/이름변경/삭제를
+  지원한다. **트리 깊이는 최상위-하위 2단계로 고정**(상위로 지정 가능한 카테고리는
+  `parentId === null`인 카테고리로만 제한) — `getCategoryWithProducts` 등 기존 조회 로직이
+  "최상위 + 직계 자식만"을 가정하고 있어 3단계 이상을 만들면 그 로직이 깨진다. 슬러그는
+  `Product.slug`와 동일한 이유(공개 URL 안정성, 이미 `sitemap.xml`에 등록됨)로 생성 후
+  변경할 수 없다. 삭제는 하위 카테고리나 연결된 상품이 하나라도 있으면 거부된다(서버
+  액션에서 재검증, UI에서도 해당 조건이면 삭제 버튼 자체를 숨김).
 
 ## PostgreSQL 전환 (2026-10-19, 완료)
 

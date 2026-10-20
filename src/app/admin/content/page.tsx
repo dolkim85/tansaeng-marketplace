@@ -9,26 +9,35 @@ import {
   deleteNoticeAction,
   deleteFaqAction,
 } from "@/server/content/actions";
+import { listCategoryTreeForAdmin } from "@/server/categories/queries";
 import { BannerForm } from "./BannerForm";
 import { NoticeForm } from "./NoticeForm";
 import { FaqForm } from "./FaqForm";
+import { CategoryTree } from "./CategoryTree";
 
 export default async function AdminContentPage() {
-  const [banners, notices, faqs] = await Promise.all([
+  const [banners, notices, faqs, categoryTree] = await Promise.all([
     listAllBannersForAdmin(),
     listAllNoticesForAdmin(),
     listFaqs(),
+    listCategoryTreeForAdmin(),
   ]);
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
       <p className="font-mono text-xs text-brand-deepgreen/50">/admin/content</p>
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
-        배너·공지·FAQ
+        배너·카테고리·공지·FAQ
       </h1>
+
+      <h2 className="mt-6 text-base font-semibold text-brand-deepgreen">
+        카테고리 구조
+      </h2>
       <p className="mt-1 text-xs text-brand-deepgreen/60">
-        카테고리 구조 편집은 범위 밖입니다(시드로 고정된 카테고리만 사용).
+        최대 2단계(최상위-하위)만 지원합니다. 슬러그는 생성 후 변경할 수 없습니다(공개
+        URL 안정성). 상품이나 하위 카테고리가 연결된 카테고리는 삭제할 수 없습니다.
       </p>
+      <CategoryTree categories={categoryTree} />
 
       <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
         메인 배너

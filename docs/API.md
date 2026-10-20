@@ -56,6 +56,9 @@
 | | `moveBlockAction` | 블록 순서 변경(인접 블록과 sortOrder 교환) | 로그인 + 본인 상품만 |
 | `src/server/categoryPermissions/actions.ts` | `requestCategoryPermissionAction` | 카테고리별 판매 허가 요청(PENDING 생성, 반려 후 재요청 가능) | 로그인 + 본인 판매자만 |
 | | `approveCategoryPermissionAction` / `rejectCategoryPermissionAction` | 카테고리 판매 허가 심사 | ADMIN 이상 |
+| `src/server/categories/actions.ts` | `createCategoryAction` | 카테고리 생성(최상위 또는 최상위 카테고리 바로 아래 — 2단계까지만 허용) | ADMIN 이상 |
+| | `renameCategoryAction` | 카테고리 이름 변경(slug는 불변) | ADMIN 이상 |
+| | `deleteCategoryAction` | 카테고리 삭제(하위 카테고리·연결된 상품이 있으면 거부) | ADMIN 이상 |
 
 ## Route Handler
 
@@ -82,6 +85,8 @@
   `/seller/onboarding`), `listApprovedCategoriesForSeller`(상품 등록 폼 선택지,
   `/seller/products/new`), `hasApprovedCategoryPermission`, `listAllCategoryPermissionsForAdmin`
   (`/admin/sellers`)
+- `src/server/categories/queries.ts`: `listCategoryTreeForAdmin` — 최상위 카테고리마다 하위
+  카테고리와 각 단계의 상품 개수를 포함(`/admin/content`, 삭제 가능 여부 판단용)
 
 ## 인가 이중 검증
 
