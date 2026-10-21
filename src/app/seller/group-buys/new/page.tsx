@@ -18,7 +18,7 @@ export default async function NewGroupBuyPage() {
         공동구매 등록
       </h1>
       {products.length === 0 ? (
-        <p className="mt-4 text-sm text-brand-deepgreen/60">
+        <p className="mt-4 text-sm text-brand-deepgreen/70">
           공동구매로 등록할 수 있는 상품이 없습니다(이미 등록된 상품 제외). 먼저
           상품을 등록하세요.
         </p>

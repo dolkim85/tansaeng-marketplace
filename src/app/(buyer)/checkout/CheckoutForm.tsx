@@ -15,7 +15,7 @@ export function CheckoutForm({ defaultAddress }: { defaultAddress?: DefaultAddre
   return (
     <form action={formAction} className="mt-5 max-w-sm space-y-3">
       {defaultAddress && (
-        <p className="text-xs text-brand-deepgreen/50">
+        <p className="text-xs text-brand-deepgreen/70">
           기본 배송지 정보가 자동으로 입력되었습니다. 필요하면 수정하세요.
         </p>
       )}

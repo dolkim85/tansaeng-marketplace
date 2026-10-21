@@ -32,13 +32,13 @@ export default async function SellerGroupBuysPage() {
       </div>
 
       {!approved && (
-        <p className="mt-3 text-sm text-brand-deepgreen/60">
+        <p className="mt-3 text-sm text-brand-deepgreen/70">
           입점 심사 승인 후 공동구매를 등록할 수 있습니다.
         </p>
       )}
 
       {groupBuys.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           등록된 공동구매가 없습니다.
         </p>
       ) : (
@@ -56,7 +56,7 @@ export default async function SellerGroupBuysPage() {
                   {PHASE_LABEL[gb.phase]}
                 </span>
               </div>
-              <p className="mt-1 text-xs text-brand-deepgreen/60">
+              <p className="mt-1 text-xs text-brand-deepgreen/70">
                 {formatKRW(gb.priceKrw)} · 목표 {gb.targetQty} / 결제완료{" "}
                 {gb.confirmedQty} / 예약(결제대기 포함) {gb.committedQty} /
                 최대 {gb.maxQty}

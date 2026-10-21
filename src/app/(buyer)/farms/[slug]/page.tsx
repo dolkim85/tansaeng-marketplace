@@ -54,7 +54,7 @@ export default async function FarmStorePage({
           </button>
         </form>
       </div>
-      <p className="mt-1 text-xs text-brand-deepgreen/50">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         판매 유형: {seller.identityType}
       </p>
 
@@ -93,7 +93,7 @@ export default async function FarmStorePage({
         판매 중인 상품
       </h2>
       {products.length === 0 ? (
-        <p className="mt-3 text-sm text-brand-deepgreen/60">
+        <p className="mt-3 text-sm text-brand-deepgreen/70">
           판매 중인 상품이 없습니다.
         </p>
       ) : (

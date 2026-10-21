@@ -39,7 +39,7 @@ export default async function CategoryPage({
       </h1>
 
       {products.length === 0 && !topAd ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           아직 등록된 상품이 없습니다.
         </p>
       ) : (

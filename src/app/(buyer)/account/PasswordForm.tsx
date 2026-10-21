@@ -9,7 +9,7 @@ export function PasswordForm() {
   return (
     <form action={formAction} className="mt-3 max-w-sm space-y-2">
       <div>
-        <label htmlFor="currentPassword" className="block text-xs text-brand-deepgreen/60">
+        <label htmlFor="currentPassword" className="block text-xs text-brand-deepgreen/70">
           현재 비밀번호
         </label>
         <input
@@ -21,7 +21,7 @@ export function PasswordForm() {
         />
       </div>
       <div>
-        <label htmlFor="newPassword" className="block text-xs text-brand-deepgreen/60">
+        <label htmlFor="newPassword" className="block text-xs text-brand-deepgreen/70">
           새 비밀번호 (8자 이상)
         </label>
         <input
@@ -34,7 +34,7 @@ export function PasswordForm() {
         />
       </div>
       <div>
-        <label htmlFor="confirmPassword" className="block text-xs text-brand-deepgreen/60">
+        <label htmlFor="confirmPassword" className="block text-xs text-brand-deepgreen/70">
           새 비밀번호 확인
         </label>
         <input

@@ -30,7 +30,7 @@ export default async function AdminSettingsPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
-      <p className="font-mono text-xs text-brand-deepgreen/50">/admin/settings</p>
+      <p className="font-mono text-xs text-brand-deepgreen/70">/admin/settings</p>
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
         수수료·약관·운영설정
       </h1>
@@ -38,7 +38,7 @@ export default async function AdminSettingsPage() {
       <h2 className="mt-6 text-base font-semibold text-brand-deepgreen">
         중개수수료율
       </h2>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         현재 {(settings.commissionRate * 100).toFixed(1)}%. 변경 시 이후 생성되는 정산
         배치부터 적용되며, 이미 생성된 배치의 수수료율은 바뀌지 않습니다(마스터 문서
         11.1절 — 확정 요율이 아닌 운영자 설정값).
@@ -48,12 +48,12 @@ export default async function AdminSettingsPage() {
       <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
         약관 버전
       </h2>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         등록된 버전은 수정·삭제할 수 없습니다(법적 성격의 이력이라 과거 버전이 그대로
         보존되어야 함). 실제 구매자 동의 기록·연동은 범위 밖입니다.
       </p>
       {policyVersions.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">
+        <p className="mt-2 text-sm text-brand-deepgreen/70">
           등록된 약관 버전이 없습니다.
         </p>
       ) : (
@@ -65,9 +65,9 @@ export default async function AdminSettingsPage() {
             >
               <div className="flex items-center justify-between">
                 <span className="font-medium text-brand-deepgreen">
-                  {p.title} <span className="text-brand-deepgreen/50">v{p.version}</span>
+                  {p.title} <span className="text-brand-deepgreen/70">v{p.version}</span>
                 </span>
-                <span className="text-xs text-brand-deepgreen/50">
+                <span className="text-xs text-brand-deepgreen/70">
                   {p.createdAt.toLocaleDateString("ko-KR")}
                 </span>
               </div>
@@ -83,7 +83,7 @@ export default async function AdminSettingsPage() {
       <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
         운영설정 (읽기 전용)
       </h2>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         실결제·실발송 등 안전 관련 플래그는 사고 방지를 위해 이 화면에서 변경할 수
         없습니다. 서버 환경변수(`.env.local`)를 통해서만 바뀌며, 바꾸려면 사용자의
         명시적 승인이 필요합니다(docs/RELEASE_CHECKLIST.md 참고).
@@ -94,7 +94,7 @@ export default async function AdminSettingsPage() {
             key={flag.key}
             className="rounded-lg border border-dashed border-brand-deepgreen/20 bg-white/60 p-3"
           >
-            <dt className="text-xs text-brand-deepgreen/50">{flag.label}</dt>
+            <dt className="text-xs text-brand-deepgreen/70">{flag.label}</dt>
             <dd className="mt-1 text-sm font-semibold text-brand-deepgreen">
               {flag.value}
             </dd>

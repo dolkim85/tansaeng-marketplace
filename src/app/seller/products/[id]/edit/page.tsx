@@ -36,7 +36,7 @@ export default async function EditProductPage({
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
         {product.title}
       </h1>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         {product.category.name} · {formatKRW(product.priceKrw)} · 재고{" "}
         {product.stockQty}
       </p>
@@ -62,13 +62,13 @@ export default async function EditProductPage({
         사진 · 영상 ({product.media.filter((m) => m.kind === "image").length}/10,
         영상 {product.media.filter((m) => m.kind === "video").length}/1)
       </h2>
-      <p className="text-xs text-brand-deepgreen/50">
+      <p className="text-xs text-brand-deepgreen/70">
         업로드 시 EXIF 위치정보 등 메타데이터는 자동 제거됩니다. 첫 번째(왼쪽) 사진이
         대표사진입니다.
       </p>
 
       {product.media.length === 0 ? (
-        <p className="mt-3 text-sm text-brand-deepgreen/60">
+        <p className="mt-3 text-sm text-brand-deepgreen/70">
           등록된 사진/영상이 없습니다.
         </p>
       ) : (
@@ -132,7 +132,7 @@ export default async function EditProductPage({
       <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
         상세페이지 블록
       </h2>
-      <p className="text-xs text-brand-deepgreen/50">
+      <p className="text-xs text-brand-deepgreen/70">
         제목/문단/이미지/영상/표/구분선/FAQ/안내 배너 블록을 추가하고 순서를 바꿀 수 있습니다.
         블록을 하나도 추가하지 않으면 기존 설명(텍스트) 필드가 그대로 노출됩니다.
       </p>

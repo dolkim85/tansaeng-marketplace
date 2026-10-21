@@ -29,11 +29,17 @@ export function SellerChrome({
 
   return (
     <div className="flex min-h-full flex-1 flex-col sm:flex-row">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-brand-green focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+      >
+        본문으로 바로가기
+      </a>
       <aside className="hidden w-56 shrink-0 border-r border-brand-green/15 bg-white/60 sm:block">
         <div className="px-4 py-4 text-lg font-bold text-brand-green">
           탄생 판매자
         </div>
-        <div className="flex items-center justify-between px-4 pb-2 text-xs text-brand-deepgreen/60">
+        <div className="flex items-center justify-between px-4 pb-2 text-xs text-brand-deepgreen/70">
           <span>{sellerName}</span>
           <form action={logoutAction}>
             <button type="submit" className="hover:underline">
@@ -61,32 +67,32 @@ export function SellerChrome({
           })}
           <Link
             href="/seller/onboarding"
-            className="mt-2 rounded-md px-3 py-2 text-sm text-brand-deepgreen/50 hover:bg-brand-green/5"
+            className="mt-2 rounded-md px-3 py-2 text-sm text-brand-deepgreen/70 hover:bg-brand-green/5"
           >
             입점 심사 상태
           </Link>
           <Link
             href="/seller/group-buys"
-            className="rounded-md px-3 py-2 text-sm text-brand-deepgreen/50 hover:bg-brand-green/5"
+            className="rounded-md px-3 py-2 text-sm text-brand-deepgreen/70 hover:bg-brand-green/5"
           >
             공동구매
           </Link>
           <Link
             href="/seller/ads"
-            className="rounded-md px-3 py-2 text-sm text-brand-deepgreen/50 hover:bg-brand-green/5"
+            className="rounded-md px-3 py-2 text-sm text-brand-deepgreen/70 hover:bg-brand-green/5"
           >
             광고
           </Link>
           <Link
             href="/seller/store"
-            className="rounded-md px-3 py-2 text-sm text-brand-deepgreen/50 hover:bg-brand-green/5"
+            className="rounded-md px-3 py-2 text-sm text-brand-deepgreen/70 hover:bg-brand-green/5"
           >
             스토어 소개
           </Link>
         </nav>
       </aside>
 
-      <main className="flex flex-1 flex-col pb-16 sm:pb-0">{children}</main>
+      <main id="main-content" className="flex flex-1 flex-col pb-16 sm:pb-0">{children}</main>
 
       <nav
         aria-label="판매자 하단 메뉴"
@@ -102,7 +108,7 @@ export function SellerChrome({
                   className={`flex flex-col items-center gap-0.5 py-2 text-[11px] ${
                     active
                       ? "font-semibold text-brand-green"
-                      : "text-brand-deepgreen/60"
+                      : "text-brand-deepgreen/70"
                   }`}
                   aria-current={active ? "page" : undefined}
                 >

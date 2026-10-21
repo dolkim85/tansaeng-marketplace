@@ -22,7 +22,7 @@ export default async function SellerSettlementsPage() {
   if (!result) {
     return (
       <div className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
-        <p className="text-sm text-brand-deepgreen/60">판매자 정보가 없습니다.</p>
+        <p className="text-sm text-brand-deepgreen/70">판매자 정보가 없습니다.</p>
       </div>
     );
   }
@@ -40,21 +40,21 @@ export default async function SellerSettlementsPage() {
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
         매출·수수료·정산 내역
       </h1>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         전부 샌드박스 모의 정산입니다. 현재 중개수수료율은 {(commissionRate * 100).toFixed(1)}%
         입니다(운영자가 변경 가능).
       </p>
 
       <div className="mt-5 rounded-lg border border-brand-green/15 bg-white p-4 text-sm">
-        <p className="text-xs text-brand-deepgreen/50">정산대기금액</p>
+        <p className="text-xs text-brand-deepgreen/70">정산대기금액</p>
         <p className="mt-1 text-lg font-semibold text-brand-deepgreen">
           {formatKRW(pending.grossKrw)}
         </p>
-        <p className="mt-1 text-xs text-brand-deepgreen/60">
+        <p className="mt-1 text-xs text-brand-deepgreen/70">
           수수료 예상 {formatKRW(pending.commissionKrw)} · 예상 정산액{" "}
           {formatKRW(pending.payoutKrw)}
         </p>
-        <p className="mt-1 text-[11px] text-brand-deepgreen/40">
+        <p className="mt-1 text-[11px] text-brand-deepgreen/70">
           배송완료된 주문 중 운영자가 아직 정산 배치를 실행하지 않은 금액입니다.
         </p>
       </div>
@@ -63,7 +63,7 @@ export default async function SellerSettlementsPage() {
         정산 내역
       </h2>
       {settlements.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">
+        <p className="mt-2 text-sm text-brand-deepgreen/70">
           아직 생성된 정산 배치가 없습니다.
         </p>
       ) : (
@@ -74,7 +74,7 @@ export default async function SellerSettlementsPage() {
               className="rounded-lg border border-brand-green/15 bg-white p-3 text-sm"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs text-brand-deepgreen/60">
+                <span className="text-xs text-brand-deepgreen/70">
                   {s.createdAt.toLocaleDateString("ko-KR")}
                 </span>
                 <span className="rounded-full bg-brand-green/10 px-2 py-0.5 text-xs text-brand-green">
@@ -84,7 +84,7 @@ export default async function SellerSettlementsPage() {
               <p className="mt-1 font-medium text-brand-deepgreen">
                 정산액 {formatKRW(s.payoutKrw)}
               </p>
-              <p className="text-xs text-brand-deepgreen/50">
+              <p className="text-xs text-brand-deepgreen/70">
                 GMV {formatKRW(s.grossKrw)} · 수수료 {formatKRW(s.commissionKrw)} (
                 {(s.commissionRate * 100).toFixed(0)}%)
               </p>

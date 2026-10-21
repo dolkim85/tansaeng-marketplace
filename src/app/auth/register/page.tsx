@@ -5,7 +5,7 @@ export default function RegisterPage() {
   return (
     <div>
       <h1 className="text-lg font-semibold text-brand-deepgreen">회원가입</h1>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         구매자 기본 가입만 지원합니다. 판매자 전환은 로그인 후 /seller/onboarding에서
         신청합니다.
       </p>

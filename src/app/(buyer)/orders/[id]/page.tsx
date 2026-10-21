@@ -47,7 +47,7 @@ export default async function OrderDetailPage({
           {ORDER_STATUS_LABEL[order.status]}
         </span>
       </div>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         받는 분 {order.recipientName} ({order.recipientPhone}) · {order.addressLine}
       </p>
 
@@ -60,7 +60,7 @@ export default async function OrderDetailPage({
             <p className="text-sm font-semibold text-brand-deepgreen">
               {sub.seller.storeName}
             </p>
-            <span className="text-xs text-brand-deepgreen/60">
+            <span className="text-xs text-brand-deepgreen/70">
               {SUBORDER_STATUS_LABEL[sub.status]}
             </span>
           </div>

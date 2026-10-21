@@ -31,6 +31,12 @@ export function BuyerChrome({
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-brand-green focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+      >
+        본문으로 바로가기
+      </a>
       <header className="sticky top-0 z-20 border-b border-brand-green/15 bg-brand-ivory/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-3 sm:px-6">
           <Link
@@ -48,8 +54,9 @@ export function BuyerChrome({
             <input
               type="search"
               name="q"
+              aria-label="검색어"
               placeholder="품목, 생산자, 지역으로 검색"
-              className="w-full rounded-full border border-brand-green/20 bg-white px-4 py-2 text-sm text-brand-deepgreen placeholder:text-brand-deepgreen/40 focus:outline-none focus:ring-2 focus:ring-brand-green/40"
+              className="w-full rounded-full border border-brand-green/20 bg-white px-4 py-2 text-sm text-brand-deepgreen placeholder:text-brand-deepgreen/70 focus:outline-none focus:ring-2 focus:ring-brand-green/40"
             />
           </form>
           <Link
@@ -72,7 +79,7 @@ export function BuyerChrome({
               <form action={logoutAction}>
                 <button
                   type="submit"
-                  className="rounded-full px-2 py-1 text-xs text-brand-deepgreen/60 hover:bg-brand-green/10"
+                  className="rounded-full px-2 py-1 text-xs text-brand-deepgreen/70 hover:bg-brand-green/10"
                 >
                   로그아웃
                 </button>
@@ -110,7 +117,7 @@ export function BuyerChrome({
         </nav>
       </header>
 
-      <main className="flex flex-1 flex-col pb-16 sm:pb-0">{children}</main>
+      <main id="main-content" className="flex flex-1 flex-col pb-16 sm:pb-0">{children}</main>
 
       <nav
         aria-label="하단 메뉴"
@@ -126,7 +133,7 @@ export function BuyerChrome({
                   className={`flex flex-col items-center gap-0.5 py-2 text-[11px] ${
                     active
                       ? "font-semibold text-brand-green"
-                      : "text-brand-deepgreen/60"
+                      : "text-brand-deepgreen/70"
                   }`}
                   aria-current={active ? "page" : undefined}
                 >
@@ -138,7 +145,7 @@ export function BuyerChrome({
         </ul>
       </nav>
 
-      <footer className="hidden border-t border-brand-green/15 bg-white/60 px-6 py-6 text-xs text-brand-deepgreen/60 sm:block">
+      <footer className="hidden border-t border-brand-green/15 bg-white/60 px-6 py-6 text-xs text-brand-deepgreen/70 sm:block">
         판매주체 고지 · 고객센터 · 이용약관 · 사업자 정보 (추후 CMS 연동)
       </footer>
     </div>

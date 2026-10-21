@@ -49,7 +49,7 @@ export default async function HelpPage({
         자주 묻는 질문
       </h2>
       {faqs.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">
+        <p className="mt-2 text-sm text-brand-deepgreen/70">
           등록된 FAQ가 없습니다.
         </p>
       ) : (
@@ -82,11 +82,11 @@ export default async function HelpPage({
         내 문의 내역
       </h2>
       {!session ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">
+        <p className="mt-2 text-sm text-brand-deepgreen/70">
           로그인 후 문의 내역을 확인할 수 있습니다.
         </p>
       ) : myTickets.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">
+        <p className="mt-2 text-sm text-brand-deepgreen/70">
           등록한 문의가 없습니다. 상품 상세페이지의 &quot;판매자에게 문의하기&quot; 또는
           주문 상세페이지의 &quot;문의/분쟁 접수&quot;로 시작하세요.
         </p>
@@ -106,7 +106,7 @@ export default async function HelpPage({
                     {TICKET_STATUS_LABEL[t.status]}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-brand-deepgreen/60">
+                <p className="mt-1 text-xs text-brand-deepgreen/70">
                   {TICKET_CATEGORY_LABEL[t.category]}
                   {t.product && ` · ${t.product.title}`}
                 </p>

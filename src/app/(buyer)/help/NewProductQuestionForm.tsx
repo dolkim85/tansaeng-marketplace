@@ -24,6 +24,7 @@ export function NewProductQuestionForm({
       <input
         name="subject"
         required
+        aria-label="제목"
         placeholder="제목"
         className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
       />
@@ -31,6 +32,7 @@ export function NewProductQuestionForm({
         name="body"
         required
         rows={3}
+        aria-label="문의 내용"
         placeholder="문의 내용을 입력하세요."
         className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
       />

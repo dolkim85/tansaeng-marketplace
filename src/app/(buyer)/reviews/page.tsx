@@ -23,7 +23,7 @@ export default async function ReviewsPage() {
         작성 가능한 후기
       </h2>
       {reviewable.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">
+        <p className="mt-2 text-sm text-brand-deepgreen/70">
           배송 완료된 주문 중 아직 후기를 쓰지 않은 상품이 없습니다.
         </p>
       ) : (
@@ -49,7 +49,7 @@ export default async function ReviewsPage() {
         내가 쓴 후기
       </h2>
       {myReviews.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">
+        <p className="mt-2 text-sm text-brand-deepgreen/70">
           작성한 후기가 없습니다.
         </p>
       ) : (
@@ -66,7 +66,10 @@ export default async function ReviewsPage() {
                 >
                   {r.product.title}
                 </Link>
-                <span className="text-xs text-brand-orange">
+                <span
+                  className="text-xs text-brand-orange"
+                  aria-label={`평점 5점 중 ${r.rating}점`}
+                >
                   {"★".repeat(r.rating)}
                   {"☆".repeat(5 - r.rating)}
                 </span>
@@ -75,7 +78,7 @@ export default async function ReviewsPage() {
                 {r.comment}
               </p>
               {r.sellerReply && (
-                <p className="mt-1 rounded bg-brand-green/5 p-2 text-xs text-brand-deepgreen/60">
+                <p className="mt-1 rounded bg-brand-green/5 p-2 text-xs text-brand-deepgreen/70">
                   판매자 답변: {r.sellerReply}
                 </p>
               )}

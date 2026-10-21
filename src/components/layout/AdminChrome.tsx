@@ -37,11 +37,17 @@ export function AdminChrome({
 
   return (
     <div className="flex min-h-full flex-1 flex-col sm:flex-row">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-brand-deepgreen focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+      >
+        본문으로 바로가기
+      </a>
       <aside className="hidden w-60 shrink-0 overflow-y-auto border-r border-brand-deepgreen/15 bg-brand-deepgreen/5 sm:block">
         <div className="px-4 py-4 text-lg font-bold text-brand-deepgreen">
           탄생 운영
         </div>
-        <div className="flex items-center justify-between px-4 pb-2 text-xs text-brand-deepgreen/60">
+        <div className="flex items-center justify-between px-4 pb-2 text-xs text-brand-deepgreen/70">
           <span>{adminName}</span>
           <form action={logoutAction}>
             <button type="submit" className="hover:underline">
@@ -88,7 +94,7 @@ export function AdminChrome({
             ))}
           </select>
         </header>
-        <main className="flex flex-1 flex-col">{children}</main>
+        <main id="main-content" className="flex flex-1 flex-col">{children}</main>
       </div>
     </div>
   );

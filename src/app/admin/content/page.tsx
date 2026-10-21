@@ -25,7 +25,7 @@ export default async function AdminContentPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
-      <p className="font-mono text-xs text-brand-deepgreen/50">/admin/content</p>
+      <p className="font-mono text-xs text-brand-deepgreen/70">/admin/content</p>
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
         배너·카테고리·공지·FAQ
       </h1>
@@ -33,7 +33,7 @@ export default async function AdminContentPage() {
       <h2 className="mt-6 text-base font-semibold text-brand-deepgreen">
         카테고리 구조
       </h2>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         최대 2단계(최상위-하위)만 지원합니다. 슬러그는 생성 후 변경할 수 없습니다(공개
         URL 안정성). 상품이나 하위 카테고리가 연결된 카테고리는 삭제할 수 없습니다.
       </p>
@@ -42,11 +42,11 @@ export default async function AdminContentPage() {
       <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
         메인 배너
       </h2>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         활성 상태인 배너 중 우선순위가 가장 높은(숫자가 가장 작은) 1건만 홈 화면에 노출됩니다.
       </p>
       {banners.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">등록된 배너가 없습니다.</p>
+        <p className="mt-2 text-sm text-brand-deepgreen/70">등록된 배너가 없습니다.</p>
       ) : (
         <ul className="mt-2 space-y-2">
           {banners.map((b) => (
@@ -57,12 +57,12 @@ export default async function AdminContentPage() {
               <div>
                 <p className="font-medium text-brand-deepgreen">
                   {b.title}{" "}
-                  <span className="text-xs text-brand-deepgreen/50">
+                  <span className="text-xs text-brand-deepgreen/70">
                     (우선순위 {b.sortOrder})
                   </span>
                 </p>
                 {b.subtitle && (
-                  <p className="text-xs text-brand-deepgreen/60">{b.subtitle}</p>
+                  <p className="text-xs text-brand-deepgreen/70">{b.subtitle}</p>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -70,7 +70,7 @@ export default async function AdminContentPage() {
                   className={`rounded-full px-2 py-0.5 text-xs ${
                     b.isActive
                       ? "bg-brand-green/10 text-brand-green"
-                      : "bg-brand-deepgreen/10 text-brand-deepgreen/50"
+                      : "bg-brand-deepgreen/10 text-brand-deepgreen/70"
                   }`}
                 >
                   {b.isActive ? "활성" : "비활성"}
@@ -96,7 +96,7 @@ export default async function AdminContentPage() {
         공지사항
       </h2>
       {notices.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">등록된 공지가 없습니다.</p>
+        <p className="mt-2 text-sm text-brand-deepgreen/70">등록된 공지가 없습니다.</p>
       ) : (
         <ul className="mt-2 space-y-2">
           {notices.map((n) => (
@@ -128,7 +128,7 @@ export default async function AdminContentPage() {
 
       <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">FAQ</h2>
       {faqs.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">등록된 FAQ가 없습니다.</p>
+        <p className="mt-2 text-sm text-brand-deepgreen/70">등록된 FAQ가 없습니다.</p>
       ) : (
         <ul className="mt-2 space-y-2">
           {faqs.map((f) => (

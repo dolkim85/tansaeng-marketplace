@@ -13,6 +13,7 @@ export function ReplyForm({ ticketId }: { ticketId: string }) {
         name="body"
         required
         rows={3}
+        aria-label="답변 내용"
         placeholder="답변/추가 메시지를 입력하세요."
         className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
       />

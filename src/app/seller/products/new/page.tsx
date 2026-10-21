@@ -21,7 +21,7 @@ export default async function NewProductPage() {
       </h1>
 
       {categories.length === 0 ? (
-        <p className="mt-5 text-sm text-brand-deepgreen/60">
+        <p className="mt-5 text-sm text-brand-deepgreen/70">
           판매 허가를 받은 카테고리가 없습니다.{" "}
           <Link
             href="/seller/onboarding"

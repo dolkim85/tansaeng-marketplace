@@ -30,7 +30,7 @@ export default async function AdminSellersPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <p className="font-mono text-xs text-brand-deepgreen/50">
+      <p className="font-mono text-xs text-brand-deepgreen/70">
         /admin/sellers
       </p>
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
@@ -38,7 +38,7 @@ export default async function AdminSellersPage() {
       </h1>
 
       {applications.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           신청 내역이 없습니다.
         </p>
       ) : (
@@ -52,11 +52,11 @@ export default async function AdminSellersPage() {
                 <div>
                   <p className="font-medium text-brand-deepgreen">
                     {app.seller.storeName}{" "}
-                    <span className="text-xs font-normal text-brand-deepgreen/50">
+                    <span className="text-xs font-normal text-brand-deepgreen/70">
                       ({app.seller.user.email})
                     </span>
                   </p>
-                  <p className="mt-1 text-xs text-brand-deepgreen/60">
+                  <p className="mt-1 text-xs text-brand-deepgreen/70">
                     유형 {app.seller.identityType} · 신청일{" "}
                     {app.createdAt.toLocaleDateString("ko-KR")}
                   </p>
@@ -95,7 +95,7 @@ export default async function AdminSellersPage() {
         카테고리별 판매 허가 요청
       </h2>
       {categoryPermissions.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">
+        <p className="mt-2 text-sm text-brand-deepgreen/70">
           요청 내역이 없습니다.
         </p>
       ) : (
@@ -109,7 +109,7 @@ export default async function AdminSellersPage() {
                 <p className="font-medium text-brand-deepgreen">
                   {p.seller.storeName} · {p.category.name}
                 </p>
-                <p className="text-xs text-brand-deepgreen/50">
+                <p className="text-xs text-brand-deepgreen/70">
                   요청일 {p.createdAt.toLocaleDateString("ko-KR")}
                 </p>
               </div>

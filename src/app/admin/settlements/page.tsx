@@ -24,13 +24,13 @@ export default async function AdminSettlementsPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <p className="font-mono text-xs text-brand-deepgreen/50">
+      <p className="font-mono text-xs text-brand-deepgreen/70">
         /admin/settlements
       </p>
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
         수수료·정산·대사
       </h1>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         전부 샌드박스 모의 정산입니다(실제 지급/원천징수 없음). 현재 중개수수료율{" "}
         {(commissionRate * 100).toFixed(1)}%는{" "}
         <a href="/admin/settings" className="underline-offset-2 hover:underline">
@@ -41,32 +41,32 @@ export default async function AdminSettlementsPage() {
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <div className="rounded-lg border border-brand-deepgreen/15 bg-white p-3">
-          <p className="text-xs text-brand-deepgreen/50">거래완료액(GMV)</p>
+          <p className="text-xs text-brand-deepgreen/70">거래완료액(GMV)</p>
           <p className="mt-1 text-sm font-semibold text-brand-deepgreen">
             {formatKRW(summary.totalGrossKrw)}
           </p>
         </div>
         <div className="rounded-lg border border-brand-deepgreen/15 bg-white p-3">
-          <p className="text-xs text-brand-deepgreen/50">중개수수료(모의)</p>
+          <p className="text-xs text-brand-deepgreen/70">중개수수료(모의)</p>
           <p className="mt-1 text-sm font-semibold text-brand-deepgreen">
             {formatKRW(commissionKrw)}
           </p>
         </div>
         <div className="rounded-lg border border-brand-deepgreen/15 bg-white p-3">
-          <p className="text-xs text-brand-deepgreen/50">판매자 정산액(모의)</p>
+          <p className="text-xs text-brand-deepgreen/70">판매자 정산액(모의)</p>
           <p className="mt-1 text-sm font-semibold text-brand-deepgreen">
             {formatKRW(payoutKrw)}
           </p>
         </div>
         <div className="rounded-lg border border-brand-deepgreen/15 bg-white p-3">
-          <p className="text-xs text-brand-deepgreen/50">환불액</p>
+          <p className="text-xs text-brand-deepgreen/70">환불액</p>
           <p className="mt-1 text-sm font-semibold text-brand-deepgreen">
             {formatKRW(summary.totalRefundKrw)}
           </p>
         </div>
         <div className="rounded-lg border border-dashed border-brand-deepgreen/15 bg-white/60 p-3">
-          <p className="text-xs text-brand-deepgreen/50">광고매출</p>
-          <p className="mt-1 text-sm font-semibold text-brand-deepgreen/40">
+          <p className="text-xs text-brand-deepgreen/70">광고매출</p>
+          <p className="mt-1 text-sm font-semibold text-brand-deepgreen/70">
             모의 미집계
           </p>
         </div>
@@ -76,7 +76,7 @@ export default async function AdminSettlementsPage() {
         정산 대상 판매자
       </h2>
       {pendingSellers.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">
+        <p className="mt-2 text-sm text-brand-deepgreen/70">
           배송완료되었으나 아직 정산 배치에 포함되지 않은 주문이 없습니다.
         </p>
       ) : (
@@ -88,7 +88,7 @@ export default async function AdminSettlementsPage() {
             >
               <div>
                 <p className="font-medium text-brand-deepgreen">{s.storeName}</p>
-                <p className="text-xs text-brand-deepgreen/50">
+                <p className="text-xs text-brand-deepgreen/70">
                   정산대기금액 {formatKRW(s.pendingGrossKrw)}
                 </p>
               </div>
@@ -109,13 +109,13 @@ export default async function AdminSettlementsPage() {
         정산 배치 내역
       </h2>
       {settlements.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">
+        <p className="mt-2 text-sm text-brand-deepgreen/70">
           생성된 정산 배치가 없습니다.
         </p>
       ) : (
         <table className="mt-2 w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-brand-deepgreen/15 text-xs text-brand-deepgreen/50">
+            <tr className="border-b border-brand-deepgreen/15 text-xs text-brand-deepgreen/70">
               <th className="py-2">판매자</th>
               <th className="py-2">생성일</th>
               <th className="py-2">GMV</th>
@@ -129,7 +129,7 @@ export default async function AdminSettlementsPage() {
             {settlements.map((s) => (
               <tr key={s.id} className="border-b border-brand-deepgreen/5">
                 <td className="py-2">{s.seller.storeName}</td>
-                <td className="py-2 text-brand-deepgreen/60">
+                <td className="py-2 text-brand-deepgreen/70">
                   {s.createdAt.toLocaleDateString("ko-KR")}
                 </td>
                 <td className="py-2">{formatKRW(s.grossKrw)}</td>

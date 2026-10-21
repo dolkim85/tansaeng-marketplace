@@ -36,7 +36,7 @@ export function TicketThread({
           {TICKET_STATUS_LABEL[ticket.status]}
         </span>
       </div>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         {TICKET_CATEGORY_LABEL[ticket.category]} · {ticket.user.name}
         {ticket.seller && ` · ${ticket.seller.storeName}`}
         {ticket.product && ` · ${ticket.product.title}`}
@@ -54,7 +54,7 @@ export function TicketThread({
               <span className="font-medium text-brand-deepgreen">
                 {m.author.name}
               </span>
-              <span className="text-xs text-brand-deepgreen/50">
+              <span className="text-xs text-brand-deepgreen/70">
                 {USER_ROLE_LABEL[m.authorRole]} ·{" "}
                 {m.createdAt.toLocaleString("ko-KR")}
               </span>
@@ -67,7 +67,7 @@ export function TicketThread({
       </ul>
 
       {ticket.status === "CLOSED" ? (
-        <p className="mt-4 text-sm text-brand-deepgreen/60">
+        <p className="mt-4 text-sm text-brand-deepgreen/70">
           종료된 문의입니다.
         </p>
       ) : (

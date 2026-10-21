@@ -62,7 +62,7 @@ export default async function BuyerHomePage() {
           <p className="mt-4 text-sm font-semibold text-brand-deepgreen">
             {bannerAd.product.title}
           </p>
-          <p className="text-xs text-brand-deepgreen/60">
+          <p className="text-xs text-brand-deepgreen/70">
             {bannerAd.product.seller.storeName} ·{" "}
             {formatKRW(bannerAd.product.priceKrw)}
           </p>
@@ -74,7 +74,7 @@ export default async function BuyerHomePage() {
           곧 오픈
         </h2>
         {upcoming.length === 0 ? (
-          <p className="mt-3 text-sm text-brand-deepgreen/50">
+          <p className="mt-3 text-sm text-brand-deepgreen/70">
             오픈예정인 공동구매가 없습니다.
           </p>
         ) : (
@@ -107,7 +107,7 @@ export default async function BuyerHomePage() {
           오늘 판매 중인 공동구매
         </h2>
         {openGroupBuys.length === 0 ? (
-          <p className="mt-3 text-sm text-brand-deepgreen/50">
+          <p className="mt-3 text-sm text-brand-deepgreen/70">
             진행 중인 공동구매가 없습니다.
           </p>
         ) : (
@@ -124,7 +124,7 @@ export default async function BuyerHomePage() {
                     className="block rounded-lg border border-brand-green/15 bg-white p-4 text-sm hover:bg-brand-green/5"
                   >
                     <p className="font-medium">{gb.title}</p>
-                    <p className="mt-1 text-xs text-brand-deepgreen/60">
+                    <p className="mt-1 text-xs text-brand-deepgreen/70">
                       목표 {gb.targetQty} / 현재 {gb.confirmedQty} ({pct}%)
                     </p>
                     <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-brand-green/10">
@@ -152,7 +152,7 @@ export default async function BuyerHomePage() {
           공지사항
         </h2>
         {notices.length === 0 ? (
-          <p className="mt-3 text-sm text-brand-deepgreen/50">
+          <p className="mt-3 text-sm text-brand-deepgreen/70">
             등록된 공지사항이 없습니다.
           </p>
         ) : (
@@ -171,7 +171,7 @@ export default async function BuyerHomePage() {
                     )}
                     {n.title}
                   </span>
-                  <span className="text-xs text-brand-deepgreen/50">
+                  <span className="text-xs text-brand-deepgreen/70">
                     {n.createdAt.toLocaleDateString("ko-KR")}
                   </span>
                 </div>

@@ -13,12 +13,12 @@ export default async function FollowingPage() {
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
         팔로우한 생산자
       </h1>
-      <p className="mt-1 text-xs text-brand-deepgreen/50">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         팔로우는 마케팅 수신 동의가 아닙니다.
       </p>
 
       {items.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           아직 팔로우한 생산자가 없습니다.
         </p>
       ) : (

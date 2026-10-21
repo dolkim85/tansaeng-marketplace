@@ -16,7 +16,7 @@ export default async function AdminOrdersPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <p className="font-mono text-xs text-brand-deepgreen/50">
+      <p className="font-mono text-xs text-brand-deepgreen/70">
         /admin/orders
       </p>
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
@@ -24,13 +24,13 @@ export default async function AdminOrdersPage() {
       </h1>
 
       {orders.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           주문이 없습니다.
         </p>
       ) : (
         <table className="mt-6 w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-brand-deepgreen/15 text-xs text-brand-deepgreen/50">
+            <tr className="border-b border-brand-deepgreen/15 text-xs text-brand-deepgreen/70">
               <th className="py-2">주문번호</th>
               <th className="py-2">구매자</th>
               <th className="py-2">판매자 수</th>
@@ -43,7 +43,7 @@ export default async function AdminOrdersPage() {
             {orders.map((o) => (
               <tr key={o.id} className="border-b border-brand-deepgreen/5">
                 <td className="py-2">#{o.id.slice(-8)}</td>
-                <td className="py-2 text-brand-deepgreen/60">
+                <td className="py-2 text-brand-deepgreen/70">
                   {o.buyer.email}
                 </td>
                 <td className="py-2">{o.suborders.length}</td>

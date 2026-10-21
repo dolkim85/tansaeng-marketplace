@@ -19,6 +19,7 @@ export function CategoryNameForm({
         name="name"
         defaultValue={name}
         required
+        aria-label="카테고리 이름"
         className="w-36 rounded-md border border-brand-deepgreen/20 px-2 py-1 text-sm"
       />
       <button

@@ -35,7 +35,7 @@ export function PlaceholderSection({
           ))}
         </ul>
       )}
-      <div className="mt-8 rounded-lg border border-dashed border-brand-green/30 bg-white/60 p-4 text-xs text-brand-deepgreen/60">
+      <div className="mt-8 rounded-lg border border-dashed border-brand-green/30 bg-white/60 p-4 text-xs text-brand-deepgreen/70">
         M0 단계: 라우트 뼈대만 구현됨. 실제 데이터/결제/알림 연동 없음 (Mock 전용).
       </div>
     </section>

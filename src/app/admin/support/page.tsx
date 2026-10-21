@@ -7,13 +7,13 @@ export default async function AdminSupportPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <p className="font-mono text-xs text-brand-deepgreen/50">/admin/support</p>
+      <p className="font-mono text-xs text-brand-deepgreen/70">/admin/support</p>
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
         고객센터/분쟁/반품
       </h1>
 
       {tickets.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           접수된 문의가 없습니다.
         </p>
       ) : (
@@ -38,7 +38,7 @@ export default async function AdminSupportPage() {
                     {TICKET_STATUS_LABEL[t.status]}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-brand-deepgreen/60">
+                <p className="mt-1 text-xs text-brand-deepgreen/70">
                   {TICKET_CATEGORY_LABEL[t.category]} · {t.user.name}
                   {t.seller && ` · ${t.seller.storeName}`}
                   {t.product && ` · ${t.product.title}`}

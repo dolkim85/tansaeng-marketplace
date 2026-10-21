@@ -18,11 +18,13 @@ export function NewCategoryForm({
       <input
         name="name"
         required
+        aria-label="카테고리 이름"
         placeholder={placeholder}
         className="w-36 rounded-md border border-brand-deepgreen/20 px-2 py-1 text-sm"
       />
       <input
         name="slug"
+        aria-label="슬러그"
         placeholder="슬러그(선택, 비워두면 자동)"
         className="w-40 rounded-md border border-brand-deepgreen/20 px-2 py-1 text-sm"
       />

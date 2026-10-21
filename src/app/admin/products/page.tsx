@@ -23,7 +23,7 @@ export default async function AdminProductsPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <p className="font-mono text-xs text-brand-deepgreen/50">
+      <p className="font-mono text-xs text-brand-deepgreen/70">
         /admin/products
       </p>
       <div className="mt-1 flex items-center justify-between">
@@ -39,13 +39,13 @@ export default async function AdminProductsPage() {
       </div>
 
       {products.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           등록된 상품이 없습니다.
         </p>
       ) : (
         <table className="mt-6 w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-brand-deepgreen/15 text-xs text-brand-deepgreen/50">
+            <tr className="border-b border-brand-deepgreen/15 text-xs text-brand-deepgreen/70">
               <th className="py-2">상품명</th>
               <th className="py-2">판매자</th>
               <th className="py-2">카테고리</th>
@@ -60,10 +60,10 @@ export default async function AdminProductsPage() {
             {products.map((p) => (
               <tr key={p.id} className="border-b border-brand-deepgreen/5">
                 <td className="py-2">{p.title}</td>
-                <td className="py-2 text-brand-deepgreen/60">
+                <td className="py-2 text-brand-deepgreen/70">
                   {p.seller.storeName}
                 </td>
-                <td className="py-2 text-brand-deepgreen/60">
+                <td className="py-2 text-brand-deepgreen/70">
                   {p.category.name}
                 </td>
                 <td className="py-2">{formatKRW(p.priceKrw)}</td>
@@ -85,6 +85,7 @@ export default async function AdminProductsPage() {
                           type="text"
                           name="reason"
                           required
+                          aria-label="반려 사유"
                           placeholder="반려 사유"
                           className="w-28 rounded border border-brand-deepgreen/15 px-1.5 py-0.5 text-[11px]"
                         />
@@ -98,12 +99,12 @@ export default async function AdminProductsPage() {
                       반려됨: {p.reviewNote}
                     </span>
                   ) : (
-                    <span className="text-xs text-brand-deepgreen/30">-</span>
+                    <span className="text-xs text-brand-deepgreen/70">-</span>
                   )}
                 </td>
                 <td className="py-2">
                   {p.status !== "ON_SALE" && p.status !== "HIDDEN" ? (
-                    <span className="text-xs text-brand-deepgreen/30">-</span>
+                    <span className="text-xs text-brand-deepgreen/70">-</span>
                   ) : p.isAdminSuspended ? (
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] text-red-600" title={p.suspendedReason ?? undefined}>
@@ -121,6 +122,7 @@ export default async function AdminProductsPage() {
                         type="text"
                         name="reason"
                         required
+                        aria-label="숨김 사유"
                         placeholder="숨김 사유"
                         className="w-24 rounded border border-brand-deepgreen/15 px-1.5 py-0.5 text-[11px]"
                       />
@@ -149,12 +151,12 @@ export default async function AdminProductsPage() {
                         </form>
                       </div>
                     ) : (
-                      <span className="rounded-full bg-brand-deepgreen/10 px-2 py-0.5 text-xs text-brand-deepgreen/60">
+                      <span className="rounded-full bg-brand-deepgreen/10 px-2 py-0.5 text-xs text-brand-deepgreen/70">
                         승인됨
                       </span>
                     )
                   ) : (
-                    <span className="text-xs text-brand-deepgreen/30">-</span>
+                    <span className="text-xs text-brand-deepgreen/70">-</span>
                   )}
                 </td>
               </tr>
@@ -163,7 +165,7 @@ export default async function AdminProductsPage() {
         </table>
       )}
 
-      <p className="mt-6 rounded-lg border border-dashed border-brand-deepgreen/20 bg-white/60 p-3 text-xs text-brand-deepgreen/50">
+      <p className="mt-6 rounded-lg border border-dashed border-brand-deepgreen/20 bg-white/60 p-3 text-xs text-brand-deepgreen/70">
         신고는 <Link href="/admin/support" className="underline">/admin/support</Link>에서
         확인할 수 있습니다(카테고리 &quot;상품 신고&quot;). 강제숨김 중에는 판매자가 직접
         판매재개할 수 없으며, 해제 후에만 판매재개가 가능합니다.

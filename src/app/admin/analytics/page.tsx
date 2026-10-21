@@ -6,13 +6,13 @@ export default async function AdminAnalyticsPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <p className="font-mono text-xs text-brand-deepgreen/50">
+      <p className="font-mono text-xs text-brand-deepgreen/70">
         /admin/analytics
       </p>
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
         거래액·활성회원·전환율
       </h1>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         전부 실제 DB 데이터 기준 집계입니다(샌드박스 데이터). 광고/정산 금액은 실제 과금이
         아닌 모의 데이터입니다.
       </p>
@@ -50,7 +50,7 @@ export default async function AdminAnalyticsPage() {
       </h2>
       <table className="mt-2 w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-brand-deepgreen/15 text-xs text-brand-deepgreen/50">
+          <tr className="border-b border-brand-deepgreen/15 text-xs text-brand-deepgreen/70">
             <th className="py-2">날짜</th>
             <th className="py-2">신규 가입자</th>
             <th className="py-2">신규 주문</th>
@@ -59,7 +59,7 @@ export default async function AdminAnalyticsPage() {
         <tbody>
           {s.signupTrend.map((signup, i) => (
             <tr key={signup.date} className="border-b border-brand-deepgreen/5">
-              <td className="py-2 text-brand-deepgreen/60">{signup.date}</td>
+              <td className="py-2 text-brand-deepgreen/70">{signup.date}</td>
               <td className="py-2">{signup.count}명</td>
               <td className="py-2">{s.orderTrend[i]?.count ?? 0}건</td>
             </tr>
@@ -73,7 +73,7 @@ export default async function AdminAnalyticsPage() {
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-brand-deepgreen/15 bg-white p-3">
-      <p className="text-xs text-brand-deepgreen/50">{label}</p>
+      <p className="text-xs text-brand-deepgreen/70">{label}</p>
       <p className="mt-1 text-sm font-semibold text-brand-deepgreen">{value}</p>
     </div>
   );

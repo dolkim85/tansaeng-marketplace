@@ -30,7 +30,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       ) : (
         <div
           aria-hidden
-          className="flex aspect-square w-full items-center justify-center rounded-md bg-brand-green/10 text-xs text-brand-deepgreen/40"
+          className="flex aspect-square w-full items-center justify-center rounded-md bg-brand-green/10 text-xs text-brand-deepgreen/70"
         >
           사진 없음
         </div>
@@ -38,11 +38,11 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       <p className="mt-2 text-sm font-medium text-brand-deepgreen">
         {product.title}
       </p>
-      <p className="text-xs text-brand-deepgreen/60">{product.originRegion}</p>
+      <p className="text-xs text-brand-deepgreen/70">{product.originRegion}</p>
       <p className="mt-1 text-sm font-semibold text-brand-green">
         {formatKRW(product.priceKrw)}
       </p>
-      <p className="text-xs text-brand-deepgreen/50">
+      <p className="text-xs text-brand-deepgreen/70">
         {product.seller.storeName}
       </p>
     </Link>

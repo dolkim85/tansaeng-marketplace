@@ -28,7 +28,7 @@ export default async function CartPage() {
       </h1>
 
       {items.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           장바구니가 비어 있습니다.{" "}
           <Link href="/categories" className="text-brand-green hover:underline">
             상품 보러가기 →
@@ -51,7 +51,7 @@ export default async function CartPage() {
                       <p className="truncate text-sm font-medium text-brand-deepgreen">
                         {item.product.title}
                       </p>
-                      <p className="text-xs text-brand-deepgreen/60">
+                      <p className="text-xs text-brand-deepgreen/70">
                         {formatKRW(item.product.priceKrw)} / 개
                       </p>
                     </div>
@@ -108,7 +108,7 @@ export default async function CartPage() {
           ))}
 
           <div className="mt-8 flex items-center justify-between border-t border-brand-green/15 pt-4">
-            <p className="text-sm text-brand-deepgreen/60">
+            <p className="text-sm text-brand-deepgreen/70">
               총 {items.length}개 상품
             </p>
             <p className="text-lg font-bold text-brand-green">
@@ -124,7 +124,7 @@ export default async function CartPage() {
         </>
       )}
 
-      <p className="mt-8 rounded-lg border border-dashed border-brand-green/30 bg-white/60 p-3 text-xs text-brand-deepgreen/60">
+      <p className="mt-8 rounded-lg border border-dashed border-brand-green/30 bg-white/60 p-3 text-xs text-brand-deepgreen/70">
         M2 단계: 배송비/쿠폰/재고 예약 타이머는 아직 반영되지 않음.
       </p>
     </section>

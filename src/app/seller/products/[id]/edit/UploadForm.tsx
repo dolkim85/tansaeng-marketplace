@@ -12,6 +12,7 @@ export function UploadForm({ productId }: { productId: string }) {
       <input
         type="file"
         name="file"
+        aria-label="사진/영상 파일"
         accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
         required
         className="text-sm"

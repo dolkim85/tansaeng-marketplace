@@ -21,7 +21,7 @@ export default async function OrdersPage() {
       </h1>
 
       {orders.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           주문 내역이 없습니다.
         </p>
       ) : (
@@ -40,7 +40,7 @@ export default async function OrdersPage() {
                     {STATUS_LABEL[order.status]}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-brand-deepgreen/60">
+                <p className="mt-1 text-xs text-brand-deepgreen/70">
                   {order.createdAt.toLocaleDateString("ko-KR")} ·{" "}
                   {order.suborders.length}개 판매자 ·{" "}
                   {formatKRW(order.totalKrw)}

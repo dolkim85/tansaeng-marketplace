@@ -1327,3 +1327,60 @@ M4 이전 범위 등).
 **다음 단계:** 사용자가 지정하는 다음 항목으로 진행(M4 이전 범위 등). 현재 코드베이스
 전체에 `TODO`/"다음 단계에서 구현"/"구현 예정" 문자열로 표시된 남은 스텁은 없음
 (grep 기준).
+
+---
+
+## 접근성(A11y) 점검/개선 (2026-10-21, 완료)
+
+**완료 기능:** 마스터 문서 M3 "접근성/SEO/보안/대량주문·동시성 테스트" 요건 중 아직
+다뤄지지 않았던 접근성 부분을 코드 전수 점검 후 개선.
+- 버이어/판매자/관리자 3개 레이아웃(`BuyerChrome`/`SellerChrome`/`AdminChrome`) 전부에
+  "본문으로 바로가기" 스킵 링크(`sr-only focus:not-sr-only`) + `<main id="main-content">`
+  추가 — 키보드 사용자가 매 페이지마다 헤더/내비게이션을 거치지 않고 바로 본문으로
+  이동 가능
+- 별점(★☆ 반복 문자) 표시 2곳(`/products/[slug]`, `/reviews`)에
+  `aria-label="평점 5점 중 N점"` 추가 — 화면낭독기가 별 글자를 그대로 읽는 대신 실제
+  점수를 전달하도록 함
+- 헤더 검색창에 `aria-label="검색어"` 추가
+- **라벨 없는 폼 입력 필드 38개**(15개 파일에 걸쳐 분산, placeholder만으로 시각적
+  힌트를 주고 접근성 이름이 전혀 없던 input/textarea/select)에 전부 `aria-label` 추가
+  — 체크박스는 이미 전부 `<label>`로 감싸여 있어 수정 불필요했음을 스크립트로 확인
+- **색상 대비(WCAG AA 4.5:1) 전역 상향**: `text-brand-deepgreen/30`(대비 1.8:1)~`/60`
+  (대비 3.75:1)로 쓰이던 보조 텍스트(날짜·카테고리·설명 등, 234곳/65개 파일)를 전부
+  `/70`(대비 5.0:1, AA 통과)로 일괄 상향. `/70`·`/80`은 이미 AA를 만족해 손대지 않음
+
+**미완료 기능과 이유:** 없음(사용자에게 색상 대비 수정 범위를 확인받고 "전역 상향"으로
+진행). 이모지 아이콘(🔔/👤) 버튼은 이미 `aria-label`이 있어 점검 결과 문제 없음으로
+확인.
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `eslint src`, `next build`(49라우트, 라우트 추가 없음), `vitest run`
+  (40건, 회귀 없음) — 폼 라벨 추가 직후, 색상 대비 일괄 변경 직후 각각 2회 전부 통과
+- 라벨 없는 입력 필드 탐지용 Python 스크립트(정규식으로 input/textarea/select 태그
+  추출 후 id/aria-label/aria-labelledby/상위 `<label>` 감쌈 여부 확인)로 수정 전 38건
+  확인 → 수정 후 0건 재확인
+- WCAG 2.1 상대 휘도 공식을 직접 구현한 Python 스크립트로 `text-brand-deepgreen`의
+  투명도별 대비비를 전부 계산(`/30`=1.79, `/40`=2.25, `/50`=2.87, `/60`=3.75, `/70`=5.00,
+  `/80`=6.81) → `/70`을 AA 충족 최소 기준선으로 확정
+- Playwright(Python) E2E: 3개 레이아웃 전부에서 스킵 링크가 **첫 번째 탭 정지 지점**
+  임을 `Tab` 키 입력으로 확인(실제 키보드 내비게이션 동작 검증) → `#main-content` 랜드
+  마크 존재 확인 → 검색창/별점/폼 필드 aria-label 존재 확인
+- 색상 대비 변경 후 홈/상품 상세 페이지 스크린샷으로 레이아웃 깨짐(여백/카드 크기/
+  버튼 모양) 없음을 시각 확인(헤드리스 환경에 한글 폰트가 없어 글자 자체는 사각형으로
+  렌더링되지만 이는 스크린샷 도구의 한계이며 실제 브라우저와 무관)
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `src/components/layout/{BuyerChrome,SellerChrome,AdminChrome}.tsx`,
+`src/app/(buyer)/products/[slug]/page.tsx`, `src/app/(buyer)/reviews/page.tsx`,
+`src/app/(buyer)/help/{NewOrderTicketForm,NewProductQuestionForm,NewProductReportForm}.tsx`,
+`src/app/(buyer)/reviews/ReviewForm.tsx`,
+`src/app/admin/content/{BannerForm,CategoryNameForm,FaqForm,NewCategoryForm,NoticeForm}.tsx`,
+`src/app/admin/products/page.tsx`, `src/app/admin/settings/PolicyVersionForm.tsx`,
+`src/app/seller/products/[id]/edit/{AddBlockForm,UploadForm}.tsx`,
+`src/components/support/ReplyForm.tsx` + 색상 대비 일괄 교정 65개 파일,
+`docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자가 지정하는 다음 항목으로 진행(M4 이전 범위 등).

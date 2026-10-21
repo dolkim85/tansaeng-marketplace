@@ -35,7 +35,7 @@ export default async function SellerOrdersPage() {
       </h1>
 
       {suborders.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           접수된 주문이 없습니다.
         </p>
       ) : (
@@ -62,7 +62,7 @@ export default async function SellerOrdersPage() {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-1 text-xs text-brand-deepgreen/50">
+                <p className="mt-1 text-xs text-brand-deepgreen/70">
                   받는 분 {sub.order.recipientName} · 소계{" "}
                   {formatKRW(sub.subtotalKrw)}
                 </p>

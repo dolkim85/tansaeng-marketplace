@@ -32,7 +32,7 @@ export default async function GroupBuyDetailPage({
           {PHASE_LABEL[gb.phase]}
         </span>
       </div>
-      <p className="mt-1 text-sm text-brand-deepgreen/60">
+      <p className="mt-1 text-sm text-brand-deepgreen/70">
         <Link href={`/farms/${gb.product.seller.storeSlug}`} className="hover:underline">
           {gb.product.seller.storeName}
         </Link>{" "}
@@ -46,7 +46,7 @@ export default async function GroupBuyDetailPage({
         <p className="text-lg font-bold text-brand-green">
           {formatKRW(gb.priceKrw)}
         </p>
-        <p className="mt-2 text-xs text-brand-deepgreen/60">
+        <p className="mt-2 text-xs text-brand-deepgreen/70">
           목표 {gb.targetQty} / 결제 완료 {gb.confirmedQty} ({pct}%) · 남은 공급 가능
           수량 {remaining}
         </p>
@@ -58,20 +58,20 @@ export default async function GroupBuyDetailPage({
         </div>
         <dl className="mt-3 grid grid-cols-2 gap-2 text-xs text-brand-deepgreen/70">
           <div>
-            <dt className="text-brand-deepgreen/50">오픈</dt>
+            <dt className="text-brand-deepgreen/70">오픈</dt>
             <dd>{gb.openAt.toLocaleString("ko-KR")}</dd>
           </div>
           <div>
-            <dt className="text-brand-deepgreen/50">마감</dt>
+            <dt className="text-brand-deepgreen/70">마감</dt>
             <dd>{gb.closeAt.toLocaleString("ko-KR")}</dd>
           </div>
           <div>
-            <dt className="text-brand-deepgreen/50">예상 출고일</dt>
+            <dt className="text-brand-deepgreen/70">예상 출고일</dt>
             <dd>{gb.expectedShipAt.toLocaleDateString("ko-KR")}</dd>
           </div>
           {gb.perUserLimit > 0 && (
             <div>
-              <dt className="text-brand-deepgreen/50">1인당 제한</dt>
+              <dt className="text-brand-deepgreen/70">1인당 제한</dt>
               <dd>{gb.perUserLimit}개</dd>
             </div>
           )}
@@ -90,7 +90,7 @@ export default async function GroupBuyDetailPage({
           >
             {alerted ? "🔔 알림 신청됨" : "🔔 오픈 알림 신청"}
           </button>
-          <p className="mt-1 text-xs text-brand-deepgreen/50">
+          <p className="mt-1 text-xs text-brand-deepgreen/70">
             알림 신청은 수요 집계용일 뿐 실제 주문이 아닙니다.
           </p>
         </form>
@@ -103,7 +103,7 @@ export default async function GroupBuyDetailPage({
         </p>
       )}
       {gb.phase === "AWAITING_FINALIZATION" && (
-        <p className="mt-4 text-sm text-brand-deepgreen/60">
+        <p className="mt-4 text-sm text-brand-deepgreen/70">
           마감되었습니다. 성사 여부는 운영자 확인 후 반영됩니다.
         </p>
       )}

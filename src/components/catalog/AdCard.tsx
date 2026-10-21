@@ -39,7 +39,7 @@ export function AdCard({ ad }: { ad: AdCardData }) {
       ) : (
         <div
           aria-hidden
-          className="flex aspect-square w-full items-center justify-center rounded-md bg-brand-orange/10 text-xs text-brand-deepgreen/40"
+          className="flex aspect-square w-full items-center justify-center rounded-md bg-brand-orange/10 text-xs text-brand-deepgreen/70"
         >
           사진 없음
         </div>
@@ -47,11 +47,11 @@ export function AdCard({ ad }: { ad: AdCardData }) {
       <p className="mt-2 text-sm font-medium text-brand-deepgreen">
         {ad.product.title}
       </p>
-      <p className="text-xs text-brand-deepgreen/60">{ad.product.originRegion}</p>
+      <p className="text-xs text-brand-deepgreen/70">{ad.product.originRegion}</p>
       <p className="mt-1 text-sm font-semibold text-brand-green">
         {formatKRW(ad.product.priceKrw)}
       </p>
-      <p className="text-xs text-brand-deepgreen/50">{ad.product.seller.storeName}</p>
+      <p className="text-xs text-brand-deepgreen/70">{ad.product.seller.storeName}</p>
     </Link>
   );
 }

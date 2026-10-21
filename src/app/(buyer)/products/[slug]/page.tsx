@@ -67,7 +67,7 @@ export default async function ProductDetailPage({
       ) : (
         <div
           aria-hidden
-          className="mt-4 flex aspect-video w-full items-center justify-center rounded-lg bg-brand-green/10 text-sm text-brand-deepgreen/40"
+          className="mt-4 flex aspect-video w-full items-center justify-center rounded-lg bg-brand-green/10 text-sm text-brand-deepgreen/70"
         >
           사진 없음
         </div>
@@ -99,7 +99,7 @@ export default async function ProductDetailPage({
       <h1 className="mt-4 text-2xl font-semibold text-brand-deepgreen">
         {product.title}
       </h1>
-      <p className="mt-1 text-sm text-brand-deepgreen/60">
+      <p className="mt-1 text-sm text-brand-deepgreen/70">
         {product.originRegion} ·{" "}
         <Link
           href={`/farms/${product.seller.storeSlug}`}
@@ -111,7 +111,7 @@ export default async function ProductDetailPage({
       <p className="mt-3 text-xl font-bold text-brand-green">
         {formatKRW(product.priceKrw)}
       </p>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         재고 {product.stockQty}개 · 카테고리 {product.category.name}
       </p>
 
@@ -174,7 +174,7 @@ export default async function ProductDetailPage({
         후기 {reviews.length > 0 && `(평균 ${avgRating.toFixed(1)}점 · ${reviews.length}건)`}
       </h2>
       {reviews.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">
+        <p className="mt-2 text-sm text-brand-deepgreen/70">
           아직 작성된 후기가 없습니다.
         </p>
       ) : (
@@ -188,7 +188,10 @@ export default async function ProductDetailPage({
                 <span className="font-medium text-brand-deepgreen">
                   {r.user.name}
                 </span>
-                <span className="text-xs text-brand-orange">
+                <span
+                  className="text-xs text-brand-orange"
+                  aria-label={`평점 5점 중 ${r.rating}점`}
+                >
                   {"★".repeat(r.rating)}
                   {"☆".repeat(5 - r.rating)}
                 </span>
@@ -197,7 +200,7 @@ export default async function ProductDetailPage({
                 {r.comment}
               </p>
               {r.sellerReply && (
-                <p className="mt-1 rounded bg-brand-green/5 p-2 text-xs text-brand-deepgreen/60">
+                <p className="mt-1 rounded bg-brand-green/5 p-2 text-xs text-brand-deepgreen/70">
                   판매자 답변: {r.sellerReply}
                 </p>
               )}
@@ -210,7 +213,7 @@ export default async function ProductDetailPage({
         상품 질문 {questions.length > 0 && `(${questions.length}건)`}
       </h2>
       {questions.length === 0 ? (
-        <p className="mt-2 text-sm text-brand-deepgreen/60">
+        <p className="mt-2 text-sm text-brand-deepgreen/70">
           공개된 질문이 없습니다.
         </p>
       ) : (

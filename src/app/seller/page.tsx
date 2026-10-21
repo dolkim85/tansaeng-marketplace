@@ -27,7 +27,7 @@ export default async function SellerDashboardPage() {
       </h1>
 
       {!result || !summary ? (
-        <p className="mt-4 text-sm text-brand-deepgreen/60">
+        <p className="mt-4 text-sm text-brand-deepgreen/70">
           <Link href="/seller/onboarding" className="text-brand-green underline">
             입점 심사를 먼저 신청하세요 →
           </Link>
@@ -99,7 +99,7 @@ function DashboardCard({
       href={href}
       className="rounded-lg border border-brand-green/15 bg-white p-4 hover:bg-brand-green/5"
     >
-      <p className="text-xs text-brand-deepgreen/60">{label}</p>
+      <p className="text-xs text-brand-deepgreen/70">{label}</p>
       <p
         className={`mt-1 text-lg font-semibold ${
           warn ? "text-brand-orange" : "text-brand-deepgreen"

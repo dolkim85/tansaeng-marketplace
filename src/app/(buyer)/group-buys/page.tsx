@@ -14,7 +14,7 @@ export default async function GroupBuysPage() {
       </h1>
 
       {groupBuys.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           등록된 공동구매가 없습니다.
         </p>
       ) : (
@@ -38,10 +38,10 @@ export default async function GroupBuysPage() {
                       {PHASE_LABEL[gb.phase]}
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-brand-deepgreen/60">
+                  <p className="mt-1 text-xs text-brand-deepgreen/70">
                     {gb.product.seller.storeName} · {formatKRW(gb.priceKrw)}
                   </p>
-                  <p className="mt-1 text-xs text-brand-deepgreen/60">
+                  <p className="mt-1 text-xs text-brand-deepgreen/70">
                     목표 {gb.targetQty} / 현재 결제 완료 {gb.confirmedQty} (
                     {pct}%)
                   </p>

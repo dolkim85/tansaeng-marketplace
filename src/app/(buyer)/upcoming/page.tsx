@@ -16,12 +16,12 @@ export default async function UpcomingPage() {
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
         출하예정/오픈예정 캘린더
       </h1>
-      <p className="mt-1 text-xs text-brand-deepgreen/50">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         알림 신청은 수요 집계용일 뿐 실제 주문이 아닙니다.
       </p>
 
       {upcoming.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           오픈예정인 공동구매가 없습니다.
         </p>
       ) : (
@@ -36,7 +36,7 @@ export default async function UpcomingPage() {
                   <p className="text-sm font-medium text-brand-deepgreen">
                     {gb.title}
                   </p>
-                  <p className="text-xs text-brand-deepgreen/60">
+                  <p className="text-xs text-brand-deepgreen/70">
                     {gb.product.seller.storeName} · 오픈{" "}
                     {gb.openAt.toLocaleString("ko-KR")}
                   </p>

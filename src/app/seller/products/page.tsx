@@ -27,7 +27,7 @@ export default async function SellerProductsPage() {
   if (!result) {
     return (
       <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
-        <p className="text-sm text-brand-deepgreen/60">
+        <p className="text-sm text-brand-deepgreen/70">
           <Link href="/seller/onboarding" className="text-brand-green underline">
             입점 심사를 먼저 신청하세요 →
           </Link>
@@ -61,7 +61,7 @@ export default async function SellerProductsPage() {
       )}
 
       {products.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           등록된 상품이 없습니다.
         </p>
       ) : (
@@ -84,7 +84,7 @@ export default async function SellerProductsPage() {
                     className="h-12 w-12 shrink-0 rounded object-cover"
                   />
                 ) : (
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-brand-green/10 text-[9px] text-brand-deepgreen/40">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-brand-green/10 text-[9px] text-brand-deepgreen/70">
                     사진없음
                   </div>
                 )}
@@ -97,7 +97,7 @@ export default async function SellerProductsPage() {
                     )}
                     {p.title}
                   </p>
-                  <p className="text-xs text-brand-deepgreen/50">
+                  <p className="text-xs text-brand-deepgreen/70">
                     {p.category.name} · {formatKRW(p.priceKrw)} · 재고{" "}
                     {p.stockQty}
                   </p>
@@ -107,7 +107,7 @@ export default async function SellerProductsPage() {
                 </span>
               </Link>
               {p.isProxyRegistered && p.proxySourceNote && (
-                <p className="mt-2 text-xs text-brand-deepgreen/50">
+                <p className="mt-2 text-xs text-brand-deepgreen/70">
                   운영자가 대신 등록한 상품입니다(출처: {p.proxySourceNote}
                   {p.proxyConsentAt &&
                     ` · 동의 확인 ${p.proxyConsentAt.toLocaleDateString("ko-KR")}`}

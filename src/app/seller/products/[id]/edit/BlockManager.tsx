@@ -6,7 +6,7 @@ type BlockRow = { id: string; type: string; sortOrder: number };
 export function BlockManager({ blocks }: { blocks: BlockRow[] }) {
   if (blocks.length === 0) {
     return (
-      <p className="mt-3 text-sm text-brand-deepgreen/60">
+      <p className="mt-3 text-sm text-brand-deepgreen/70">
         등록된 블록이 없습니다. 아래에서 블록을 추가해 보세요.
       </p>
     );
@@ -27,7 +27,7 @@ export function BlockManager({ blocks }: { blocks: BlockRow[] }) {
               <button
                 type="submit"
                 disabled={i === 0}
-                className="text-xs text-brand-deepgreen/60 hover:text-brand-green disabled:opacity-30"
+                className="text-xs text-brand-deepgreen/70 hover:text-brand-green disabled:opacity-30"
               >
                 ↑
               </button>
@@ -36,7 +36,7 @@ export function BlockManager({ blocks }: { blocks: BlockRow[] }) {
               <button
                 type="submit"
                 disabled={i === blocks.length - 1}
-                className="text-xs text-brand-deepgreen/60 hover:text-brand-green disabled:opacity-30"
+                className="text-xs text-brand-deepgreen/70 hover:text-brand-green disabled:opacity-30"
               >
                 ↓
               </button>

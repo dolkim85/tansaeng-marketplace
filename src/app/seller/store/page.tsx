@@ -12,7 +12,7 @@ export default async function SellerStorePage() {
   if (!result) {
     return (
       <div className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
-        <p className="text-sm text-brand-deepgreen/60">
+        <p className="text-sm text-brand-deepgreen/70">
           <Link href="/seller/onboarding" className="text-brand-green underline">
             입점 심사를 먼저 신청하세요 →
           </Link>
@@ -29,7 +29,7 @@ export default async function SellerStorePage() {
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
         생산자 스토어 소개·정책
       </h1>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         {seller.storeName}
       </p>
       <Link

@@ -21,11 +21,11 @@ export default async function AccountPage() {
         <div className="mt-6 space-y-4">
           <div className="rounded-lg border border-brand-green/15 bg-white p-4 text-sm">
             <p>
-              <span className="text-brand-deepgreen/60">이름</span>{" "}
+              <span className="text-brand-deepgreen/70">이름</span>{" "}
               <span className="font-medium">{session.name}</span>
             </p>
             <p className="mt-1">
-              <span className="text-brand-deepgreen/60">역할</span>{" "}
+              <span className="text-brand-deepgreen/70">역할</span>{" "}
               <span className="font-medium">{session.role}</span>
             </p>
           </div>
@@ -53,10 +53,10 @@ export default async function AccountPage() {
                           기본
                         </span>
                       )}
-                      {a.label && <span className="text-brand-deepgreen/60">[{a.label}] </span>}
+                      {a.label && <span className="text-brand-deepgreen/70">[{a.label}] </span>}
                       {a.recipientName} · {a.recipientPhone}
                     </p>
-                    <p className="mt-1 text-xs text-brand-deepgreen/60">{a.addressLine}</p>
+                    <p className="mt-1 text-xs text-brand-deepgreen/70">{a.addressLine}</p>
                     <div className="mt-2 flex items-center gap-2">
                       {!a.isDefault && (
                         <form action={setDefaultAddressAction.bind(null, a.id)}>
@@ -91,7 +91,7 @@ export default async function AccountPage() {
 
           <div>
             <h2 className="text-sm font-semibold text-brand-deepgreen">알림 수신동의</h2>
-            <p className="mt-1 text-xs text-brand-deepgreen/60">
+            <p className="mt-1 text-xs text-brand-deepgreen/70">
               광고성 정보 수신동의 및 공동구매 오픈 알림 설정은{" "}
               <Link href="/alerts" className="text-brand-green underline-offset-2 hover:underline">
                 /alerts

@@ -57,7 +57,7 @@ export function EditBasicInfoForm({
             </option>
           ))}
         </select>
-        <p className="mt-1 text-[11px] text-brand-deepgreen/50">
+        <p className="mt-1 text-[11px] text-brand-deepgreen/70">
           판매 허가를 받은 카테고리만 선택할 수 있습니다.
         </p>
       </div>

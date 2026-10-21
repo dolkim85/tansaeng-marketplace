@@ -30,6 +30,7 @@ export function ReviewForm({ orderItemId }: { orderItemId: string }) {
         name="comment"
         required
         rows={2}
+        aria-label="후기 내용"
         placeholder="상품은 어떠셨나요?"
         className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
       />

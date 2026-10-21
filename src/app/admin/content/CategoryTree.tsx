@@ -27,7 +27,7 @@ function DeleteOrBlocked({
       extraCount > 0 && `하위 카테고리 ${extraCount}개`,
     ].filter(Boolean);
     return (
-      <span className="text-xs text-brand-deepgreen/40">
+      <span className="text-xs text-brand-deepgreen/70">
         삭제 불가({reasons.join(", ")} 연결됨)
       </span>
     );
@@ -50,7 +50,7 @@ export function CategoryTree({ categories }: { categories: TopCategory[] }) {
             <CategoryNameForm categoryId={top.id} name={top.name} />
             <DeleteOrBlocked category={top} extraCount={top.children.length} />
           </div>
-          <p className="mt-0.5 text-[11px] text-brand-deepgreen/40">/{top.slug}</p>
+          <p className="mt-0.5 text-[11px] text-brand-deepgreen/70">/{top.slug}</p>
 
           {top.children.length > 0 && (
             <ul className="mt-2 ml-4 space-y-2 border-l border-brand-deepgreen/10 pl-3">
@@ -58,7 +58,7 @@ export function CategoryTree({ categories }: { categories: TopCategory[] }) {
                 <li key={child.id} className="flex items-center justify-between">
                   <div>
                     <CategoryNameForm categoryId={child.id} name={child.name} />
-                    <p className="mt-0.5 text-[11px] text-brand-deepgreen/40">/{child.slug}</p>
+                    <p className="mt-0.5 text-[11px] text-brand-deepgreen/70">/{child.slug}</p>
                   </div>
                   <DeleteOrBlocked category={child} extraCount={0} />
                 </li>
@@ -73,7 +73,7 @@ export function CategoryTree({ categories }: { categories: TopCategory[] }) {
       ))}
 
       <div className="rounded-lg border border-dashed border-brand-deepgreen/20 bg-white/60 p-3">
-        <p className="mb-1 text-xs text-brand-deepgreen/60">새 최상위 카테고리 추가</p>
+        <p className="mb-1 text-xs text-brand-deepgreen/70">새 최상위 카테고리 추가</p>
         <NewCategoryForm placeholder="최상위 카테고리 이름" />
       </div>
     </div>

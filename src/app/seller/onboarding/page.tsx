@@ -31,11 +31,11 @@ export default async function SellerOnboardingPage() {
       {result?.latestApplication ? (
         <div className="mt-5 rounded-lg border border-brand-green/15 bg-white p-4 text-sm">
           <p>
-            <span className="text-brand-deepgreen/60">스토어</span>{" "}
+            <span className="text-brand-deepgreen/70">스토어</span>{" "}
             <span className="font-medium">{result.seller.storeName}</span>
           </p>
           <p className="mt-1">
-            <span className="text-brand-deepgreen/60">심사 상태</span>{" "}
+            <span className="text-brand-deepgreen/70">심사 상태</span>{" "}
             <span className="font-semibold text-brand-green">
               {STATUS_LABEL[result.latestApplication.status]}
             </span>
@@ -47,7 +47,7 @@ export default async function SellerOnboardingPage() {
           )}
         </div>
       ) : (
-        <p className="mt-3 text-sm text-brand-deepgreen/60">
+        <p className="mt-3 text-sm text-brand-deepgreen/70">
           아직 입점 신청 내역이 없습니다. 아래 양식으로 신청하세요.
         </p>
       )}
@@ -62,7 +62,7 @@ export default async function SellerOnboardingPage() {
           <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
             판매 가능 카테고리
           </h2>
-          <p className="mt-1 text-xs text-brand-deepgreen/60">
+          <p className="mt-1 text-xs text-brand-deepgreen/70">
             입점 승인과 별개로, 상품을 등록하려는 카테고리마다 판매 허가를 요청해 관리자
             승인을 받아야 합니다.
           </p>

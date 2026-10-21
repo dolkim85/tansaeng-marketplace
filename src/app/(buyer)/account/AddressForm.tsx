@@ -9,7 +9,7 @@ export function AddressForm({ hasAddresses }: { hasAddresses: boolean }) {
   return (
     <form action={formAction} className="mt-3 max-w-sm space-y-2 rounded-lg border border-dashed border-brand-green/30 bg-white/60 p-3">
       <div>
-        <label htmlFor="label" className="block text-xs text-brand-deepgreen/60">
+        <label htmlFor="label" className="block text-xs text-brand-deepgreen/70">
           별칭 (선택, 예: 집/회사)
         </label>
         <input
@@ -20,7 +20,7 @@ export function AddressForm({ hasAddresses }: { hasAddresses: boolean }) {
         />
       </div>
       <div>
-        <label htmlFor="recipientName" className="block text-xs text-brand-deepgreen/60">
+        <label htmlFor="recipientName" className="block text-xs text-brand-deepgreen/70">
           받는 분
         </label>
         <input
@@ -31,7 +31,7 @@ export function AddressForm({ hasAddresses }: { hasAddresses: boolean }) {
         />
       </div>
       <div>
-        <label htmlFor="recipientPhone" className="block text-xs text-brand-deepgreen/60">
+        <label htmlFor="recipientPhone" className="block text-xs text-brand-deepgreen/70">
           연락처
         </label>
         <input
@@ -43,7 +43,7 @@ export function AddressForm({ hasAddresses }: { hasAddresses: boolean }) {
         />
       </div>
       <div>
-        <label htmlFor="addressLine" className="block text-xs text-brand-deepgreen/60">
+        <label htmlFor="addressLine" className="block text-xs text-brand-deepgreen/70">
           배송지 주소
         </label>
         <textarea

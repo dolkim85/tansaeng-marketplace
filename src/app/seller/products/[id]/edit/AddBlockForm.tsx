@@ -39,6 +39,7 @@ export function AddBlockForm({ productId, media }: { productId: string; media: M
         <input
           name="text"
           required
+          aria-label={type === "HEADING" ? "제목" : "안내 문구"}
           placeholder={type === "HEADING" ? "제목" : "안내 문구"}
           className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
         />
@@ -46,6 +47,7 @@ export function AddBlockForm({ productId, media }: { productId: string; media: M
       {type === "BANNER" && (
         <select
           name="tone"
+          aria-label="배너 색상"
           defaultValue="info"
           className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
         >
@@ -58,6 +60,7 @@ export function AddBlockForm({ productId, media }: { productId: string; media: M
           name="text"
           required
           rows={4}
+          aria-label="문단 내용"
           placeholder="문단 내용을 입력하세요."
           className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
         />
@@ -67,6 +70,7 @@ export function AddBlockForm({ productId, media }: { productId: string; media: M
           <select
             name="mediaId"
             required
+            aria-label="사진 선택"
             className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
           >
             <option value="">사진 선택</option>
@@ -78,6 +82,7 @@ export function AddBlockForm({ productId, media }: { productId: string; media: M
           </select>
           <input
             name="alt"
+            aria-label="사진 대체텍스트"
             placeholder="사진 대체텍스트(화면낭독기 사용자를 위한 설명, 예: 강원도 평창 감자밭 전경)"
             className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
           />
@@ -88,6 +93,7 @@ export function AddBlockForm({ productId, media }: { productId: string; media: M
           <select
             name="mediaId"
             required
+            aria-label="영상 선택"
             className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
           >
             <option value="">영상 선택</option>
@@ -99,6 +105,7 @@ export function AddBlockForm({ productId, media }: { productId: string; media: M
           </select>
           <input
             name="alt"
+            aria-label="영상 설명"
             placeholder="영상 설명(화면낭독기 사용자를 위한 설명)"
             className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
           />
@@ -113,13 +120,14 @@ export function AddBlockForm({ productId, media }: { productId: string; media: M
             name="rowsText"
             required
             rows={4}
+            aria-label="표 내용"
             placeholder={"칸은 | 로 구분, 줄마다 한 행\n예) 품목 | 중량 | 원산지\n감자 | 10kg | 강원 평창"}
             className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
           />
         </>
       )}
       {type === "DIVIDER" && (
-        <p className="text-xs text-brand-deepgreen/50">
+        <p className="text-xs text-brand-deepgreen/70">
           추가 입력 없이 구분선만 삽입됩니다.
         </p>
       )}
@@ -128,6 +136,7 @@ export function AddBlockForm({ productId, media }: { productId: string; media: M
           name="faqText"
           required
           rows={4}
+          aria-label="FAQ 내용"
           placeholder={
             "줄마다 'Q: 질문 / A: 답변' 형식으로 입력\n예) Q: 배송은 며칠 걸리나요? / A: 결제 후 2~3일 이내 출고됩니다."
           }

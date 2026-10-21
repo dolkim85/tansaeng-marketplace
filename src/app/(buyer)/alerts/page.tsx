@@ -23,7 +23,7 @@ export default async function AlertsPage() {
       </h1>
 
       {!session ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           로그인 후 관심 알림과 수신설정을 확인할 수 있습니다.
         </p>
       ) : (
@@ -31,11 +31,11 @@ export default async function AlertsPage() {
           <h2 className="mt-6 text-base font-semibold text-brand-deepgreen">
             공동구매 오픈 알림
           </h2>
-          <p className="mt-1 text-xs text-brand-deepgreen/60">
+          <p className="mt-1 text-xs text-brand-deepgreen/70">
             신청하신 알림은 수요 관심으로만 집계되며, 실제 결제 주문량에는 포함되지 않습니다.
           </p>
           {alerts.length === 0 ? (
-            <p className="mt-3 text-sm text-brand-deepgreen/60">
+            <p className="mt-3 text-sm text-brand-deepgreen/70">
               신청한 오픈 알림이 없습니다.{" "}
               <Link href="/upcoming" className="text-brand-green underline-offset-2 hover:underline">
                 오픈예정 공동구매 보러가기 →
@@ -55,7 +55,7 @@ export default async function AlertsPage() {
                     >
                       {a.groupBuy.product.title}
                     </Link>
-                    <p className="text-xs text-brand-deepgreen/50">
+                    <p className="text-xs text-brand-deepgreen/70">
                       {PHASE_LABEL[a.groupBuy.phase]} · 오픈{" "}
                       {a.groupBuy.openAt.toLocaleDateString("ko-KR")}
                     </p>

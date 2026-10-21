@@ -11,6 +11,7 @@ export function NoticeForm() {
       <input
         name="title"
         required
+        aria-label="제목"
         placeholder="제목"
         className="w-full rounded-md border border-brand-deepgreen/20 px-3 py-2 text-sm"
       />
@@ -18,6 +19,7 @@ export function NoticeForm() {
         name="body"
         required
         rows={3}
+        aria-label="내용"
         placeholder="내용"
         className="w-full rounded-md border border-brand-deepgreen/20 px-3 py-2 text-sm"
       />

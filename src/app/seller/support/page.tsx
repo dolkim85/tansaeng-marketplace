@@ -13,17 +13,17 @@ export default async function SellerSupportPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
-      <p className="font-mono text-xs text-brand-deepgreen/50">/seller/support</p>
+      <p className="font-mono text-xs text-brand-deepgreen/70">/seller/support</p>
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
         문의/반품/분쟁 대응
       </h1>
 
       {!seller ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           판매자 정보가 없습니다.
         </p>
       ) : tickets.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           접수된 문의가 없습니다.
         </p>
       ) : (
@@ -48,7 +48,7 @@ export default async function SellerSupportPage() {
                     {TICKET_STATUS_LABEL[t.status]}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-brand-deepgreen/60">
+                <p className="mt-1 text-xs text-brand-deepgreen/70">
                   {TICKET_CATEGORY_LABEL[t.category]} · {t.user.name}
                   {t.product && ` · ${t.product.title}`}
                 </p>

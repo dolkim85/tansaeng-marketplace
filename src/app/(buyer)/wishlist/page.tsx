@@ -16,7 +16,7 @@ export default async function WishlistPage() {
       </h1>
 
       {items.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           아직 찜한 상품이 없습니다.{" "}
           <Link href="/categories" className="text-brand-green hover:underline">
             카테고리 둘러보기 →
@@ -36,7 +36,7 @@ export default async function WishlistPage() {
                 >
                   {w.product.title}
                 </Link>
-                <p className="text-xs text-brand-deepgreen/60">
+                <p className="text-xs text-brand-deepgreen/70">
                   {w.product.seller.storeName} ·{" "}
                   {formatKRW(w.product.priceKrw)}
                 </p>

@@ -23,6 +23,7 @@ export function NewOrderTicketForm({
       </p>
       <select
         name="category"
+        aria-label="문의 유형"
         defaultValue="ORDER_INQUIRY"
         className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
       >
@@ -31,6 +32,7 @@ export function NewOrderTicketForm({
       </select>
       <select
         name="orderItemId"
+        aria-label="문의할 상품"
         className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
       >
         {items.map((item) => (
@@ -42,6 +44,7 @@ export function NewOrderTicketForm({
       <input
         name="subject"
         required
+        aria-label="제목"
         placeholder="제목"
         className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
       />
@@ -49,6 +52,7 @@ export function NewOrderTicketForm({
         name="body"
         required
         rows={3}
+        aria-label="내용"
         placeholder="내용을 입력하세요."
         className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
       />

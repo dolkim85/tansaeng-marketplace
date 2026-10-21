@@ -20,11 +20,11 @@ export default async function SearchPage({
       </h1>
 
       {!q.trim() ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           검색어를 입력하세요.
         </p>
       ) : products.length === 0 && !searchAd ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           검색 결과가 없습니다.
         </p>
       ) : (

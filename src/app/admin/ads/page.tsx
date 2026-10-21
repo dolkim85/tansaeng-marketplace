@@ -18,13 +18,13 @@ export default async function AdminAdsPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <p className="font-mono text-xs text-brand-deepgreen/50">/admin/ads</p>
+      <p className="font-mono text-xs text-brand-deepgreen/70">/admin/ads</p>
       <h1 className="mt-1 text-2xl font-semibold text-brand-deepgreen">
         광고 슬롯/심사/정산
       </h1>
 
       {ads.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           신청된 광고가 없습니다.
         </p>
       ) : (
@@ -43,7 +43,7 @@ export default async function AdminAdsPage() {
                   {STATUS_LABEL[ad.status]}
                 </span>
               </div>
-              <p className="mt-1 text-xs text-brand-deepgreen/60">
+              <p className="mt-1 text-xs text-brand-deepgreen/70">
                 {ad.startAt.toLocaleDateString("ko-KR")} ~{" "}
                 {ad.endAt.toLocaleDateString("ko-KR")} · 노출 {ad.impressions}회
                 · 클릭 {ad.clicks}회

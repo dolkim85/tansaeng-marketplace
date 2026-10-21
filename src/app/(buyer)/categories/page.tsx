@@ -36,7 +36,7 @@ export default async function CategoriesPage() {
           </div>
         ))}
         {categories.length === 0 && (
-          <p className="text-sm text-brand-deepgreen/60">
+          <p className="text-sm text-brand-deepgreen/70">
             등록된 카테고리가 없습니다.
           </p>
         )}

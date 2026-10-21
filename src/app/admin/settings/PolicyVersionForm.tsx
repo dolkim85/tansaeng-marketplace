@@ -12,12 +12,14 @@ export function PolicyVersionForm() {
         <input
           name="title"
           required
+          aria-label="약관 이름"
           placeholder="약관 이름(예: 이용약관, 개인정보처리방침)"
           className="flex-1 rounded-md border border-brand-deepgreen/20 px-3 py-2 text-sm"
         />
         <input
           name="version"
           required
+          aria-label="버전"
           placeholder="버전(예: 1.0)"
           className="w-28 rounded-md border border-brand-deepgreen/20 px-3 py-2 text-sm"
         />
@@ -26,6 +28,7 @@ export function PolicyVersionForm() {
         name="content"
         required
         rows={5}
+        aria-label="약관 전문"
         placeholder="약관 전문을 입력하세요."
         className="w-full rounded-md border border-brand-deepgreen/20 px-3 py-2 text-sm"
       />
@@ -41,7 +44,7 @@ export function PolicyVersionForm() {
       >
         {pending ? "등록 중..." : "새 버전 등록"}
       </button>
-      <p className="text-[11px] text-brand-deepgreen/50">
+      <p className="text-[11px] text-brand-deepgreen/70">
         등록 후에는 수정/삭제할 수 없습니다. 과거 버전의 정확한 보존이 목적입니다.
       </p>
     </form>

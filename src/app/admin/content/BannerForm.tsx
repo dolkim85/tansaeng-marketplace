@@ -11,16 +11,19 @@ export function BannerForm() {
       <input
         name="title"
         required
+        aria-label="제목"
         placeholder="제목"
         className="w-full rounded-md border border-brand-deepgreen/20 px-3 py-2 text-sm"
       />
       <input
         name="subtitle"
+        aria-label="부제목"
         placeholder="부제목 (선택)"
         className="w-full rounded-md border border-brand-deepgreen/20 px-3 py-2 text-sm"
       />
       <input
         name="linkUrl"
+        aria-label="연결 링크"
         placeholder="연결 링크 (선택, 예: /group-buys)"
         className="w-full rounded-md border border-brand-deepgreen/20 px-3 py-2 text-sm"
       />
@@ -28,6 +31,7 @@ export function BannerForm() {
         name="sortOrder"
         type="number"
         defaultValue={0}
+        aria-label="우선순위"
         placeholder="우선순위 (낮을수록 먼저 노출)"
         className="w-full rounded-md border border-brand-deepgreen/20 px-3 py-2 text-sm"
       />

@@ -18,7 +18,7 @@ export default async function NewAdPage() {
     <div className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
       <h1 className="text-2xl font-semibold text-brand-deepgreen">광고 신청</h1>
       {products.length === 0 ? (
-        <p className="mt-4 text-sm text-brand-deepgreen/60">
+        <p className="mt-4 text-sm text-brand-deepgreen/70">
           판매중(ON_SALE) 상품이 없습니다. 먼저 상품을 등록/판매 상태로 전환하세요.
         </p>
       ) : (

@@ -21,12 +21,13 @@ export function NewProductReportForm({
       <p className="text-sm font-semibold text-brand-deepgreen">
         상품 신고: {productTitle}
       </p>
-      <p className="text-xs text-brand-deepgreen/60">
+      <p className="text-xs text-brand-deepgreen/70">
         신고 내용은 공개되지 않으며 관리자만 확인합니다.
       </p>
       <input
         name="subject"
         required
+        aria-label="신고 사유"
         placeholder="신고 사유 (예: 허위정보, 부적합 콘텐츠, 금지품목 등)"
         className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
       />
@@ -34,6 +35,7 @@ export function NewProductReportForm({
         name="body"
         required
         rows={3}
+        aria-label="상세 내용"
         placeholder="상세 내용을 입력하세요."
         className="w-full rounded-md border border-brand-green/20 px-3 py-2 text-sm"
       />

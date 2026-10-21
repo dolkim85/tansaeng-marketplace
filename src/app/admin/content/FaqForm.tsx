@@ -11,6 +11,7 @@ export function FaqForm() {
       <input
         name="question"
         required
+        aria-label="질문"
         placeholder="질문"
         className="w-full rounded-md border border-brand-deepgreen/20 px-3 py-2 text-sm"
       />
@@ -18,6 +19,7 @@ export function FaqForm() {
         name="answer"
         required
         rows={2}
+        aria-label="답변"
         placeholder="답변"
         className="w-full rounded-md border border-brand-deepgreen/20 px-3 py-2 text-sm"
       />
@@ -25,6 +27,7 @@ export function FaqForm() {
         name="sortOrder"
         type="number"
         defaultValue={0}
+        aria-label="순서"
         placeholder="순서 (낮을수록 먼저 노출)"
         className="w-full rounded-md border border-brand-deepgreen/20 px-3 py-2 text-sm"
       />

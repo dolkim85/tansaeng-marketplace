@@ -40,13 +40,13 @@ export default async function SellerAdsPage() {
       </div>
 
       {!approved && (
-        <p className="mt-3 text-sm text-brand-deepgreen/60">
+        <p className="mt-3 text-sm text-brand-deepgreen/70">
           입점 심사 승인 후 광고를 신청할 수 있습니다.
         </p>
       )}
 
       {ads.length === 0 ? (
-        <p className="mt-6 text-sm text-brand-deepgreen/60">
+        <p className="mt-6 text-sm text-brand-deepgreen/70">
           신청한 광고가 없습니다.
         </p>
       ) : (
@@ -64,7 +64,7 @@ export default async function SellerAdsPage() {
                   {STATUS_LABEL[ad.status]}
                 </span>
               </div>
-              <p className="mt-1 text-xs text-brand-deepgreen/60">
+              <p className="mt-1 text-xs text-brand-deepgreen/70">
                 {ad.startAt.toLocaleDateString("ko-KR")} ~{" "}
                 {ad.endAt.toLocaleDateString("ko-KR")} · 노출 {ad.impressions}회
                 · 클릭 {ad.clicks}회

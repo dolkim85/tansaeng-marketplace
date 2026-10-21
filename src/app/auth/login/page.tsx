@@ -5,7 +5,7 @@ export default function LoginPage() {
   return (
     <div>
       <h1 className="text-lg font-semibold text-brand-deepgreen">로그인</h1>
-      <p className="mt-1 text-xs text-brand-deepgreen/60">
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
         데모 계정: buyer_demo@tansaeng.local / seller.approved@tansaeng.local /
         admin_demo@tansaeng.local (비밀번호: demo1234)
       </p>
