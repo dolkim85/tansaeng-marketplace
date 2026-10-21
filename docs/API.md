@@ -33,8 +33,8 @@
 | `src/server/cart/actions.ts` | `addToCartAction` | 장바구니 담기(기존 있으면 +1) | 로그인 필요 |
 | | `updateCartItemQuantityAction` | 수량 변경(0 이하면 삭제) | 로그인 + 본인 장바구니만 |
 | | `removeCartItemAction` | 장바구니 항목 삭제 | 로그인 + 본인 장바구니만 |
-| `src/server/orders/actions.ts` | `checkoutAction` | 장바구니→주문 생성(판매자별 Suborder 분리, 재고 차감, Mock Payment 생성) | 로그인 필요 |
-| | `confirmMockPaymentAction` | Mock 결제 확인(Payment CONFIRMED, Order PAID) | 로그인 + 본인 주문만 |
+| `src/server/orders/actions.ts` | `checkoutAction` | 장바구니→주문 생성(판매자별 Suborder 분리, 재고 차감, Mock Payment 생성). 시작 전 만료된(30분+ 결제 대기) 주문을 먼저 소거해 재고를 복구 | 로그인 필요 |
+| | `confirmMockPaymentAction` | Mock 결제 확인(Payment CONFIRMED, Order PAID). 본인 주문이 이미 타임아웃을 넘겼으면 확인 대신 자동 취소+재고 복구 | 로그인 + 본인 주문만 |
 | | `cancelOrderAction` | 주문 취소(재고 복구, Payment REFUNDED/FAILED 전이) | 로그인 + 본인 주문만 |
 | `src/server/groupbuy/actions.ts` | `toggleGroupBuyAlertAction` | 오픈 알림 신청/해제(수요 집계 제외) | 로그인 필요 |
 | | `joinGroupBuyAction` | 공동구매 참여(OPEN 단계만, 1인당 제한/최대수량 트랜잭션 내 재검증) | 로그인 필요 |

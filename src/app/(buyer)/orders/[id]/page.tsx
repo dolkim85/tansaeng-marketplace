@@ -91,6 +91,12 @@ export default async function OrderDetailPage({
         </span>
       </div>
 
+      {canConfirmPayment && (
+        <p className="mt-2 text-xs text-brand-deepgreen/70">
+          결제 대기 상태로 30분이 지나면 재고 확보를 위해 주문이 자동 취소됩니다.
+        </p>
+      )}
+
       <div className="mt-4 flex gap-2">
         {canConfirmPayment && (
           <form action={confirmMockPaymentAction.bind(null, order.id)}>

@@ -15,6 +15,55 @@ const checkoutSchema = z.object({
   addressLine: z.string().min(5, "배송지 주소를 입력하세요."),
 });
 
+/// 재고 예약 타임아웃. 결제 대기(CREATED) 상태로 이 시간을 넘긴 주문은 재고를
+/// 무기한 점유하지 못하게 자동 취소한다. 이 프로젝트는 스케줄러를 쓰지 않으므로
+/// (공동구매 단계 계산과 동일한 원칙), 백그라운드 잡 대신 재고가 실제로 문제될 수
+/// 있는 시점(새 체크아웃 시도, 본인 주문 결제 확인 시도)마다 지연 소거(lazy sweep)한다.
+const ORDER_RESERVATION_TIMEOUT_MS = 30 * 60 * 1000;
+
+/// 타임아웃을 넘긴 CREATED 주문을 전부 취소하고 재고를 복구한다. cancelOrderAction과
+/// 로직은 같으나(상태 전환을 조건부 updateMany로 한 번만 성공시켜 중복 복구 방지),
+/// 특정 구매자 1건이 아니라 조건에 맞는 모든 주문을 한 번에 처리한다. 기존 결정에
+/// 따라(PRODUCT_DECISIONS.md) 구매자 본인이 방치해 발생한 자동 취소는 알림 대상에서
+/// 제외한다(능동적 조치가 아니라 당연한 결과라 알림 스팸에 가까움).
+async function releaseExpiredOrders(): Promise<void> {
+  const cutoff = new Date(Date.now() - ORDER_RESERVATION_TIMEOUT_MS);
+  const expired = await prisma.order.findMany({
+    where: { status: "CREATED", createdAt: { lt: cutoff } },
+    include: { payment: true, suborders: { include: { items: true } } },
+  });
+
+  for (const order of expired) {
+    await prisma.$transaction(async (tx) => {
+      const result = await tx.order.updateMany({
+        where: { id: order.id, status: "CREATED" },
+        data: { status: "CANCELLED" },
+      });
+      if (result.count === 0) return;
+
+      for (const suborder of order.suborders) {
+        for (const item of suborder.items) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stockQty: { increment: item.quantity } },
+          });
+        }
+        await tx.suborder.update({
+          where: { id: suborder.id },
+          data: { status: "CANCELLED" },
+        });
+      }
+
+      if (order.payment) {
+        await tx.payment.update({
+          where: { orderId: order.id },
+          data: { status: "FAILED" },
+        });
+      }
+    });
+  }
+}
+
 export async function checkoutAction(
   _prevState: CheckoutFormState,
   formData: FormData
@@ -30,6 +79,10 @@ export async function checkoutAction(
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "입력값을 확인하세요." };
   }
+
+  // 새 체크아웃이 재고 부족을 가장 먼저 체감하는 지점이라, 여기서 먼저 방치된
+  // 예약을 정리해 실제 가용 재고를 최대한 정확히 반영한다.
+  await releaseExpiredOrders();
 
   const cart = await prisma.cart.findUnique({
     where: { userId: session.sub },
@@ -133,8 +186,14 @@ export async function confirmMockPaymentAction(orderId: string): Promise<void> {
   const session = await getSession();
   if (!session) redirect("/auth/login");
 
+  // 본인이 방치해둔 주문이 타임아웃을 넘긴 뒤 뒤늦게 "결제 확인"을 눌렀을 수 있다 —
+  // 먼저 전역 소거를 돌려 이미 만료됐다면 CANCELLED로 정리되게 한다(아래 상태 확인이
+  // 이를 자연스럽게 걸러냄).
+  await releaseExpiredOrders();
+
   const order = await prisma.order.findUnique({ where: { id: orderId } });
   if (!order || order.buyerId !== session.sub || order.status !== "CREATED") {
+    revalidatePath(`/orders/${orderId}`);
     return;
   }
 
