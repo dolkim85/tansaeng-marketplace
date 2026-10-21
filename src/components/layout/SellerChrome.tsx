@@ -89,6 +89,12 @@ export function SellerChrome({
           >
             스토어 소개
           </Link>
+          <Link
+            href="/seller/reviews"
+            className="rounded-md px-3 py-2 text-sm text-brand-deepgreen/70 hover:bg-brand-green/5"
+          >
+            후기 관리
+          </Link>
         </nav>
       </aside>
 

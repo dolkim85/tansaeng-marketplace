@@ -32,3 +32,12 @@ export async function listMyReviews(userId: string) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+/** 판매자 본인 상품에 달린 후기 전체(답변 작성/수정용, /seller/reviews). */
+export async function listSellerReviews(sellerId: string) {
+  return prisma.review.findMany({
+    where: { product: { sellerId } },
+    include: { user: true, product: true },
+    orderBy: { createdAt: "desc" },
+  });
+}

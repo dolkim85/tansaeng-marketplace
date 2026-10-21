@@ -46,6 +46,7 @@
 | | `setPrimaryMediaAction` | 대표사진 지정(sortOrder 교체) | 로그인 + 본인 상품만 |
 | `src/server/orders/actions.ts` | `advanceSuborderStatusAction` | 배송상태 전진(PENDING→PREPARING→SHIPPED→COMPLETED) | 로그인 + 본인 Suborder만 |
 | `src/server/reviews/actions.ts` | `createReviewAction` | 배송완료 주문 항목에 후기 작성(1건당 1개) | 로그인 + 본인 주문만 |
+| | `replyToReviewAction` | 판매자가 자신의 상품 후기에 답변 작성/수정(빈 값 제출 시 삭제) | SELLER + 본인 상품 후기만 |
 | `src/server/ads/actions.ts` | `requestAdAction` | 광고 신청(본인 상품만) | SELLER |
 | | `approveAdAction` / `rejectAdAction` | 광고 심사 | ADMIN 이상 |
 | `src/server/support/actions.ts` | `createProductQuestionAction` | 상품 질문 티켓 생성(공개/비공개 선택) | 로그인 필요 |

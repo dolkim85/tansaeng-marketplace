@@ -59,3 +59,44 @@ export async function createReviewAction(
   revalidatePath(`/orders/${orderItem.suborder.orderId}`);
   return undefined;
 }
+
+const sellerReplySchema = z.object({
+  reply: z.string().max(1000, "답변은 1000자 이내로 입력하세요.").optional(),
+});
+
+/// 판매자가 자신의 상품에 달린 후기에 답변을 작성/수정한다(이미 작성된 답변도
+/// 다시 제출해 고칠 수 있음 — 1회성 제약 없음). 빈 문자열로 제출하면 답변을 지운다.
+export async function replyToReviewAction(
+  reviewId: string,
+  _prevState: ReviewFormState,
+  formData: FormData
+): Promise<ReviewFormState> {
+  const session = await getSession();
+  if (!session) redirect("/auth/login?from=/seller/reviews");
+
+  const parsed = sellerReplySchema.safeParse({
+    reply: formData.get("reply") ?? undefined,
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "입력값을 확인하세요." };
+  }
+
+  const seller = await prisma.seller.findUnique({ where: { userId: session.sub } });
+  const review = await prisma.review.findUnique({
+    where: { id: reviewId },
+    include: { product: true },
+  });
+  if (!review || !seller || review.product.sellerId !== seller.id) {
+    return { error: "본인 상품의 후기만 답변할 수 있습니다." };
+  }
+
+  await prisma.review.update({
+    where: { id: reviewId },
+    data: { sellerReply: parsed.data.reply?.trim() || null },
+  });
+
+  revalidatePath("/seller/reviews");
+  revalidatePath("/reviews");
+  revalidatePath(`/products/${review.product.slug}`);
+  return undefined;
+}
