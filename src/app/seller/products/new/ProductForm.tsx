@@ -121,7 +121,7 @@ export function ProductForm({ categories }: { categories: Category[] }) {
         {pending ? "등록 중..." : "상품 등록"}
       </button>
       <p className="text-xs text-brand-deepgreen/50">
-        사진/영상 업로드는 다음 단계에서 구현 예정입니다.
+        사진/영상은 상품 등록 후 수정 페이지에서 추가할 수 있습니다.
       </p>
     </form>
   );

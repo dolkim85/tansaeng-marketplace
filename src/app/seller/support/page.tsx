@@ -40,7 +40,7 @@ export default async function SellerSupportPage() {
                   </span>
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs ${
-                      t.category === "DISPUTE"
+                      t.category === "DISPUTE" || t.category === "REPORT"
                         ? "bg-red-100 text-red-600"
                         : "bg-brand-green/10 text-brand-green"
                     }`}

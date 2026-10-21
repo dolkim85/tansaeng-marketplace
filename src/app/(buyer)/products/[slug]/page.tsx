@@ -143,6 +143,12 @@ export default async function ProductDetailPage({
         >
           판매자에게 문의하기
         </Link>
+        <Link
+          href={`/help?new=report&productId=${product.id}`}
+          className="text-xs text-red-600 underline-offset-2 hover:underline"
+        >
+          신고하기
+        </Link>
       </div>
 
       {product.seller.returnPolicy && (

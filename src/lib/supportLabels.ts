@@ -2,6 +2,7 @@ export const TICKET_CATEGORY_LABEL: Record<string, string> = {
   PRODUCT_QUESTION: "상품 질문",
   ORDER_INQUIRY: "주문 문의",
   DISPUTE: "분쟁",
+  REPORT: "상품 신고",
 };
 
 export const TICKET_STATUS_LABEL: Record<string, string> = {

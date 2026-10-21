@@ -131,6 +131,12 @@ export default async function SellerProductsPage() {
                   </form>
                 </div>
               )}
+              {p.isAdminSuspended && (
+                <p className="mt-2 text-xs text-red-600">
+                  관리자에 의해 강제 숨김 처리되었습니다(사유: {p.suspendedReason}).
+                  해제 전까지는 직접 판매재개할 수 없습니다.
+                </p>
+              )}
               {(p.status === "ON_SALE" || p.status === "HIDDEN") && (
                 <div className="mt-2">
                   {p.status === "ON_SALE" ? (
@@ -142,7 +148,7 @@ export default async function SellerProductsPage() {
                         판매중단
                       </button>
                     </form>
-                  ) : (
+                  ) : !p.isAdminSuspended ? (
                     <form action={resumeSellingProductAction.bind(null, p.id)}>
                       <button
                         type="submit"
@@ -151,7 +157,7 @@ export default async function SellerProductsPage() {
                         판매재개
                       </button>
                     </form>
-                  )}
+                  ) : null}
                 </div>
               )}
             </li>

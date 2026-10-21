@@ -281,3 +281,72 @@ export async function rejectProductReviewAction(
   revalidatePath("/admin/products");
   revalidatePath("/seller/products");
 }
+
+/// 신고 등 관리자 판단으로 상품을 강제 숨김(ON_SALE/HIDDEN 모두 대상, 소유자와 무관하게
+/// 임의 상품에 적용 가능). isAdminSuspended가 true인 동안은 판매자의 판매재개
+/// (resumeSellingProductAction)가 거부된다 — 반드시 unsuspendProductAction으로 먼저
+/// 해제해야 판매자가 다시 판매재개를 시도할 수 있다.
+export async function suspendProductAction(
+  productId: string,
+  formData: FormData
+): Promise<void> {
+  const session = await requireAdmin();
+
+  const reason = String(formData.get("reason") ?? "").trim();
+  if (!reason) return;
+
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (!product || (product.status !== "ON_SALE" && product.status !== "HIDDEN")) return;
+
+  await prisma.product.update({
+    where: { id: productId },
+    data: {
+      status: "HIDDEN",
+      isAdminSuspended: true,
+      suspendedReason: reason,
+      suspendedBy: session.sub,
+      suspendedAt: new Date(),
+    },
+  });
+
+  await logAdminAction({
+    actorId: session.sub,
+    action: "PRODUCT_SUSPENDED",
+    targetType: "Product",
+    targetId: productId,
+    detail: `${product.title} - ${reason}`,
+  });
+
+  revalidatePath("/admin/products");
+  revalidatePath("/seller/products");
+}
+
+/// 강제 숨김 해제. 상태를 바로 ON_SALE로 되돌리지 않고 통제권을 판매자의 기존
+/// 판매재개 버튼으로 돌려줄 뿐이다(해제 직후에도 여전히 HIDDEN 상태 유지).
+export async function unsuspendProductAction(productId: string): Promise<void> {
+  const session = await requireAdmin();
+
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (!product || !product.isAdminSuspended) return;
+
+  await prisma.product.update({
+    where: { id: productId },
+    data: {
+      isAdminSuspended: false,
+      suspendedReason: null,
+      suspendedBy: null,
+      suspendedAt: null,
+    },
+  });
+
+  await logAdminAction({
+    actorId: session.sub,
+    action: "PRODUCT_UNSUSPENDED",
+    targetType: "Product",
+    targetId: productId,
+    detail: product.title,
+  });
+
+  revalidatePath("/admin/products");
+  revalidatePath("/seller/products");
+}

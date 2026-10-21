@@ -88,6 +88,7 @@ enum SupportTicketCategory {
   PRODUCT_QUESTION
   ORDER_INQUIRY
   DISPUTE
+  REPORT
 }
 
 enum AdPlacement {
@@ -271,6 +272,15 @@ model Product {
   reviewNote String?
   reviewedBy String?
   reviewedAt DateTime?
+
+  /// 관리자 강제 숨김(신고 처리 결과 등). true인 동안은 상태가 HIDDEN으로 고정되고,
+  /// 판매자의 판매재개(resumeSellingProductAction)가 거부된다 — 관리자가 먼저
+  /// 해제해야 판매자가 다시 판매재개를 누를 수 있다(해제 자체가 바로 ON_SALE로
+  /// 되돌리지는 않음 — 통제권을 판매자의 기존 토글로 그대로 돌려줄 뿐).
+  isAdminSuspended Boolean   @default(false)
+  suspendedReason  String?
+  suspendedBy      String?
+  suspendedAt      DateTime?
 
   media          ProductMedia[]
   wishlists      Wishlist[]

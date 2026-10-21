@@ -232,6 +232,9 @@ async function setSellingState(productId: string, nextStatus: "ON_SALE" | "HIDDE
   const seller = await prisma.seller.findUnique({ where: { userId: session.sub } });
   if (!product || !seller || product.sellerId !== seller.id) return;
   if (product.status !== "ON_SALE" && product.status !== "HIDDEN") return;
+  // 관리자가 강제 숨김한 상품은 해제(unsuspendProductAction) 전까지 판매자가 직접
+  // 판매재개할 수 없다.
+  if (nextStatus === "ON_SALE" && product.isAdminSuspended) return;
 
   await prisma.product.update({
     where: { id: productId },

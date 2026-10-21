@@ -56,13 +56,26 @@ Product
 - `Ad`(M3): 실제 과금 없이 `impressions`/`clicks` 정수 카운터만 증가시키는 모의 광고. "활성" 여부는
   `status=APPROVED && startAt<=now<=endAt`로 화면에서 계산(`src/lib/adActive.ts`, 공동구매와 동일 패턴).
   클릭은 `/api/ads/[id]/click` 라우트 핸들러를 거쳐 집계 후 실제 상품 페이지로 307 리다이렉트된다.
-- `SupportTicket`/`SupportTicketMessage`(M3): 상품질문/주문문의/분쟁 3종을 같은 상태기계
-  (`OPEN`→`ANSWERED`→`CLOSED`)와 메시지 스레드로 처리한다. `sellerId`는 조회 편의를 위한
-  비정규화 필드로, 상품질문은 `product.sellerId`에서, 주문문의/분쟁은 사용자가 선택한
-  주문 품목이 속한 `Suborder.sellerId`에서 생성 시점에 고정한다(한 주문에 판매자가 여럿이어도
-  품목 단위로 정확히 한 판매자에게만 배정됨). `isPublic`은 `PRODUCT_QUESTION`에서만 의미가
-  있고(공개 질문은 상품 상세페이지에 노출), 그 외 카테고리는 항상 비공개로 취급한다.
-  `SupportTicketMessage.authorRole`은 작성 시점 역할의 스냅샷(이후 역할이 바뀌어도 이력이 안 바뀜).
+- `SupportTicket`/`SupportTicketMessage`(M3): 상품질문/주문문의/분쟁/상품신고 4종을 같은
+  상태기계(`OPEN`→`ANSWERED`→`CLOSED`)와 메시지 스레드로 처리한다. `sellerId`는 조회 편의를
+  위한 비정규화 필드로, 상품질문·상품신고는 `product.sellerId`에서, 주문문의/분쟁은 사용자가
+  선택한 주문 품목이 속한 `Suborder.sellerId`에서 생성 시점에 고정한다(한 주문에 판매자가
+  여럿이어도 품목 단위로 정확히 한 판매자에게만 배정됨). `isPublic`은 `PRODUCT_QUESTION`에서만
+  의미가 있고(공개 질문은 상품 상세페이지에 노출), 그 외 카테고리(`REPORT` 포함)는 항상
+  비공개로 취급한다. `SupportTicketMessage.authorRole`은 작성 시점 역할의 스냅샷(이후 역할이
+  바뀌어도 이력이 안 바뀜).
+- `SupportTicketCategory.REPORT`(상품 신고, 마스터 문서 3장 "/admin/products — 상품 검수·신고·
+  카테고리"): 구매자가 상품 상세페이지의 "신고하기"로 생성하며, 다른 카테고리와 동일하게
+  해당 상품의 판매자(`sellerId`)에게도 조회 권한이 있다(기존 분쟁 티켓과 동일한 투명성
+  모델을 그대로 적용 — 신고당한 판매자만 볼 수 없게 하는 별도 비공개 처리는 하지 않음).
+  관리자는 신고 내용을 참고해 `/admin/products`에서 해당 상품을 강제 숨김할 수 있지만, 신고
+  티켓 자체와 강제 숨김 액션은 서로 데이터로 연결되어 있지 않다(관리자의 수동 판단에 의존).
+- `Product.isAdminSuspended`/`suspendedReason`/`suspendedBy`/`suspendedAt`(관리자 강제 숨김):
+  ON_SALE/HIDDEN 상태의 임의 상품(소유자 무관)에 관리자가 적용 가능. 적용되면 상태가
+  HIDDEN으로 고정되고 판매자의 `resumeSellingProductAction`(판매재개)이 거부된다. 해제
+  (`unsuspendProductAction`)는 플래그만 지울 뿐 상태를 바로 ON_SALE로 되돌리지 않는다 —
+  통제권을 판매자의 기존 판매중단/재개 토글로 그대로 돌려주는 것이 목적이라, 해제 후에도
+  판매자가 "판매재개"를 한 번 더 눌러야 실제로 다시 노출된다.
 - `Banner`/`Notice`/`Faq`(M3): 운영자 CMS 전용 테이블. `Banner`는 판매자가 신청하는 유료
   `Ad`(placement=HOME_BANNER)와 별개의 비과금 편집성 배너로, `isActive`인 것 중 `sortOrder`가
   가장 작은(우선순위 높은) 1건만 홈 화면에 노출된다(복수 노출/캐러셀 없음). `Notice`는

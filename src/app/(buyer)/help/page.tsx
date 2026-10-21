@@ -5,6 +5,7 @@ import { listMyTickets, listOrderItemsForTicket } from "@/server/support/queries
 import { listFaqs } from "@/server/content/queries";
 import { TICKET_CATEGORY_LABEL, TICKET_STATUS_LABEL } from "@/lib/supportLabels";
 import { NewProductQuestionForm } from "./NewProductQuestionForm";
+import { NewProductReportForm } from "./NewProductReportForm";
 import { NewOrderTicketForm } from "./NewOrderTicketForm";
 
 export default async function HelpPage({
@@ -16,7 +17,7 @@ export default async function HelpPage({
   const session = await getSession();
 
   const product =
-    newType === "product" && productId
+    (newType === "product" || newType === "report") && productId
       ? await prisma.product.findUnique({ where: { id: productId } })
       : null;
 
@@ -67,8 +68,11 @@ export default async function HelpPage({
         </div>
       )}
 
-      {product && (
+      {product && newType === "product" && (
         <NewProductQuestionForm productId={product.id} productTitle={product.title} />
+      )}
+      {product && newType === "report" && (
+        <NewProductReportForm productId={product.id} productTitle={product.title} />
       )}
       {orderForTicket && orderItems.length > 0 && (
         <NewOrderTicketForm orderId={orderForTicket.id} items={orderItems} />

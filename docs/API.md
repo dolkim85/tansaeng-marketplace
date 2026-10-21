@@ -42,6 +42,7 @@
 | `src/server/ads/actions.ts` | `requestAdAction` | 광고 신청(본인 상품만) | SELLER |
 | | `approveAdAction` / `rejectAdAction` | 광고 심사 | ADMIN 이상 |
 | `src/server/support/actions.ts` | `createProductQuestionAction` | 상품 질문 티켓 생성(공개/비공개 선택) | 로그인 필요 |
+| | `createProductReportAction` | 상품 신고 티켓 생성(항상 비공개) | 로그인 필요 |
 | | `createOrderTicketAction` | 주문문의/분쟁 티켓 생성(본인 주문의 품목 선택) | 로그인 + 본인 주문만 |
 | | `replyTicketAction` | 답변/추가 메시지 등록(작성자가 작성자 본인이면 OPEN, 아니면 ANSWERED로 전이) | 티켓 당사자(구매자/배정판매자)+ADMIN 이상 |
 | | `closeTicketAction` | 티켓 종료 | 티켓 당사자(구매자/배정판매자)+ADMIN 이상 |
@@ -53,6 +54,8 @@
 | | `deleteProxyProductAction` | 승인 전 대리등록 상품 삭제 | ADMIN 이상 |
 | | `approveProductReviewAction` | 신규 상품 검수 승인(IN_REVIEW→ON_SALE, 반려 사유 초기화) | ADMIN 이상 |
 | | `rejectProductReviewAction` | 신규 상품 검수 반려(IN_REVIEW→DRAFT, 반려 사유 필수 입력) | ADMIN 이상 |
+| | `suspendProductAction` | 상품 강제 숨김(ON_SALE/HIDDEN→HIDDEN, 소유자 무관, 사유 필수) | ADMIN 이상 |
+| | `unsuspendProductAction` | 강제 숨김 해제(플래그만 해제, 상태는 HIDDEN 유지) | ADMIN 이상 |
 | `src/server/seller/actions.ts` | `stopSellingProductAction` / `resumeSellingProductAction` | 본인 상품(대리등록 포함) 판매중단/재개 | 로그인 + 본인 상품만 |
 | `src/server/settlement/actions.ts` | `runSettlementAction` | 판매자의 미정산(COMPLETED) Suborder를 모아 정산 배치 생성(중복 집계 방지) | ADMIN 이상 |
 | | `approveSettlementAction` | 정산 배치 승인(모의 지급 완료 처리) | ADMIN 이상 |

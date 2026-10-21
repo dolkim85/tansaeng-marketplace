@@ -5,6 +5,8 @@ import {
   deleteProxyProductAction,
   approveProductReviewAction,
   rejectProductReviewAction,
+  suspendProductAction,
+  unsuspendProductAction,
 } from "@/server/admin/actions";
 import { formatKRW } from "@/lib/currency";
 
@@ -50,6 +52,7 @@ export default async function AdminProductsPage() {
               <th className="py-2">가격</th>
               <th className="py-2">상태</th>
               <th className="py-2">검수</th>
+              <th className="py-2">숨김 처리</th>
               <th className="py-2">대리등록</th>
             </tr>
           </thead>
@@ -99,6 +102,35 @@ export default async function AdminProductsPage() {
                   )}
                 </td>
                 <td className="py-2">
+                  {p.status !== "ON_SALE" && p.status !== "HIDDEN" ? (
+                    <span className="text-xs text-brand-deepgreen/30">-</span>
+                  ) : p.isAdminSuspended ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-red-600" title={p.suspendedReason ?? undefined}>
+                        강제숨김: {p.suspendedReason}
+                      </span>
+                      <form action={unsuspendProductAction.bind(null, p.id)}>
+                        <button type="submit" className="text-xs text-brand-green underline-offset-2 hover:underline">
+                          해제
+                        </button>
+                      </form>
+                    </div>
+                  ) : (
+                    <form action={suspendProductAction.bind(null, p.id)} className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        name="reason"
+                        required
+                        placeholder="숨김 사유"
+                        className="w-24 rounded border border-brand-deepgreen/15 px-1.5 py-0.5 text-[11px]"
+                      />
+                      <button type="submit" className="text-xs text-red-600 underline-offset-2 hover:underline">
+                        강제숨김
+                      </button>
+                    </form>
+                  )}
+                </td>
+                <td className="py-2">
                   {p.isProxyRegistered ? (
                     p.status === "DRAFT" ? (
                       <div className="flex items-center gap-2">
@@ -132,7 +164,9 @@ export default async function AdminProductsPage() {
       )}
 
       <p className="mt-6 rounded-lg border border-dashed border-brand-deepgreen/20 bg-white/60 p-3 text-xs text-brand-deepgreen/50">
-        대리등록 상품의 승인/삭제만 가능. 일반 상품의 숨김/신고 처리는 다음 단계에서 구현 예정.
+        신고는 <Link href="/admin/support" className="underline">/admin/support</Link>에서
+        확인할 수 있습니다(카테고리 &quot;상품 신고&quot;). 강제숨김 중에는 판매자가 직접
+        판매재개할 수 없으며, 해제 후에만 판매재개가 가능합니다.
       </p>
     </div>
   );

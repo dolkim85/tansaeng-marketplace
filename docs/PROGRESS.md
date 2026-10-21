@@ -1272,3 +1272,58 @@ M4 이전 범위 등).
 **환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
 **실결제/실알림/온라인 배포:** 실행 안 함
 **다음 단계:** 사용자가 지정하는 다음 항목으로 진행(M4 이전 범위 등).
+
+---
+
+## 상품 신고 + 관리자 강제 숨김 (2026-10-21, 완료)
+
+**완료 기능:**
+- `/admin/products`에 남아있던 마지막 스텁("일반 상품의 숨김/신고 처리는 다음 단계에서
+  구현 예정") 해소
+- `SupportTicketCategory.REPORT` 추가(마이그레이션
+  `20261021001024_add_product_report_and_suspend`): 기존 상품질문/주문문의/분쟁과 같은
+  `SupportTicket` 상태기계·메시지 스레드를 재사용, 항상 비공개(`isPublic: false`)
+- `createProductReportAction`(구매자, 상품 상세페이지 "신고하기" → `/help?new=report`):
+  신고 사유+상세 내용을 받아 티켓 생성
+- `Product.isAdminSuspended`/`suspendedReason`/`suspendedBy`/`suspendedAt` 추가:
+  `suspendProductAction`(관리자, ON_SALE/HIDDEN 임의 상품을 강제 HIDDEN, 사유 필수)과
+  `unsuspendProductAction`(플래그만 해제, 상태는 HIDDEN 유지) + `AuditLog` 기록
+  (`PRODUCT_SUSPENDED`/`PRODUCT_UNSUSPENDED`)
+- `setSellingState`(기존 판매중단/재개 공통 함수) 수정: `isAdminSuspended`인 동안은
+  판매자의 판매재개 요청을 거부 — 강제 숨김을 판매자가 스스로 무효화하는 구멍을 막음
+- `/admin/products`: "숨김 처리" 열 추가(사유 입력 후 강제숨김/해제), 하단 안내문을
+  "/admin/support에서 신고 확인" + 강제숨김 동작 설명으로 교체
+- `/seller/products`: 강제 숨김 사유 표시, 강제 숨김 중에는 "판매재개" 버튼 숨김
+- `/admin/support`, `/seller/support`: 분쟁과 동일하게 신고 티켓도 빨간색으로
+  강조 표시
+
+**미완료 기능과 이유:** 없음(스텁에 명시된 "일반 상품의 숨김/신고 처리" 범위 전부 구현).
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `eslint src`, `next build`(49라우트, 라우트 추가 없음), `vitest run`
+  (40건, 회귀 없음) 전부 통과
+- Playwright(Python) E2E: 구매자가 상품 상세페이지에서 신고 → 티켓 생성 확인 → 신고
+  내용이 공개 "상품 질문" 섹션에 노출되지 않음 확인 → 관리자가 `/admin/support`에서
+  "상품 신고" 라벨로 조회 → `/admin/products`에서 사유를 입력해 강제숨김 → 상태가
+  숨김으로 바뀌고 해제 버튼이 보임 → 판매자 화면에 숨김 사유가 표시되고 판매재개
+  버튼이 사라짐 확인 → 관리자가 해제해도 상태가 곧바로 ON_SALE로 돌아가지 않고
+  HIDDEN으로 유지됨 확인 → 판매자가 다시 판매재개를 눌러야 실제로 판매중으로
+  복귀함을 확인
+- 테스트 중 생성한 신고 티켓은 삭제, 상품 상태는 원래 값(ON_SALE)으로 복구
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(+마이그레이션), `src/lib/auditLabels.ts`,
+`src/lib/supportLabels.ts`, `src/server/support/actions.ts`(createProductReportAction),
+`src/server/admin/actions.ts`(suspendProductAction/unsuspendProductAction),
+`src/server/seller/actions.ts`(setSellingState 가드 추가),
+`src/app/(buyer)/help/{page,NewProductReportForm}.tsx`,
+`src/app/(buyer)/products/[slug]/page.tsx`,
+`src/app/admin/{products,support}/page.tsx`, `src/app/seller/{products,support}/page.tsx`,
+`docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자가 지정하는 다음 항목으로 진행(M4 이전 범위 등). 현재 코드베이스
+전체에 `TODO`/"다음 단계에서 구현"/"구현 예정" 문자열로 표시된 남은 스텁은 없음
+(grep 기준).

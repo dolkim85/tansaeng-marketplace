@@ -59,6 +59,55 @@ export async function createProductQuestionAction(
   redirect(`/help/${ticket.id}`);
 }
 
+const reportSchema = z.object({
+  subject: z.string().min(2, "신고 사유를 2자 이상 입력하세요."),
+  body: z.string().min(2, "상세 내용을 2자 이상 입력하세요."),
+});
+
+/// 부적합 콘텐츠/허위정보 등 상품 신고(마스터 문서 3장 "/admin/products — 상품 검수·신고·
+/// 카테고리"). 다른 상품질문과 달리 공개 여부 선택 없이 항상 비공개(isPublic: false)로
+/// 생성하며, 관리자는 신고 내용을 바탕으로 /admin/products에서 해당 상품을 강제 숨김할 수 있다.
+export async function createProductReportAction(
+  productId: string,
+  _prevState: TicketFormState,
+  formData: FormData
+): Promise<TicketFormState> {
+  const session = await getSession();
+  if (!session) redirect(`/auth/login?from=/products`);
+
+  const parsed = reportSchema.safeParse({
+    subject: formData.get("subject"),
+    body: formData.get("body"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "입력값을 확인하세요." };
+  }
+
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (!product) return { error: "상품을 찾을 수 없습니다." };
+
+  const ticket = await prisma.supportTicket.create({
+    data: {
+      userId: session.sub,
+      category: "REPORT",
+      subject: parsed.data.subject,
+      isPublic: false,
+      productId: product.id,
+      sellerId: product.sellerId,
+      messages: {
+        create: {
+          authorId: session.sub,
+          authorRole: session.role,
+          body: parsed.data.body,
+        },
+      },
+    },
+  });
+
+  revalidatePath("/help");
+  redirect(`/help/${ticket.id}`);
+}
+
 const newOrderTicketSchema = z.object({
   category: z.enum(["ORDER_INQUIRY", "DISPUTE"]),
   orderItemId: z.string().min(1, "문의할 상품을 선택하세요."),
