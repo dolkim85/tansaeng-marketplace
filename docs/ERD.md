@@ -97,6 +97,12 @@ Product
   반려 후 재제출 전용). 입점 승인(`approveApplicationAction`)의 기존 DRAFT→ON_SALE
   일괄 전환도 같은 카테고리 기준으로 분기해, 승인 시점에 이미 등록돼 있던 검수 대상
   상품이 검수 없이 `ON_SALE`로 새는 것을 막는다.
+- `User.failedLoginAttempts`/`lockedUntil`(로그인 무차별대입 방어, 마스터 문서 16장
+  "rate limit"): 비밀번호 실패마다 증가하다가 5회째에 15분 잠금(`lockedUntil`)을 걸고
+  카운터를 0으로 되돌린다 — 잠금 만료 후 재시도하면 다시 0부터 센다. 로그인 성공 시
+  두 필드 모두 초기화. 관리자가 영구 정지시키는 `User.status=SUSPENDED`와는 독립적인
+  메커니즘(일시적·자동 vs 영구적·수동). 잠긴 계정은 비밀번호 검증 전에 즉시 거부해
+  불필요한 bcrypt 연산을 피한다. IP 기반 제한은 다루지 않음(아래 PRODUCT_DECISIONS 참고).
 - `Address`(구매자 주소록, 마스터 문서 3장 "/account — 회원/주소/동의/보안 설정"): 사용자당
   여러 주소를 저장할 수 있고 `isDefault` 하나만 항상 참(생성/기본설정/삭제 시 트랜잭션으로
   단일성을 보장). 체크아웃 폼은 기본 배송지 값을 `defaultValue`로 미리 채워주기만 하며,

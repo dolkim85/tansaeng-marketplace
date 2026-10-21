@@ -134,6 +134,12 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  /// 로그인 무차별대입(brute-force) 방어(마스터 문서 16장 "rate limit"). 연속 실패
+  /// 시 계정 단위로 일시 잠금되며, 성공 시 또는 잠금 만료 후 재시도 시 초기화된다.
+  /// 관리자가 영구 정지하는 status=SUSPENDED와는 별개의 자동/일시 메커니즘이다.
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+
   seller              Seller?
   wishlists           Wishlist[]
   sellerFollows       SellerFollow[]

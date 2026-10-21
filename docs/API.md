@@ -8,7 +8,7 @@
 
 | 파일 | 함수 | 설명 | 인가 |
 |---|---|---|---|
-| `src/server/auth/actions.ts` | `loginAction` | 로그인, 역할별 홈 경로로 redirect | 공개 |
+| `src/server/auth/actions.ts` | `loginAction` | 로그인, 역할별 홈 경로로 redirect. 5회 연속 실패 시 계정 15분 잠금(brute-force 방어) | 공개 |
 | | `registerAction` | 구매자 회원가입 | 공개 |
 | | `logoutAction` | 세션 쿠키 삭제 | 로그인 필요 |
 | `src/server/catalog/actions.ts` | `toggleWishlistAction` | 찜 추가/삭제 | 로그인 필요(내부 체크) |
