@@ -10,6 +10,17 @@ import { listPublicProductQuestions } from "@/server/support/queries";
 import { getSession } from "@/server/session";
 import { formatKRW } from "@/lib/currency";
 import { ProductBlocksView } from "@/components/productBlocks/ProductBlocksView";
+import {
+  SITE_NAME,
+  DEFAULT_OG_IMAGE,
+  absoluteUrl,
+  escapeJsonLd,
+} from "@/lib/seo";
+
+/// 검색엔진 노출 정책(마스터 문서 15.2절): 품절(SOLD_OUT)은 재입고 가능성이 있어
+/// 계속 색인하되(구조화 데이터의 Offer.availability만 OutOfStock으로 표시), 숨김
+/// (HIDDEN)·임시저장(DRAFT)·검수중(IN_REVIEW)은 아직 공개 대상이 아니므로 noindex.
+const INDEXABLE_STATUSES = new Set(["ON_SALE", "SOLD_OUT"]);
 
 export async function generateMetadata({
   params,
@@ -19,11 +30,28 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return {};
+
+  const description =
+    product.description?.slice(0, 160) ||
+    `${product.originRegion} · ${product.seller.storeName}에서 산지직송하는 ${product.title}`;
+  const primaryImage = product.media.find((m) => m.kind === "image");
+  const url = absoluteUrl(`/products/${slug}`);
+
   return {
     title: product.title,
-    description:
-      product.description?.slice(0, 160) ||
-      `${product.originRegion} · ${product.seller.storeName}에서 산지직송하는 ${product.title}`,
+    description,
+    alternates: { canonical: url },
+    robots: INDEXABLE_STATUSES.has(product.status)
+      ? undefined
+      : { index: false, follow: false },
+    openGraph: {
+      title: product.title,
+      description,
+      url,
+      siteName: SITE_NAME,
+      images: [{ url: primaryImage ? absoluteUrl(primaryImage.url) : DEFAULT_OG_IMAGE }],
+      type: "website",
+    },
   };
 }
 
@@ -51,8 +79,58 @@ export default async function ProductDetailPage({
   const { reviews, avgRating } = await listProductReviews(product.id);
   const questions = await listPublicProductQuestions(product.id);
 
+  // 구조화 데이터(마스터 문서 15.2절 "Product·Offer·Breadcrumb") — 사실 기반 값만
+  // 채운다(순위/평점 등 조작 가능성 있는 값은 실제 집계값 그대로, 임의 보정 없음).
+  // dangerouslySetInnerHTML을 쓰지만 JSON.stringify 결과만 들어가고 `<`를 전부
+  // 이스케이프(escapeJsonLd)하므로 상품명/설명에 `</script>`가 섞여도 주입 불가능
+  // — 블록 에디터처럼 임의 HTML을 그대로 렌더링하는 것과는 다른, 안전한 패턴이다.
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.title,
+    description: product.description || undefined,
+    image: primaryImage ? absoluteUrl(primaryImage.url) : undefined,
+    brand: { "@type": "Brand", name: product.seller.storeName },
+    offers: {
+      "@type": "Offer",
+      url: absoluteUrl(`/products/${slug}`),
+      priceCurrency: "KRW",
+      price: product.priceKrw,
+      availability: canBuy
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+    },
+  };
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: absoluteUrl("/") },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: product.category.name,
+        item: absoluteUrl(`/category/${product.category.slug}`),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: product.title,
+        item: absoluteUrl(`/products/${slug}`),
+      },
+    ],
+  };
+
   return (
     <section className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: escapeJsonLd(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: escapeJsonLd(breadcrumbJsonLd) }}
+      />
       <p className="font-mono text-xs text-brand-green">/products/{slug}</p>
 
       {primaryImage ? (

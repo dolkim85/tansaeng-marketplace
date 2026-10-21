@@ -1,8 +1,6 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
-
-// 실제 운영 도메인은 아직 미확정(docs/PRODUCT_DECISIONS.md 참고) — 확정되면 이 값을 교체한다.
-const BASE_URL = "http://127.0.0.1:3210";
+import { SITE_URL as BASE_URL } from "@/lib/seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [products, categories, sellers] = await Promise.all([

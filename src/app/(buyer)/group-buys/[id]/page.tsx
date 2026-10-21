@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getGroupBuyDetail, isAlerted } from "@/server/groupbuy/queries";
@@ -6,6 +7,35 @@ import { getSession } from "@/server/session";
 import { formatKRW } from "@/lib/currency";
 import { PHASE_LABEL } from "@/lib/groupBuyPhase";
 import { JoinForm } from "./JoinForm";
+import { SITE_NAME, DEFAULT_OG_IMAGE, absoluteUrl } from "@/lib/seo";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const gb = await getGroupBuyDetail(id);
+  if (!gb) return {};
+
+  const description = `${gb.product.seller.storeName}의 "${gb.title}" 공동구매 — ${formatKRW(
+    gb.priceKrw
+  )}, 목표 ${gb.targetQty}개.`;
+  const url = absoluteUrl(`/group-buys/${id}`);
+  return {
+    title: gb.title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: gb.title,
+      description,
+      url,
+      siteName: SITE_NAME,
+      images: [{ url: DEFAULT_OG_IMAGE }],
+      type: "website",
+    },
+  };
+}
 
 export default async function GroupBuyDetailPage({
   params,

@@ -4,6 +4,7 @@ import { getSellerStoreBySlug, isFollowingSeller } from "@/server/catalog/querie
 import { toggleFollowAction } from "@/server/catalog/actions";
 import { getSession } from "@/server/session";
 import { ProductCard } from "@/components/catalog/ProductCard";
+import { SITE_NAME, DEFAULT_OG_IMAGE, absoluteUrl } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -13,9 +14,20 @@ export async function generateMetadata({
   const { slug } = await params;
   const result = await getSellerStoreBySlug(slug);
   if (!result) return {};
+  const description = `${result.seller.storeName}의 산지직송 상품을 만나보세요.`;
+  const url = absoluteUrl(`/farms/${slug}`);
   return {
     title: result.seller.storeName,
-    description: `${result.seller.storeName}의 산지직송 상품을 만나보세요.`,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: result.seller.storeName,
+      description,
+      url,
+      siteName: SITE_NAME,
+      images: [{ url: DEFAULT_OG_IMAGE }],
+      type: "website",
+    },
   };
 }
 

@@ -1,5 +1,25 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { listUpcomingGroupBuys } from "@/server/groupbuy/queries";
+import { SITE_NAME, DEFAULT_OG_IMAGE, absoluteUrl } from "@/lib/seo";
+
+const TITLE = "출하예정";
+const DESCRIPTION = "곧 출하될 산지직송 상품과 공동구매 일정을 미리 확인하세요.";
+const URL = absoluteUrl("/upcoming");
+
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: URL },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: URL,
+    siteName: SITE_NAME,
+    images: [{ url: DEFAULT_OG_IMAGE }],
+    type: "website",
+  },
+};
 
 function dDay(openAt: Date): string {
   const diffMs = openAt.getTime() - Date.now();

@@ -1,7 +1,27 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { listAllGroupBuys } from "@/server/groupbuy/queries";
 import { PHASE_LABEL } from "@/lib/groupBuyPhase";
 import { formatKRW } from "@/lib/currency";
+import { SITE_NAME, DEFAULT_OG_IMAGE, absoluteUrl } from "@/lib/seo";
+
+const TITLE = "공동구매 모아보기";
+const DESCRIPTION = "산지에서 바로, 진행 중이거나 곧 열리는 공동구매를 한눈에 확인하세요.";
+const URL = absoluteUrl("/group-buys");
+
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: URL },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: URL,
+    siteName: SITE_NAME,
+    images: [{ url: DEFAULT_OG_IMAGE }],
+    type: "website",
+  },
+};
 
 export default async function GroupBuysPage() {
   const groupBuys = await listAllGroupBuys();

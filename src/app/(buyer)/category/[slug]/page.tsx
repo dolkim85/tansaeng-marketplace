@@ -4,6 +4,7 @@ import { getCategoryWithProducts } from "@/server/catalog/queries";
 import { getActiveCategoryTopAd } from "@/server/ads/queries";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { AdCard } from "@/components/catalog/AdCard";
+import { SITE_NAME, DEFAULT_OG_IMAGE, absoluteUrl } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -13,9 +14,20 @@ export async function generateMetadata({
   const { slug } = await params;
   const result = await getCategoryWithProducts(slug);
   if (!result) return {};
+  const description = `${result.category.name} 카테고리의 산지직송 상품을 만나보세요.`;
+  const url = absoluteUrl(`/category/${slug}`);
   return {
     title: result.category.name,
-    description: `${result.category.name} 카테고리의 산지직송 상품을 만나보세요.`,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: result.category.name,
+      description,
+      url,
+      siteName: SITE_NAME,
+      images: [{ url: DEFAULT_OG_IMAGE }],
+      type: "website",
+    },
   };
 }
 

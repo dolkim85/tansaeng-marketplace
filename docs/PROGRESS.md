@@ -1496,3 +1496,57 @@ cancelMfaAction 추가), `src/server/mfa/{actions,queries}.ts`(신규),
 **다음 단계:** 사용자가 지정하는 다음 항목으로 진행. 마스터 문서 16장의 순수 코드
 작업(rate limit, admin MFA)은 모두 완료 — 남은 항목은 법무/세무 검토 또는
 M4(실배포) 단계.
+
+---
+
+## SEO 메타데이터 고도화 (2026-10-21, 완료)
+
+**완료 기능:** 마스터 문서 15.2절("SSR/메타 태그/캐노니컬/사이트맵", "Product·Offer·
+Breadcrumb 구조화 데이터", "품절/숨김 상태별 노출 정책", "OG 이미지/제목/가격/설명")
+전체 대응. 이전엔 상품/카테고리/농장 3개 페이지에만 제목·설명만 있던 상태.
+- `src/lib/seo.ts`(신규): `SITE_URL`/`SITE_NAME`/`DEFAULT_OG_IMAGE`/`absoluteUrl`/
+  `escapeJsonLd` — `sitemap.ts`도 이 파일의 `SITE_URL`을 공유하도록 통합
+- 상품 상세페이지: OG 태그(제목/설명/이미지/url) + 캐노니컬 URL + **상태별 noindex**
+  (`HIDDEN`/`DRAFT`/`IN_REVIEW`만 차단, `ON_SALE`/`SOLD_OUT`은 색인 유지) +
+  **구조화 데이터**(`Product`+`BreadcrumbList` JSON-LD, `Offer.availability`가 재고
+  여부를 반영)
+- 카테고리(`/category/[slug]`)·농장 스토어(`/farms/[slug]`) 페이지: OG 태그 + 캐노니컬
+  URL 추가(기존 제목/설명 유지)
+- 신규로 메타데이터가 전혀 없던 공개 목록 페이지 4곳에 제목/설명/OG/캐노니컬 추가:
+  `/categories`, `/group-buys`, `/group-buys/[id]`, `/upcoming`
+- 루트 레이아웃(`src/app/layout.tsx`)에 `metadataBase` + 기본 OG 태그 추가 — 홈페이지
+  및 아직 개별 OG가 없는 페이지의 공유 미리보기 기본값 역할
+
+**미완료 기능과 이유:** 공동구매 상세페이지는 JSON-LD를 추가하지 않음(목표 수량
+달성 시에만 성사되는 조건부 거래라 `Product`/`Offer` 스키마로 정확히 표현하기
+애매해 사실과 다른 신호를 줄 위험 — PRODUCT_DECISIONS.md 참고). 전용 OG 이미지
+에셋(1200×630)은 디자인 작업 범위 밖이라 사이트 로고로 폴백.
+
+**실행한 테스트/결과:**
+- `tsc --noEmit`, `eslint src`, `next build`(49라우트, 라우트 추가 없음), `vitest run`
+  (49건, 회귀 없음) 전부 통과
+- Playwright(Python) E2E: 홈페이지 OG 태그 확인 → 상품 상세페이지의 title/캐노니컬/
+  OG(제목에 실제 상품명 포함, canonical href가 정확한 절대 URL인지) 확인 → JSON-LD
+  스크립트가 정확히 2개(`Product`+`BreadcrumbList`)이고 파싱 가능한 유효 JSON인지,
+  `Offer.priceCurrency=KRW`/`availability`가 올바른 schema.org URI인지 확인 →
+  `/categories`·`/group-buys`·`/upcoming`·`/category/vegetables`·`/farms/approved-farm`
+  전부 캐노니컬+OG 제목 존재 확인 → **상태별 noindex 동작을 실제로 검증**: 테스트
+  상품을 일시적으로 `HIDDEN`으로 바꿔 `<meta name="robots" content="noindex, nofollow">`
+  가 실제로 렌더링되는지 확인 → 다시 `ON_SALE`로 되돌려 해당 메타 태그가 사라지는지
+  확인(상태 전환에 따라 동적으로 바뀜을 증명) → 테스트 후 상품 상태 원상복구
+- JSON-LD 이스케이프(`escapeJsonLd`)는 코드 리뷰로 안전성 확인(`<` → `<` 치환이
+  `JSON.stringify` 직후 적용되어 어떤 입력값에도 `</script>` 조기 종료가 불가능함)
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `src/lib/seo.ts`(신규), `src/app/sitemap.ts`(공유 상수로 전환),
+`src/app/layout.tsx`(metadataBase/기본 OG), `src/app/(buyer)/products/[slug]/page.tsx`
+(OG/캐노니컬/noindex/JSON-LD), `src/app/(buyer)/category/[slug]/page.tsx`,
+`src/app/(buyer)/farms/[slug]/page.tsx`,
+`src/app/(buyer)/{categories,group-buys,group-buys/[id],upcoming}/page.tsx`(신규 메타데이터),
+`docs/{PRODUCT_DECISIONS,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자가 지정하는 다음 항목으로 진행. 마스터 문서 M3 "접근성/SEO/보안/
+대량주문·동시성 테스트" 체크리스트 항목이 모두 완료됨.

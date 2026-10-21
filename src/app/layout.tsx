@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
+import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,16 +14,28 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const DEFAULT_DESCRIPTION = "산지 직거래·공동구매 플랫폼 탄생 (로컬 개발 중)";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "탄생 | TANSAENG",
     template: "%s | 탄생",
   },
-  description: "산지 직거래·공동구매 플랫폼 탄생 (로컬 개발 중)",
+  description: DEFAULT_DESCRIPTION,
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icons/icon-192.png",
     apple: "/icons/icon-192.png",
+  },
+  openGraph: {
+    title: "탄생 | TANSAENG",
+    description: DEFAULT_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    images: [{ url: DEFAULT_OG_IMAGE }],
+    type: "website",
+    locale: "ko_KR",
   },
 };
 

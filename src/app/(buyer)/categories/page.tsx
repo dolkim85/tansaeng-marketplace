@@ -1,5 +1,25 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { listTopCategories } from "@/server/catalog/queries";
+import { SITE_NAME, DEFAULT_OG_IMAGE, absoluteUrl } from "@/lib/seo";
+
+const TITLE = "전체 카테고리";
+const DESCRIPTION = "농산물·축산물·수산물 등 탄생의 전체 카테고리를 둘러보세요.";
+const URL = absoluteUrl("/categories");
+
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: URL },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: URL,
+    siteName: SITE_NAME,
+    images: [{ url: DEFAULT_OG_IMAGE }],
+    type: "website",
+  },
+};
 
 export default async function CategoriesPage() {
   const categories = await listTopCategories();
