@@ -1430,3 +1430,69 @@ M4 이전 범위 등).
 **다음 단계:** 사용자가 지정하는 다음 항목으로 진행. 마스터 문서 16장 보안 체크리스트
 중 남은 순수 코드 작업은 "관리자 2단계 인증(TOTP MFA)" 정도이며, 나머지는 법무/세무
 검토 또는 M4(실배포) 단계 항목.
+
+---
+
+## 관리자 2단계 인증(TOTP MFA) (2026-10-21, 완료)
+
+**완료 기능:** 마스터 문서 16장 "admin MFA" 요건 대응(선택/opt-in).
+- `src/lib/totp.ts`: RFC 6238 TOTP를 Node 내장 `crypto`만으로 직접 구현(base32
+  인코딩/디코딩, HOTP, ±1 스텝 허용 검증, otpauth:// URI 생성, 복구 코드 생성).
+  외부 TOTP 라이브러리 의존성 추가 없음(단, QR 이미지 렌더링용으로 `qrcode` 패키지는
+  채택 — 알고리즘이 아닌 포맷 변환이라 자체 구현 이점이 작음)
+- `User.totpSecret`/`totpEnabled`/`totpRecoveryCodes` 추가(마이그레이션
+  `20261021013326_add_admin_totp_mfa`)
+- `src/server/mfa/actions.ts`: `startMfaEnrollmentAction`(secret 발급)/
+  `confirmMfaEnrollmentAction`(코드 확인 후 활성화 + 복구 코드 8개 1회 발급)/
+  `cancelMfaEnrollmentAction`(미확정 등록 취소)/`disableMfaAction`(현재 코드 확인
+  필수)/`regenerateRecoveryCodesAction`
+- `/admin/settings/mfa`: QR 코드(`qrcode`로 서버에서 data URL 생성, `<img>` 사용 —
+  `dangerouslySetInnerHTML` 미사용) + 수동 입력 키 + 상태별(미설정/등록중/사용중)
+  화면을 `MfaManager`(클라이언트 컴포넌트)가 `useActionState` 결과로부터 직접
+  파생시켜 렌더링(이펙트에서 setState하지 않음 — React 컴파일러 린트 규칙 준수)
+- `loginAction` 수정: 비밀번호 검증 통과 후 관리자이고 `totpEnabled=true`이면 실제
+  세션 대신 5분 만료 `mfa_pending` 쿠키 발급 후 `/auth/mfa`로 리다이렉트
+- `verifyMfaAction`/`cancelMfaAction`: TOTP 코드 또는 1회용 복구 코드 확인 후에만
+  진짜 세션 발급. 복구 코드는 사용 즉시 배열에서 제거(재사용 불가)
+- `/auth/mfa`: 2단계 인증 입력 화면(코드/복구 코드 겸용 입력란 + 취소)
+
+**미완료 기능과 이유:** 모든 관리자에게 강제 적용하지 않음(선택 사항으로 범위를
+한정 — PRODUCT_DECISIONS.md 참고). 관리자 목록에서 "누가 MFA를 켰는지" 보여주는
+운영 화면은 만들지 않음(`/admin/users` 자체가 없음, 범위 밖).
+
+**실행한 테스트/결과:**
+- `tests/unit/totp.test.ts` 신규 9건 포함 `vitest run` 전체 49건 통과. HOTP 핵심
+  로직을 RFC 6238 Appendix B 공식 테스트 벡터 2개(SHA1, counter=1/37037036)와
+  정확히 일치하는지 직접 대조
+- `tsc --noEmit`, `eslint src`, `next build`(49라우트, `/admin/settings/mfa`·
+  `/auth/mfa` 2개 신규 라우트 포함) 전부 통과
+- Playwright(Python) E2E(전용 테스트 관리자 계정, `admin_demo` 시드 계정은 전혀
+  건드리지 않음): MFA 미설정 시 평문 로그인이 바로 `/admin`으로 가는지 확인 →
+  QR/수동 입력 키로 등록 시작 → 올바른 코드로 확인 시 활성화 + 복구 코드 8개 1회
+  노출 확인 → 로그아웃 후 재로그인 시 `/auth/mfa`로만 가고 **세션이 생기지 않음**을
+  `/admin` 직접 접근 차단으로 증명 → 틀린 코드 거부 확인 → 올바른 코드로 세션 발급
+  확인 → 복구 코드로도 세션 발급 가능하고 **1회용**(재사용 거부)임을 확인 → 현재
+  코드로 비활성화 → 비활성화 후 평문 로그인이 다시 `/admin`으로 바로 가는지 확인
+- 디버깅 중 실제 버그 2건을 발견해 수정: (1) `confirmMfaEnrollmentAction`이 현재
+  경로를 재검증하면 복구 코드 1회 노출 화면이 사용자가 보기도 전에 다음 화면으로
+  넘어가 버림 → 해당 재검증 제거, (2) `disableMfaAction`의 성공 메시지가 같은
+  이유로 전혀 보이지 않음 → 클라이언트 state 대신 리다이렉트+쿼리 파라미터 패턴으로
+  전환(`/admin/settings?mfaDisabled=1`)
+- 테스트 전용 관리자 계정은 테스트 종료 후 DB에서 삭제
+
+**접속 URL(로컬만):** `http://127.0.0.1:3210`
+
+**생성/수정한 파일:** `prisma/schema.prisma`(+마이그레이션), `src/lib/totp.ts`(신규),
+`src/lib/auth.ts`(mfa_pending 쿠키 서명/검증 추가), `src/server/session.ts`(쿠키
+헬퍼 추가), `src/server/auth/actions.ts`(loginAction 수정, verifyMfaAction/
+cancelMfaAction 추가), `src/server/mfa/{actions,queries}.ts`(신규),
+`src/app/auth/mfa/{page,MfaForm}.tsx`(신규),
+`src/app/admin/settings/mfa/{page,MfaManager}.tsx`(신규), `src/app/admin/settings/page.tsx`,
+`tests/unit/totp.test.ts`(신규), `package.json`(+qrcode, +@types/qrcode),
+`docs/{PRODUCT_DECISIONS,ERD,API,PROGRESS}.md`
+
+**환경제어 및 기존 홈페이지 변경 여부:** 0건 확인
+**실결제/실알림/온라인 배포:** 실행 안 함
+**다음 단계:** 사용자가 지정하는 다음 항목으로 진행. 마스터 문서 16장의 순수 코드
+작업(rate limit, admin MFA)은 모두 완료 — 남은 항목은 법무/세무 검토 또는
+M4(실배포) 단계.

@@ -103,6 +103,17 @@ Product
   두 필드 모두 초기화. 관리자가 영구 정지시키는 `User.status=SUSPENDED`와는 독립적인
   메커니즘(일시적·자동 vs 영구적·수동). 잠긴 계정은 비밀번호 검증 전에 즉시 거부해
   불필요한 bcrypt 연산을 피한다. IP 기반 제한은 다루지 않음(아래 PRODUCT_DECISIONS 참고).
+- `User.totpSecret`/`totpEnabled`/`totpRecoveryCodes`(관리자 2단계 인증, 마스터 문서
+  16장 "admin MFA"): ADMIN/SUPER_ADMIN이 선택적으로 활성화. `totpSecret`은 base32
+  문자열(`src/lib/totp.ts`가 RFC 6238을 외부 라이브러리 없이 Node `crypto`만으로 구현),
+  `totpEnabled=false`인 동안은 "등록 진행 중(코드로 아직 확정 안 됨)" 상태를 의미한다.
+  `totpRecoveryCodes`는 평문이 아니라 bcrypt 해시 배열로 저장되며(`User.passwordHash`와
+  동일한 해시 함수 재사용), 1회성으로 발급 화면에만 평문이 노출되고 사용된 코드는
+  배열에서 즉시 제거된다. 로그인 시 비밀번호 검증 후 `loginAction`이 세션 쿠키 대신
+  5분 만료 `mfa_pending` 쿠키(별도 JWT, `src/lib/auth.ts`의 `signMfaPending`)를 발급해
+  `/auth/mfa`로 보내고, `verifyMfaAction`이 TOTP 코드 또는 복구 코드를 확인한 뒤에만
+  진짜 세션을 만든다 — `mfa_pending` 쿠키만으로는 `proxy.ts`가 보호하는 어떤 라우트도
+  통과할 수 없다(`SESSION_COOKIE_NAME`만 검사하므로).
 - `Address`(구매자 주소록, 마스터 문서 3장 "/account — 회원/주소/동의/보안 설정"): 사용자당
   여러 주소를 저장할 수 있고 `isDefault` 하나만 항상 참(생성/기본설정/삭제 시 트랜잭션으로
   단일성을 보장). 체크아웃 폼은 기본 배송지 값을 `defaultValue`로 미리 채워주기만 하며,

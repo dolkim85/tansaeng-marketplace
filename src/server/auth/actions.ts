@@ -4,7 +4,16 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/auth";
-import { createSessionCookie, clearSessionCookie } from "@/server/session";
+import { verifyTotpCode } from "@/lib/totp";
+import {
+  createSessionCookie,
+  clearSessionCookie,
+  createMfaPendingCookie,
+  getMfaPendingUserId,
+  clearMfaPendingCookie,
+} from "@/server/session";
+
+const ADMIN_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
 
 export type AuthFormState = { error?: string } | undefined;
 
@@ -93,8 +102,74 @@ export async function loginAction(
     });
   }
 
+  // 관리자가 2단계 인증을 활성화한 경우, 바로 세션을 만들지 않고 TOTP 확인 단계로
+  // 보낸다(마스터 문서 16장 "admin MFA"). 비밀번호만으로는 세션이 생기지 않는다.
+  if (ADMIN_ROLES.has(user.role) && user.totpEnabled) {
+    await createMfaPendingCookie(user.id);
+    redirect("/auth/mfa");
+  }
+
   await createSessionCookie({ sub: user.id, role: user.role, name: user.name });
   redirect(homePathForRole(user.role));
+}
+
+const mfaSchema = z.object({
+  code: z.string().min(1, "인증번호를 입력하세요."),
+});
+
+/// 2단계 인증 확인 — loginAction에서 발급한 mfa_pending 쿠키가 있어야만 진입 가능.
+/// TOTP 코드 또는 1회용 복구 코드 중 하나로 통과할 수 있다.
+export async function verifyMfaAction(
+  _prevState: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const userId = await getMfaPendingUserId();
+  if (!userId) {
+    redirect("/auth/login");
+  }
+
+  const parsed = mfaSchema.safeParse({ code: formData.get("code") });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "입력값을 확인하세요." };
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user || !user.totpEnabled || !user.totpSecret) {
+    await clearMfaPendingCookie();
+    redirect("/auth/login");
+  }
+
+  const normalizedCode = parsed.data.code.trim();
+  const totpOk = verifyTotpCode(user.totpSecret, normalizedCode);
+
+  let recoveryUsed = false;
+  if (!totpOk) {
+    for (const hash of user.totpRecoveryCodes) {
+      if (await verifyPassword(normalizedCode, hash)) {
+        recoveryUsed = true;
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            totpRecoveryCodes: user.totpRecoveryCodes.filter((h) => h !== hash),
+          },
+        });
+        break;
+      }
+    }
+  }
+
+  if (!totpOk && !recoveryUsed) {
+    return { error: "인증번호가 올바르지 않습니다." };
+  }
+
+  await clearMfaPendingCookie();
+  await createSessionCookie({ sub: user.id, role: user.role, name: user.name });
+  redirect(homePathForRole(user.role));
+}
+
+export async function cancelMfaAction(): Promise<void> {
+  await clearMfaPendingCookie();
+  redirect("/auth/login");
 }
 
 export async function registerAction(

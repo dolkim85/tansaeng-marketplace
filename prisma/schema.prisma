@@ -140,6 +140,14 @@ model User {
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
 
+  /// 관리자 2단계 인증(TOTP, 마스터 문서 16장 "admin MFA"). 선택(opt-in) 적용 —
+  /// ADMIN/SUPER_ADMIN이 /admin/settings/mfa에서 스스로 활성화한다. totpSecret은
+  /// totpEnabled=false인 동안은 "등록 진행 중(미확정)" 상태를 의미한다. 복구 코드는
+  /// bcrypt 해시로만 저장하고 평문은 발급 시 한 번만 화면에 노출한다.
+  totpSecret        String?
+  totpEnabled       Boolean  @default(false)
+  totpRecoveryCodes String[] @default([])
+
   seller              Seller?
   wishlists           Wishlist[]
   sellerFollows       SellerFollow[]

@@ -1,5 +1,8 @@
+import Link from "next/link";
 import { getPlatformSettings } from "@/server/platformSettings/queries";
 import { listPolicyVersions } from "@/server/policyVersions/queries";
+import { getSession } from "@/server/session";
+import { getMfaStatus } from "@/server/mfa/queries";
 import { CommissionRateForm } from "./CommissionRateForm";
 import { PolicyVersionForm } from "./PolicyVersionForm";
 
@@ -22,10 +25,17 @@ const OPERATIONAL_FLAGS = [
   },
 ] as const;
 
-export default async function AdminSettingsPage() {
-  const [settings, policyVersions] = await Promise.all([
+export default async function AdminSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mfaDisabled?: string }>;
+}) {
+  const session = await getSession();
+  const { mfaDisabled } = await searchParams;
+  const [settings, policyVersions, mfaStatus] = await Promise.all([
     getPlatformSettings(),
     listPolicyVersions(),
+    session ? getMfaStatus(session.sub) : Promise.resolve(null),
   ]);
 
   return (
@@ -79,6 +89,37 @@ export default async function AdminSettingsPage() {
         </ul>
       )}
       <PolicyVersionForm />
+
+      <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
+        내 계정 보안 (2단계 인증)
+      </h2>
+      {mfaDisabled === "1" && (
+        <p className="mt-1 rounded-md bg-brand-deepgreen/10 p-3 text-sm text-brand-deepgreen">
+          2단계 인증을 비활성화했습니다.
+        </p>
+      )}
+      <p className="mt-1 text-xs text-brand-deepgreen/70">
+        계정 탈취 위험을 줄이기 위해 로그인 시 인증 앱의 6자리 코드를 한 번 더
+        확인하도록 설정할 수 있습니다(선택 사항, 마스터 문서 16장 &quot;admin MFA&quot;).
+      </p>
+      <p className="mt-2 text-sm">
+        상태:{" "}
+        <span
+          className={
+            mfaStatus?.enabled
+              ? "font-semibold text-brand-green"
+              : "font-semibold text-brand-deepgreen/70"
+          }
+        >
+          {mfaStatus?.enabled ? "사용 중" : "사용 안 함"}
+        </span>{" "}
+        <Link
+          href="/admin/settings/mfa"
+          className="ml-2 text-brand-green underline-offset-2 hover:underline"
+        >
+          {mfaStatus?.enabled ? "관리" : "설정하기"} →
+        </Link>
+      </p>
 
       <h2 className="mt-8 text-base font-semibold text-brand-deepgreen">
         운영설정 (읽기 전용)

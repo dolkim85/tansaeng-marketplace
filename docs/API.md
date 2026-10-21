@@ -8,9 +8,16 @@
 
 | 파일 | 함수 | 설명 | 인가 |
 |---|---|---|---|
-| `src/server/auth/actions.ts` | `loginAction` | 로그인, 역할별 홈 경로로 redirect. 5회 연속 실패 시 계정 15분 잠금(brute-force 방어) | 공개 |
+| `src/server/auth/actions.ts` | `loginAction` | 로그인, 역할별 홈 경로로 redirect. 5회 연속 실패 시 계정 15분 잠금(brute-force 방어). 관리자가 2단계 인증을 켜둔 경우 세션 대신 mfa_pending 쿠키를 발급하고 /auth/mfa로 보냄 | 공개 |
+| | `verifyMfaAction` | 2단계 인증 코드(또는 1회용 복구 코드) 확인 후 세션 발급 | mfa_pending 쿠키 필요 |
+| | `cancelMfaAction` | 2단계 인증 대기 취소, 로그인 화면으로 복귀 | mfa_pending 쿠키 필요 |
 | | `registerAction` | 구매자 회원가입 | 공개 |
 | | `logoutAction` | 세션 쿠키 삭제 | 로그인 필요 |
+| `src/server/mfa/actions.ts` | `startMfaEnrollmentAction` | TOTP secret 새로 발급(미확정 상태로 시작) | ADMIN 이상 |
+| | `confirmMfaEnrollmentAction` | 코드 확인 후 2단계 인증 활성화, 복구 코드 8개 1회성 반환 | ADMIN 이상 |
+| | `cancelMfaEnrollmentAction` | 미확정 등록 취소 | ADMIN 이상 |
+| | `disableMfaAction` | 2단계 인증 비활성화(현재 코드/복구 코드 확인 필수) | ADMIN 이상 |
+| | `regenerateRecoveryCodesAction` | 복구 코드 재발급(기존 코드 전부 무효화) | ADMIN 이상 |
 | `src/server/catalog/actions.ts` | `toggleWishlistAction` | 찜 추가/삭제 | 로그인 필요(내부 체크) |
 | | `toggleFollowAction` | 생산자 팔로우 추가/삭제 | 로그인 필요(내부 체크) |
 | `src/server/seller/actions.ts` | `submitSellerApplicationAction` | 입점 신청 생성/재신청 | 로그인 필요 |
